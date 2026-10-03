@@ -1,31 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
-import * as api from './api.js';
+import { useState } from 'react';
 
-// Your likes/dislikes/notes, stored in MongoDB. Calls onAuth when the server wants the app password.
-export default function useReactions(onAuth) {
-  const [all, setAll] = useState({});
-  const ref = useRef(all);
-  ref.current = all;
-  useEffect(() => { api.getReactions().then(setAll).catch(() => {}); }, []);
+// Likes/dislikes and notes, saved in this browser (no database)
+const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
-  const save = async (k, optimistic, req) => {
-    const prev = ref.current[k];
-    setAll(a => ({ ...a, [k]: optimistic }));
-    try {
-      const doc = await req();
-      setAll(a => ({ ...a, [k]: { vote: doc.vote, notes: doc.notes } }));
-    } catch (e) {
-      setAll(a => ({ ...a, [k]: prev }));
-      if (e.status === 401) onAuth(() => save(k, optimistic, req));
-    }
-  };
-  const cur = k => ref.current[k] || { vote: 0, notes: [] };
-
+export default function useReactions() {
+  const [votes, setVotes] = useState(() => read('tn_votes', {}));
+  const [notes, setNotes] = useState(() => read('tn_notes', {}));
   return {
-    all,
-    mine: k => cur(k).vote,
-    notes: k => cur(k).notes,
-    vote(k, v) { const next = cur(k).vote === v ? 0 : v; save(k, { ...cur(k), vote: next }, () => api.vote(k, next)); },
-    note(k, text) { save(k, { ...cur(k), notes: [...cur(k).notes, { text, ts: Date.now() }] }, () => api.addNote(k, text)); },
+    votes,
+    mine: k => votes[k] || 0,
+    notes: k => notes[k] || [],
+    vote(k, v) { const nx = { ...votes, [k]: votes[k] === v ? 0 : v }; setVotes(nx); save('tn_votes', nx); },
+    note(k, text) { const nx = { ...notes, [k]: [...(notes[k] || []), { text, ts: Date.now() }] }; setNotes(nx); save('tn_notes', nx); },
   };
 }

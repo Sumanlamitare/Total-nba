@@ -86,7 +86,5 @@ footer svg{width:24px;margin:0 8px}
 .ci input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:10px 16px;color:var(--ink);font:14px system-ui;outline:none}
 .ci input:focus{border-color:rgba(227,196,140,.5)}
 .ci button{padding:10px 18px;border-radius:20px;background:var(--gold);color:var(--bg);font:600 11px system-ui;letter-spacing:.25em}
-.pw .ci{margin-top:0}
 .cm .cx{position:absolute;top:14px;right:20px;font-size:16px;color:var(--dim);padding:4px 8px}
 .cl{padding-right:32px}
-#ov .ci button{font:600 11px system-ui;letter-spacing:.25em;padding:10px 18px;color:var(--bg)}

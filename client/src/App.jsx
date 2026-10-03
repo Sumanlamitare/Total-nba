@@ -17,22 +17,21 @@ export default function App() {
   const [pos, setPos] = useState(0);
   const [ov, setOv] = useState(null);
   const [err, setErr] = useState('');
-  const [pw, setPw] = useState(null);       // pending action waiting for the app password
   const pan = useRef(null), posR = useRef(0), lenR = useRef(1), lastOv = useRef(null);
-  const rx = useReactions(retry => { setPw(() => retry); setOv('pw'); });
+  const rx = useReactions();
   lenR.current = Math.max(1, data.length);
 
-  const load = (s, m) => api.build(s, m.seasons, rx.all).catch(e => { setErr('Could not load data (' + e.message + ')'); return []; });
+  const load = (s, m) => api.build(s, m, rx.votes).catch(e => { setErr('Could not load data (' + e.message + ')'); return []; });
 
   // boot: load meta, show the latest game day
   useEffect(() => {
     const t0 = Date.now();
     (async () => {
-      let m = { seasons: [], dates: [] };
-      try { m = await api.getMeta(); } catch (e) { setErr('Server unreachable'); }
+      const [m] = await Promise.all([api.getMeta(), api.loadPhotos()]);
       m.has = new Set(m.dates);
       setMeta(m);
-      const s = { season: false, week: false, stat: 'POINTS', si: 0, date: m.dates.length ? parse(m.dates.at(-1)) : new Date() };
+      // open on the latest game day; while history is still loading with no days yet, open on season leaders
+      const s = { season: !m.dates.length && m.seasons.length > 0, week: false, stat: 'POINTS', si: 0, date: m.dates.length ? parse(m.dates.at(-1)) : new Date() };
       const rows = await load(s, m);
       setSt(s); setView(s); setData(rows);
       setTimeout(() => setStage(1), Math.max(0, 3500 - (Date.now() - t0)));
@@ -96,22 +95,12 @@ export default function App() {
   const list = (items, cur, k) => items.map((x, i) => (
     <button key={x} className={i === cur ? 'a' : ''} onClick={e => { e.stopPropagation(); pick(k, k === 'si' ? i : x); }}>{k === 'si' ? seasonName(x) : x}</button>
   ));
-  const submitPw = e => {
-    e.preventDefault();
-    api.setPassword(new FormData(e.target).get('pw'));
-    setOv(null); pw?.(); setPw(null);
-  };
   let overlay = null;
   if (shown === 'stat') overlay = list(Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
   else if (shown === 'season') overlay = list(meta.seasons, st.si, 'si');
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
-  else if (shown === 'pw') overlay = (
-    <form className="cal pw" onClick={e => e.stopPropagation()} onSubmit={submitPw}>
-      <div className="hd"><span>App password</span></div>
-      <div className="ci"><input name="pw" type="password" autoFocus placeholder="Password" /><button>SAVE</button></div>
-    </form>
-  );
-  const emptyMsg = !meta.dates.length ? 'NO DATA YET — THE FIRST SYNC IS STILL RUNNING, REFRESH IN A MINUTE'
+  const emptyMsg = !meta.dates.length && !meta.seasons.length ? 'NO DATA YET — THE FIRST UPDATE IS STILL RUNNING'
+    : !view.season && !view.week && meta.backfillLeft ? 'NOT LOADED YET — HISTORY FILLS IN DAILY (' + meta.backfillLeft + ' GAMES TO GO)'
     : view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
 
   return (
@@ -147,8 +136,8 @@ export default function App() {
           <button onClick={() => go(pos + 1)}><Icon d="M5 12h14m-6-6l6 6-6 6" /></button>
         </footer>
       </div>
-      <div id="ov" className={ov ? 'on' : ''} onClick={() => { setOv(null); setPw(null); }}>{overlay}</div>
-      <div id="note">{err || 'TotalNBA · ESPN data' + (meta.updated ? ' · updated ' + ago(meta.updated) : '')}</div>
+      <div id="ov" className={ov ? 'on' : ''} onClick={() => setOv(null)}>{overlay}</div>
+      <div id="note">{err || 'TotalNBA · Big Balls Data' + (meta.updated ? ' · updated ' + ago(meta.updated) : '')}</div>
     </>
   );
 }

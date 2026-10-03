@@ -1,40 +1,36 @@
 # TotalNBA
 
-Personal NBA leaderboard built on the MERN stack: top 5 single-game performances per day, regular-season
-totals leaders, and a "performance of the week" picked from your own likes. Real player headshots.
+Personal NBA leaderboard built with React: the top 5 single-game performances each day, season leaders
+(per game, regular season), and a "performance of the week" picked from your own likes. Real data from the
+[Big Balls Data API](https://bigballsdata.com/docs/introduction); player photos from ESPN's headshot CDN.
 
-| Layer | What |
-| --- | --- |
-| **MongoDB** | Games, every player box score line, your likes/dislikes/notes |
-| **Express** | `/api` routes (`server/routes.js`) + serves the built React app |
-| **React** | Vite app in `client/` |
-| **Node** | Sync job (`server/ingest/`) pulls box scores from ESPN's free public API |
+## How it works (no database)
 
-Data refreshes automatically: the server syncs in the background when data is over 2 hours old, and the
-`Sync stats` GitHub Action syncs every 2 hours so it stays fresh while the free server sleeps. The first sync
-backfills from the 2023–24 season (about a minute).
+- `scripts/fetch-bbs.mjs` runs in GitHub Actions every 3 hours with the `BBS_API_KEY` secret, saves JSON
+  into `data/` and commits it. The key never reaches the browser.
+- `.github/workflows/deploy.yml` then builds the React app (`client/`, Vite) and publishes it with `data/`
+  to GitHub Pages.
+- Likes, dislikes and notes are saved in your browser.
 
-## Run locally
+## Request budget
+
+The free plan allows **100 requests/minute and 250/day (500 with GitHub)**, with the daily window resetting at
+00:00 UTC ([rate limits](https://bigballsdata.com/docs/rate-limits)). The fetcher counts its own requests per
+UTC day, stops at 450, and spaces calls ~0.7s apart.
+
+| Data | Endpoint | Cost |
+| --- | --- | --- |
+| Season leaders, 2019-20 onward | `/v1/nba/leaders` | 6 per season (once; current season daily) |
+| Recent days | `/v1/matches?league=nba&date=` + `/v1/live-stats/basketball/{id}/players` | 1 per day + 1 per game |
+| History (2023-24 to 2025-26) | `/v1/nba/games?season=` + box score per game | ~1,300 per season |
+
+Daily history therefore fills in over roughly a week of quota, newest games first. Season leaders load on the
+first run.
+
+## Local preview
 
 ```bash
-cp .env.example .env      # set MONGODB_URI (local mongod or Atlas)
 npm install
-npm run build && npm start   # http://localhost:5000
-# or: npm run dev            # Vite dev server with API proxy
+BBS_API_KEY=bbs_... npm run fetch   # optional: pull data locally
+npm run preview                      # builds, copies data/, serves the site
 ```
-
-`npm run ingest -- --from 2023-10-24 --refresh 3` runs a sync by hand.
-
-## Deploy (free)
-
-1. **MongoDB Atlas**: create a free M0 cluster, a database user, allow access from `0.0.0.0/0`, copy the connection string.
-2. **Render**: New → Blueprint → this repo (`render.yaml`). Set `MONGODB_URI`, `APP_PASSWORD` (protects likes/notes) and `BBS_API_KEY`.
-3. **GitHub** → Settings → Secrets and variables → Actions: add `MONGODB_URI` and `BBS_API_KEY` for the scheduled sync.
-
-## API
-
-- `GET /api/meta`: dates with games, seasons, last update
-- `GET /api/day/:date?stat=pts|reb|ast|stl|blk|tpm`: top 5 lines that day
-- `GET /api/season/:season?stat=`: regular-season totals leaders (e.g. `2025-26`)
-- `GET /api/week/:date`: daily top-5 lines for that Monday–Sunday week
-- `GET /api/reactions`, `PUT /api/reactions/:key/vote`, `POST /api/reactions/:key/notes` (need `x-app-password` when `APP_PASSWORD` is set)
