@@ -88,3 +88,30 @@ footer svg{width:24px;margin:0 8px}
 .ci button{padding:10px 18px;border-radius:20px;background:var(--gold);color:var(--bg);font:600 11px system-ui;letter-spacing:.25em}
 .cm .cx{position:absolute;top:14px;right:20px;font-size:16px;color:var(--dim);padding:4px 8px}
 .cl{padding-right:32px}
+
+/* Phone layout: photo on top at a fixed height, text stacked below with room to breathe */
+.lb{letter-spacing:.4em}
+.inf{gap:16px 40px}
+@media(max-width:800px){
+  #panel{padding:8px 5%}
+  .slide{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:16px;padding:22px 22px 20px;border-radius:28px;margin:0 6px}
+  .frame{height:min(28vh,230px);border-radius:20px}
+  .txt{justify-content:flex-start;overflow:visible}
+  .rk{gap:10px}.rk b{font-size:28px}
+  .nm{font-size:clamp(22px,6.4vw,30px);line-height:1.15;margin:10px 0 2px}
+  .num{font-size:clamp(46px,10vh,88px);line-height:1}
+  .lb{font-size:12px;letter-spacing:.3em;margin-top:6px}
+  .inf{gap:10px 26px;margin-top:14px}
+  .inf small{font-size:10px;letter-spacing:.22em;margin-bottom:3px}
+  .inf span{font-size:15px}
+  .rx{gap:10px}.rx .rb2{padding:8px 14px}
+  header{padding:12px 16px 2px;gap:6px}
+  #stat{font-size:22px}
+}
+@media(max-width:800px) and (max-height:700px){
+  .frame{height:20vh}
+  .num{font-size:clamp(40px,8.5vh,70px)}
+  .nm{margin-top:6px}
+  .inf{margin-top:8px}
+}
+@media(max-width:800px){.rx{padding-top:8px}}

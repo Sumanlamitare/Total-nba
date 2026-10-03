@@ -25,12 +25,13 @@ function dayTop(day, stat) {
 // Slides for the current view: daily top 5, season leaders, or the week ranked by your likes
 export async function build(s, meta, votes) {
   if (s.season) {
+    // regular-season totals, summed from every box score loaded so far
     const label = meta.seasons[s.si];
-    const L = label && await load(`leaders/${label}.json`);
-    return (L?.stats?.[STATS[s.stat]] || []).map(r => ({ n: r.n, img: photo(r.n, r.img), v: r.v, decimals: 1, g: r.team, gp: r.gp,
-      stat: s.stat, perGame: true, k: slug(['S', s.stat, seasonName(label), r.n]),
-      // seasons computed from box scores say how much of the season has loaded so far
-      period: seasonName(label) + (L.computed && L.gamesLoaded < L.totalGames ? ` · ${L.gamesLoaded}/${L.totalGames} games` : '') }));
+    const T = label && await load(`totals/${label}.json`);
+    const partial = T && T.gamesLoaded < T.totalGames;
+    return (T?.stats?.[STATS[s.stat]] || []).map(r => ({ n: r.n, img: photo(r.n), v: r.v, g: r.team, gp: r.gp, stat: s.stat,
+      period: seasonName(label), loaded: partial ? `${T.gamesLoaded.toLocaleString()} of ${T.totalGames.toLocaleString()} games` : null,
+      k: slug(['S', s.stat, seasonName(label), r.n]) }));
   }
   if (s.week) {
     const a = weekStart(s.date), out = [];

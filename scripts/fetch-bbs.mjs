@@ -4,11 +4,12 @@
 // 250/day (500 with GitHub), daily window resets at 00:00 UTC. This script tracks its own
 // usage per UTC day in data/state.json, stops at DAILY_CAP, and paces requests under the
 // per-minute cap. Each run:
-//   1. season leaders (1 request per stat per season; past seasons fetched once)
-//   2. recent days (current season) via /v1/matches, refreshed every run until complete
-//   3. historic backfill, newest first: full-season schedules, then one box score per game
+//   1. recent days (current season) via /v1/matches, refreshed every run until complete
+//   2. historic backfill, newest first: full-season schedules, then one box score per game
+//   3. season totals, summed from the stored regular-season box scores (the API only
+//      publishes per-game averages, so totals are computed here)
 //
-// Files: data/index.json, data/leaders/<season>.json, data/days/<date>.json,
+// Files: data/index.json, data/totals/<season>.json, data/days/<date>.json,
 //        data/schedule/<startYear>.json, data/state.json, data/photos.json
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,11 +17,10 @@ import path from 'node:path';
 const KEY = process.env.BBS_API_KEY;
 const BASE = process.env.BBS_API_BASE || 'https://api.bigballsdata.com';
 const DATA = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'data');
-const DAILY_CAP = +(process.env.BBS_DAILY_CAP || 450);   // leave headroom under the 500/day key limit
+const DAILY_CAP = +(process.env.BBS_DAILY_CAP || 485);   // a little headroom under the 500/day key limit
 const MIN_GAP_MS = +(process.env.BBS_MIN_GAP_MS ?? 700);                                  // ~85 requests/minute, under the 100/minute cap
-const LEADER_SEASONS = [2025, 2024, 2023, 2022, 2021, 2020, 2019]; // box-score era, newest first
 const BACKFILL_SEASONS = [2025, 2024, 2023];
-const STATS = { pts: 'pts', reb: 'reb', ast: 'ast', stl: 'stl', blk: 'blk', tpm: 'fg3m' }; // our key -> API stat
+const STATS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm'];
 const TYPES = new Set(['Regular Season', 'Playoffs', 'PlayIn', 'Play-In', 'Play In']);
 
 if (!KEY) { console.error('BBS_API_KEY is not set'); process.exit(1); }
@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const state = read('state.json', {});
 state.usage ||= {};
 if (state.usage.day !== utcDay()) state.usage = { day: utcDay(), used: 0 };
-state.leaders ||= {};
+delete state.leaders;
 state.checked ||= {};
 const saveState = () => write('state.json', state);
 
@@ -85,30 +85,6 @@ function parseBox(data) {
     }
   });
   return rows;
-}
-
-// --- 1. season leaders ----------------------------------------------------------------
-async function leaders() {
-  const now = new Date();
-  const current = startYearOf(iso(now));
-  for (const y of [current, ...LEADER_SEASONS.filter(s => s !== current)]) {
-    const file = `leaders/${seasonLabel(y)}.json`;
-    const prev = read(file);
-    const ended = y < current && prev?.complete && !prev.computed;
-    const fresh = prev && !prev.computed && Date.now() - Date.parse(prev.updated) < 20 * 3600e3;
-    const emptyAt = state.leaders[y]?.emptyAt;
-    const recheck = y === current ? 20 * 3600e3 : 7 * 864e5; // empty seasons: current one daily, past ones weekly
-    if (ended || fresh || (emptyAt && Date.now() - Date.parse(emptyAt) < recheck)) continue;
-    const out = { season: seasonLabel(y), updated: now.toISOString(), complete: y < current, stats: {} };
-    for (const [ours, theirs] of Object.entries(STATS)) {
-      const res = await api(`/v1/nba/leaders?stat=${theirs}&season=${y}&season_type=regular&limit=5`);
-      out.stats[ours] = (res.data?.leaders || []).map(l => ({ id: l.player?.id, n: l.player?.name, team: l.team?.abbreviation, v: l.value, gp: l.games_played, img: l.player?.headshot_url || null }));
-      if (ours === 'pts' && !out.stats.pts.length) break;
-    }
-    if (Object.values(out.stats).some(a => a.length)) { write(file, out); delete state.leaders[y]; }
-    else state.leaders[y] = { emptyAt: now.toISOString() };
-    console.log(`leaders ${out.season}: ${out.stats.pts.length ? 'ok' : 'empty'}`);
-  }
 }
 
 // --- day files --------------------------------------------------------------------------
@@ -171,6 +147,7 @@ async function schedule(y) {
 }
 
 async function backfill() {
+  for (const y of BACKFILL_SEASONS) await schedule(y); // know every season's size up front
   for (const y of BACKFILL_SEASONS) {
     const games = await schedule(y);
     const todo = games.filter(g => !boxed(g.date).has(g.id) && !(state.noBox?.[g.id]));
@@ -190,40 +167,39 @@ async function backfill() {
   }
 }
 
-// --- leaders computed from box scores, for seasons the leaders endpoint doesn't cover ---
+// --- season totals from box scores ------------------------------------------------------
 const ABBR = { '76ers': 'PHI', Bucks: 'MIL', Bulls: 'CHI', Cavaliers: 'CLE', Celtics: 'BOS', Clippers: 'LAC', Grizzlies: 'MEM', Hawks: 'ATL', Heat: 'MIA',
   Hornets: 'CHA', Jazz: 'UTA', Kings: 'SAC', Knicks: 'NYK', Lakers: 'LAL', Magic: 'ORL', Mavericks: 'DAL', Nets: 'BKN', Nuggets: 'DEN', Pacers: 'IND',
   Pelicans: 'NOP', Pistons: 'DET', Raptors: 'TOR', Rockets: 'HOU', Spurs: 'SAS', Suns: 'PHX', Thunder: 'OKC', Timberwolves: 'MIN', 'Trail Blazers': 'POR',
   Warriors: 'GSW', Wizards: 'WAS' };
-function computedLeaders() {
+function seasonTotals() {
+  fs.rmSync(path.join(DATA, 'leaders'), { recursive: true, force: true }); // old per-game averages
   for (const y of BACKFILL_SEASONS) {
-    const file = `leaders/${seasonLabel(y)}.json`;
-    const prev = read(file);
-    if (prev && !prev.computed) continue; // the API has this season
-    const reg = new Set(read(`schedule/${y}.json`, []).filter(g => g.type === 'Regular Season').map(g => g.id));
-    const dates = new Set(read(`schedule/${y}.json`, []).map(g => g.date));
+    const sched = read(`schedule/${y}.json`, []);
+    const reg = new Set(sched.filter(g => g.type === 'Regular Season').map(g => g.id));
+    if (!reg.size) continue;
     const tot = new Map();
-    let games = 0;
-    for (const date of dates) {
+    let loaded = 0, last = '';
+    for (const date of new Set(sched.map(g => g.date))) {
       const d = read(`days/${date}.json`);
-      for (const g of d?.games || []) if (reg.has(g.id) && g.boxed) games++;
+      for (const g of d?.games || []) if (reg.has(g.id) && g.boxed) { loaded++; if (date > last) last = date; }
       for (const r of d?.p || []) {
         if (!reg.has(r[11])) continue;
-        const t = tot.get(r[0]) || { id: r[0], n: r[1], team: r[2], gp: 0, s: [0, 0, 0, 0, 0, 0] };
+        const id = r[0] || 'name:' + r[1]; // a few box score rows come back without a player_id
+        const t = tot.get(id) || { n: r[1], team: r[2], gp: 0, s: [0, 0, 0, 0, 0, 0] };
         t.gp++; t.team = r[2]; for (let i = 0; i < 6; i++) t.s[i] += r[4 + i];
-        tot.set(r[0], t);
+        tot.set(id, t);
       }
     }
-    if (games < 100) continue; // not enough of the season loaded yet
-    const all = [...tot.values()];
-    const minGp = Math.max(5, Math.floor(0.5 * Math.max(...all.map(t => t.gp))));
-    const out = { season: seasonLabel(y), updated: new Date().toISOString(), complete: false, computed: true, gamesLoaded: games, totalGames: reg.size, stats: {} };
-    Object.keys(STATS).forEach((k, i) => {
-      out.stats[k] = all.filter(t => t.gp >= minGp).map(t => ({ ...t, v: Math.round((t.s[i] / t.gp) * 10) / 10 }))
-        .sort((a, b) => b.v - a.v).slice(0, 5).map(t => ({ id: t.id, n: t.n, team: ABBR[t.team] || t.team, v: t.v, gp: t.gp, img: null }));
+    if (!loaded) continue;
+    const all = [...tot.entries()];
+    const out = { season: seasonLabel(y), updated: new Date().toISOString(), gamesLoaded: loaded, totalGames: reg.size, stats: {} };
+    STATS.forEach((k, i) => {
+      out.stats[k] = all.sort((a, b) => b[1].s[i] - a[1].s[i] || a[1].gp - b[1].gp).slice(0, 5)
+        .map(([id, t]) => ({ id, n: t.n, team: ABBR[t.team] || t.team, v: t.s[i], gp: t.gp }));
     });
-    write(file, out);
-    console.log(`leaders ${out.season}: computed from ${games}/${reg.size} box scores`);
+    write(`totals/${seasonLabel(y)}.json`, out);
+    console.log(`totals ${out.season}: from ${loaded}/${reg.size} regular-season box scores`);
   }
 }
 
@@ -231,7 +207,7 @@ function computedLeaders() {
 function index() {
   const days = fs.existsSync(path.join(DATA, 'days')) ? fs.readdirSync(path.join(DATA, 'days')).filter(f => f.endsWith('.json')).sort() : [];
   const dates = days.map(f => f.slice(0, 10)).filter(d => read(`days/${d}.json`)?.p?.length);
-  const seasons = fs.existsSync(path.join(DATA, 'leaders')) ? fs.readdirSync(path.join(DATA, 'leaders')).map(f => f.slice(0, -5)).sort().reverse() : [];
+  const seasons = fs.existsSync(path.join(DATA, 'totals')) ? fs.readdirSync(path.join(DATA, 'totals')).map(f => f.slice(0, -5)).sort().reverse() : [];
   let left = 0;
   for (const y of BACKFILL_SEASONS) for (const g of read(`schedule/${y}.json`, [])) if (!boxed(g.date).has(g.id) && !state.noBox?.[g.id]) left++;
   write('index.json', { updated: new Date().toISOString(), source: 'Big Balls Data', seasons, dates, backfillLeft: left });
@@ -239,12 +215,12 @@ function index() {
 }
 
 try {
-  for (const step of [leaders, recent, backfill]) {
+  for (const step of [recent, backfill]) {
     try { await step(); } catch (e) { if (e instanceof OutOfQuota) { console.log(`stopping: ${e.message}`); break; } console.error(`${step.name} failed:`, e.message); }
   }
 } finally {
   saveState();
-  computedLeaders();
+  seasonTotals();
   index();
   console.log(`requests used today (UTC): ${state.usage.used}/${DAILY_CAP}`);
 }
