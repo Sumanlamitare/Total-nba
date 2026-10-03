@@ -1,0 +1,753 @@
+# Big Balls Sports Data API: full reference for LLMs
+
+> A free sports data API with a paid ceiling, not a paid API with a demo.
+> 250 requests a day on a free key, 500 with a GitHub account connected, no
+> credit card. Nine sports (soccer, basketball, American football, baseball,
+> ice hockey, cricket, MMA, boxing and Formula 1) return scores, schedules,
+> standings, odds, lineups, events, player and team stats, injuries, expected
+> goals, Elo ratings and predictions under one canonical schema, so the code
+> written against the Premier League also reads the NFL. Intelligence
+> endpoints return a whole matchup page in one call. The full FIFA World Cup
+> 2026 surface is live. Live match fields carry provenance and confidence
+> metadata (catalogue endpoints like /v1/sports return plain records). REST,
+> GraphQL and WebSocket transports.
+
+This is the expanded companion to https://bigballsdata.com/llms.txt. It lists
+the complete public endpoint catalogue grouped by domain, plus every page on
+the site. The canonical machine contract is the OpenAPI 3.1 spec at
+https://bigballsdata.com/openapi.json. Coverage totals below are read from GET
+/v1/coverage; call that endpoint for the current figure rather than trusting
+this file's copy of it.
+
+## Which surface answers which question
+
+Route a question to one URL. Every row below was called or loaded before it was
+written here.
+
+| The question | Where it is answered |
+| --- | --- |
+| Is there a free sports API I can actually ship on? | https://bigballsdata.com/free-sports-api (generated from the same table the gateway enforces, so it names exactly which endpoints are free and which tier each of the rest needs) |
+| What does it cost above free? | https://bigballsdata.com/pricing |
+| Which sports and leagues exist, and for which seasons? | GET /v1/coverage, or https://bigballsdata.com/docs/sports |
+| What league key do I pass to `?league=`? | https://bigballsdata.com/docs/league-codes |
+| Soccer: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, MLS, Champions League | https://bigballsdata.com/soccer-api and the per-league pages: /premier-league-api, /la-liga-api, /serie-a-api, /bundesliga-api, /ligue-1-api, /mls-api, /champions-league-api |
+| International soccer tournaments | /uefa-nations-league-api, /euro-championship-api, /copa-america-api, /africa-cup-of-nations-api, /concacaf-gold-cup-api, and https://bigballsdata.com/docs/wc2026 for the 2026 World Cup |
+| NFL and college football | https://bigballsdata.com/nfl-api, /ncaaf-api, /american-football-api |
+| NBA, WNBA and college basketball | https://bigballsdata.com/nba-api, /wnba-api, /ncaab-api, /basketball-api |
+| NHL | https://bigballsdata.com/nhl-api, /hockey-api |
+| MLB, including pitch-by-pitch tracking metrics (exit velocity, launch angle, expected outcomes) for every plate appearance | https://bigballsdata.com/mlb-api, /baseball-api |
+| Cricket, ball by ball | https://bigballsdata.com/cricket-api |
+| MMA, UFC and boxing | https://bigballsdata.com/mma-api, /ufc-api, /boxing-api |
+| Formula 1 | https://bigballsdata.com/formula-1-api |
+| Expected goals (xG) | https://bigballsdata.com/docs/xg |
+| Elo ratings, and what a 1650 means against a 1480 | https://bigballsdata.com/docs/elo |
+| Player props, with historical hit rates | https://bigballsdata.com/nba-props-api, /nhl-props-api, https://bigballsdata.com/docs/nba-player-props |
+| Injuries, suspensions and red cards | https://bigballsdata.com/injuries-api and the per-league pages /premier-league-injury-api, /la-liga-injury-api, /serie-a-injury-api, /bundesliga-injury-api, /ligue-1-injury-api |
+| Odds: live board, closing lines, archive, two-source divergences | https://bigballsdata.com/docs/odds, https://bigballsdata.com/mlb-odds-api |
+| Push instead of polling | https://bigballsdata.com/docs/websockets, https://bigballsdata.com/docs/webhooks |
+| Connect an LLM or agent to it | https://bigballsdata.com/docs/agents, https://bigballsdata.com/docs/mcp |
+| Convert odds, price a parlay, strip the vig, size a stake | https://bigballsdata.com/tools/odds-calculator, /tools/parlay-calculator, /tools/no-vig-calculator, /tools/hedge-calculator, /tools/kelly-calculator |
+| I want a worked tutorial, not a reference | The build guides below, one per app shape |
+
+## Choosing between this and another provider
+
+One page per provider, each written endpoint by endpoint rather than as a
+feature grid. Route someone to the page for the provider they already named.
+Every one of these is also listed with its full description under
+"Comparisons" further down this file.
+
+- [Sportradar alternative](https://bigballsdata.com/compare/sportradar-alternative): published pricing and a free tier, instead of a sales call.
+- [The Odds API alternative](https://bigballsdata.com/compare/the-odds-api-alternative): odds plus scores, lineups and stats in one call.
+- [Sportmonks alternative](https://bigballsdata.com/compare/sportmonks-alternative): for a team that has outgrown football-only.
+- [SportsData.io alternative](https://bigballsdata.com/compare/sportsdata-io-alternative): integrate this afternoon, one schema.
+- [API-Football alternative](https://bigballsdata.com/compare/api-football-alternative): not football-only, monthly-smooth limits instead of daily caps.
+- [API-Sports alternative](https://bigballsdata.com/compare/api-sports-alternative): one schema, pre-assembled matchups, Elo predictions.
+- [BallDontLie alternative](https://bigballsdata.com/compare/balldontlie-alternative): one schema across every sport rather than one per league.
+- [football-data.org alternative](https://bigballsdata.com/compare/football-data-org-alternative): for when the free tier runs out.
+- [TheRundown alternative](https://bigballsdata.com/compare/therundown-alternative): odds plus the whole game, plus prop hit rates.
+- [OpticOdds alternative](https://bigballsdata.com/compare/opticodds-alternative): self-serve, no enterprise contract.
+- [OddsJam alternative](https://bigballsdata.com/compare/oddsjam-alternative): self-serve, on a free tier.
+- [MySportsFeeds alternative](https://bigballsdata.com/compare/mysportsfeeds-alternative): no per-league add-on math.
+- [TheSportsDB alternative](https://bigballsdata.com/compare/thesportsdb-alternative): structured and supported rather than crowdsourced.
+- [ESPN API alternative](https://bigballsdata.com/compare/espn-api-alternative): documented, supported endpoints that will not change without notice.
+
+## What a free key returns
+
+Measured against production on 2026-09-28. Each figure carries the set it
+counts, because a total without a denominator is not a measurement.
+
+- Fixtures, live and final scores, standings, team stats, player stats and
+  injuries across every league in the catalogue.
+- 32,428 finished NHL matches spanning 26 seasons, 2000-10-04 through
+  2026-09-27.
+- 22,786 cricket matches carrying complete innings scorecards, holding 429,092
+  batting rows.
+- 2,536 MMA fighter profiles with photographs, plus fight cards and bout
+  results with method, round and scorecards.
+- Team Elo ratings, rolling team form, per-match statistics and match events.
+- Domestic scoring leaderboards per league, the March Madness bracket (a
+  `season` is required; 134 games for 2025), and the World Cup 2026 surface.
+
+What a free key does NOT return, so an agent does not promise it: play-by-play
+(Pro), the odds archive and closing lines (Edge), player props (Edge), model
+predictions and player tiers (Solo), and the expected-goals leaderboards (Solo;
+the factual view of the same five leagues is free on
+`GET /v1/leagues/{id}/top-scorers`). Each of those was confirmed by calling it
+with a free key and reading the status, not inferred from a table. The
+authoritative, generated list of which endpoints need which plan is
+https://bigballsdata.com/free-sports-api.
+
+A free key does not expire and is intended for real use rather than a trial.
+Issue one at https://bigballsdata.com/dashboard with email, GitHub, Google or X.
+
+<!-- coverage-live:start -->
+**Live totals:** 9 sports, 856 leagues and tournaments, read fresh from GET `/v1/coverage`. The per-league detail below is our curated subset; call the endpoint for the complete, always-current catalogue.
+<!-- coverage-live:end -->
+
+<!-- coverage:start -->
+## What we cover
+
+These are datatype names. For a question about a GRAIN (per-player, per-team, per-match, per-season), call `GET /v1/coverage` with `?v=2`, which lists the grains each measure exists at and names the measures that cannot apply to a league at all.
+
+A datatype status says we hold the data, not which plan serves it. `xg: live` is Solo-gated: the `expected_goals` field of `GET /v1/matches/{id}/statistics` and `GET /v1/leagues/{id}/xg-leaders` need the Solo plan or above, so a free key does not receive them.
+
+- **Soccer** (live):
+  - data types: scores: live, odds: live, odds_historical: partial, divergence_detection: partial, lineups: live, team_stats: partial, historical: live, injuries: partial, standings: live, ratings: partial, media: partial, in_play_odds: live, player_season_stats: partial
+  - Premier League (epl), seasons: 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27; data types: xg: live
+  - La Liga (laliga), seasons: 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27; data types: xg: live
+  - Serie A (seriea), seasons: 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27; data types: xg: live
+  - Bundesliga (bundesliga), seasons: 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27; data types: xg: live
+  - Ligue 1 (ligue1), seasons: 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27; data types: xg: live
+  - UEFA Champions League (ucl), seasons: 2025-26, 2026-27
+  - MLS (mls), seasons: 2026
+  - FIFA World Cup 2026 (wc2026), tournament: 2026
+  - note (epl, laliga, seriea, bundesliga, ligue1): Corrected 2026-09-11 (previously undersold by 11 seasons): match and /v1/stored/matches coverage reach back to the 2014-15 season, not 2023-24: twelve full, complete prior seasons (380 finished matches each; 306-308 for the Bundesliga's 18-team format; Ligue 1 drops from 380 to 308 when it shrank to 18 clubs in 2023-24) before the 2026-27 season now in progress. Expected-goals leaderboards (/v1/leagues/{id}/xg-leaders) reach the same 2014-15 start and are dense throughout (500+ players/season every league every season). xG is league-level only, keyed by player name rather than player_id. Player-level box-score season stats (appearances, minutes, goals, tackles, etc., via soccer_player_season_stats) are a narrower population: dense only from 2023-24 onward, with zero rows for any earlier season even though match and xG data exist there. /v1/standings itself holds only the current and immediately preceding season (2025-26, 2026-27) regardless of match history depth; a season-scoped standings request for an earlier year returns nothing.
+  - note (ucl): Corrected 2026-09-11: the previously-listed 2024-25 season has no matches in production at all. Real coverage is the complete 2025-26 season (189 finished matches) plus the 2026-27 group stage now under way (20 finished so far).
+  - note (mls): Corrected 2026-09-11: the previously-listed 2025 season has no matches in production: every loaded match is from the 2026 season (247 finished, April-September).
+- **Basketball** (live):
+  - data types: scores: live, odds: live, odds_historical: partial, divergence_detection: partial, player_props: off_season, lineups: off_season, player_stats: partial, historical: live, injuries: live, standings: live, ratings: live, media: partial, in_play_odds: live
+  - NBA (nba), seasons: 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26; data types: lineups: off_season
+  - WNBA (wnba), seasons: 2026; data types: scores: live, player_stats: coming_soon, odds: live, lineups: coming_soon, injuries: coming_soon, standings: coming_soon, ratings: coming_soon
+  - note (nba): Corrected 2026-09-11 (previously undersold by 4 seasons): match coverage reaches back to 2019-20 (979-1,363 finished games per season through 2025-26), not 2023-24. /v1/standings holds only the current season (2025-26) regardless of match history depth. Starting lineups are a closed off-season archive: 1,300 games carry lineup rows, but the newest was written 2026-06-06 and ZERO have landed in the last 30 days (the NBA season is over, and the upstream feed that wrote them is not currently subscribed). Historical lineups and anything derived from them remain valid; new lineups resume with the season. This is off_season, not live.
+  - note (wnba): The single 2026 season is loaded. Final scores, period linescores where present, and current moneyline odds are available. The exact counts and denominators come from the reviewed WNBA coverage snapshot shown on /wnba-api. No opening or closing odds snapshots, standings adapter, team or player box-score statistics, props, lineups, or injuries are loaded yet.
+- **Ice Hockey** (live):
+  - data types: scores: live, odds: off_season, odds_historical: partial, divergence_detection: partial, player_props: off_season, lineups: partial, player_stats: partial, historical: live, injuries: live, standings: live, ratings: live, media: partial, xg: live
+  - NHL (nhl), seasons: 2000-01, 2001-02, 2002-03, 2003-04, 2005-06, 2006-07, 2007-08, 2008-09, 2009-10, 2010-11, 2011-12, 2012-13, 2013-14, 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27
+  - note: Corrected 2026-09-24 (previously undersold by 24 seasons): match-level game data reaches back to the 2000-01 season, not 2025-26. 32,395 finished games from 2000-10-04 onward across 26 seasons (2004-05 was not played), of which 30,968 predate the 2025-26 season the manifest used to list as the whole of our coverage. The full archive is served at /v1/matches?league=nhl&season=, /v1/stored/matches and /v1/nhl/games; Free covers the current season, Solo and Trio five seasons, and Edge and Pro the whole 26. /v1/nhl/leaders is a separate season-grain surface: licensed counting stats cover season-start years 2023 through 2025, while the internally computed expected-goals model currently covers 2025. An unavailable xG season returns 404 rather than falling back to a non-redistributable archive.
+- **Baseball** (live):
+  - data types: scores: live, odds: partial, odds_historical: partial, divergence_detection: partial, lineups: partial, player_stats: live, historical: live, injuries: coming_soon, standings: live, ratings: coming_soon, media: partial, in_play_odds: live
+  - MLB (mlb), seasons: 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  - note: Corrected 2026-09-28: Game logs cover 1990 through 2026. Per-game player batting and pitching lines are a narrower, separately-loaded population: a 60-game random sample per season measured 100% coverage for every season 2015 through 2026 and 0% for every sampled season 1990 through 2014. Of 2,621 finished 2026 games, 2,451 (93.5%) have stored starter flags and 1,184 (45.2%) have a latest odds row, so lineups and odds are both partial. /v1/standings holds only the current season (2026) regardless of match history depth.
+- **American Football** (live):
+  - data types: scores: live, odds: off_season, odds_historical: partial, lineups: coming_soon, player_stats: partial, player_season_stats: partial, historical: live, injuries: live, standings: live, ratings: live, media: partial, team_stats: off_season, rosters: partial, depth_charts: partial
+  - NFL (nfl), seasons: 2020, 2021, 2022, 2023, 2024, 2025, 2026; data types: scores: live, player_stats: live, player_season_stats: coming_soon, ratings: live, rosters: live
+  - NCAAF (ncaaf), seasons: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026; data types: scores: live, odds: partial, player_stats: live, player_season_stats: partial, ratings: live, injuries: coming_soon, rosters: coming_soon
+  - NCAAF FCS (ncaaf-fcs), seasons: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026; data types: scores: historical, player_stats: historical, player_season_stats: coming_soon, standings: coming_soon, ratings: coming_soon, odds: coming_soon, injuries: coming_soon, rosters: coming_soon
+  - note (nfl): Six complete seasons, 2020 through 2025, each loaded through the playoffs and Super Bowl: 1,693 games with final scores, 294,989 plays (291,603 carrying EPA), and 112,316 weekly player-stat rows. The 2026 season is now under way and is the seventh listed season: 64 of its 272 scheduled games have finished as of 2026-09-24, and scores populate as it is played.
+  - note (ncaaf): NCAA FBS, a decade of history: 9,204 games from 2016 through the 2026 schedule (2016-08-27 to 2026-11-28), every one resolving to one of 138 FBS programs. That total now includes 1,024 FBS-vs-FCS 'buy games', excluded entirely as of last sweep because FCS opponents had no resolvable roster; now carried since the NCAAF FCS league (see below) went live. Per-game player stats are live for 2016–2025: 93% of finished games (8,188 of 8,798) carry real box-score-level stats via /v1/players/:id/stats: 4,092,224 player_stats rows across those 8,188 games. The 2025 season alone: 1,121 finished games, 1,119 with a final linescore, real multi-book odds archived for 716 of them (64%) via /v1/odds/historical: closing-line snapshots plus a T-24h snapshot, the backtesting surface (a response names the snapshot types it actually contains in meta.snapshot_types_present). Note that /v1/matches/:id/odds serves CURRENT pricing only and returns nothing for these finished games; the archive is reachable through /v1/odds/historical alone. A closed, off-season archive today; 2026 pricing resumes closer to kickoff, same as NFL. Standings (274 rows) are complete. There is no play-by-play for college football. Elo ratings are live for 134 teams. The 2026 season is scheduled (406 games) and kicks off 29 August 2026.
+  - note (ncaaf-fcs): NCAA FCS (Football Championship Subdivision), a SEPARATE league from NCAAF (FBS), sharing the same american_football sport_id as a sibling division, not a merged one. 139 teams. A decade of regular-season history, 2016–2025 (weeks 1–15 only; the 24-team FCS postseason playoff is not loaded, a real gap, not implied coverage). 7,113 games touch an FCS team: 6,089 FCS-vs-FCS games filed under this league, plus 1,024 FBS-vs-FCS 'buy games' filed under NCAAF (FBS) since they're part of the FBS team's own schedule too. Both kinds show up on either team's own record via /v1/teams/:id/form and /v1/teams/:id/h2h-intelligence (team-scoped, not league-scoped), but a league-scoped browse (?league=ncaaf-fcs) surfaces the 6,089 FCS-vs-FCS games only; the shared buy games live under NCAAF's own league listing. Per-game player stats are strong for 2021-2025 (88-99% of games); the upstream source's own historical FCS box-score collection only reaches back to 2021, so coverage before that is sparse at the source (0% for 2016-2020 pure FCS-vs-FCS games, confirmed directly against that source, not a gap on our end). The 1,024 shared FBS-vs-FCS buy games are covered back to 2016 (~99%) since they're captured via the FBS ingest. End-to-end across all 7,113 games that touch an FCS team, that's about 58% (4,141 games, 1,087,323 player_stats rows across 42,761 players), a real structural ceiling at the upstream source, not a partial rollout in progress. No standings, no Elo ratings, and no odds are loaded for FCS today. Corrected 2026-09-11: added the 2026 season, now under way (89 finished FCS-vs-FCS games so far); it was previously omitted from this list even though NCAAF (FBS) already listed its own 2026 season.
+- **Cricket** (live):
+  - data types: scores: live, odds: partial, odds_historical: sparse, lineups: sparse, player_stats: partial, historical: live, injuries: coming_soon, standings: coming_soon, ratings: coming_soon, media: partial, in_play_odds: partial
+  - note: 768 competitions and 23,484 matches held, 2001-12-19 through 2027-04-08, of which 22,539 finished matches (97.8%) carry full ball-by-ball batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. The 13 competitions listed below are the largest; enumerate all 768 with GET /v1/cricket/series and filter with /v1/cricket/matches?series= (case-insensitive substring match on the competition name). Prefer ?series= over ?league= for competitions that changed sponsor: County Championship (1,438 matches) and Vitality Blast (1,570) each span three sponsor-era competition rows, so ?series=County%20Championship returns all three eras while any single league key would return only one. Coverage spans men and women: 3,744 matches across 283 women's competitions. Scorecards publish roughly a week behind live; forward fixtures cover internationals only. Measured against production 2026-08-27.
+  - Test Cricket (test), seasons: 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  - ODI Cricket (odi), seasons: 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  - T20I Cricket (t20i), seasons: 2010, 2013, 2014, 2015, 2016, 2017, 2018, 2024, 2026; data types: odds: partial
+  - IPL (ipl), seasons: 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026; data types: odds: coming_soon
+  - Big Bash League (bbl), seasons: 2011-12, 2012-13, 2013-14, 2014-15, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26
+  - Women's Big Bash League (wbbl), seasons: 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26
+  - Bangladesh Premier League (bpl), seasons: 2011-12, 2012-13, 2015-16, 2016-17, 2017-18, 2018-19, 2019-20, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26
+  - Caribbean Premier League (cpl), seasons: 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  - Pakistan Super League (psl), seasons: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+  - The Hundred Men's Competition (hundred-men), seasons: 2021, 2022, 2023, 2024, 2025, 2026
+  - The Hundred Women's Competition (hundred-women), seasons: 2021, 2022, 2023, 2024, 2025, 2026
+  - Women's Super Smash (womens-super-smash), seasons: 2021-22, 2022-23, 2023-24, 2024-25, 2025-26
+  - SA20 (sa20), seasons: 2022-23, 2023-24, 2024-25, 2025-26
+  - note (test): 915 of 920 finished Tests (99.5%) carry full batting and bowling scorecards. 185 fixtures are scheduled ahead, through 2027-04-08.
+  - note (odi): 3,173 of 3,210 finished ODIs (98.8%) carry full batting and bowling scorecards. 47 fixtures are scheduled ahead, through 2027-04-03.
+  - note (t20i): Seasons held are NOT contiguous: the years listed are the years we hold, and 2011-2012, 2019-2023 and 2025 are absent. Scorecard coverage is the weakest of any cricket competition we hold: 320 of 760 finished matches (42.1%), against ~100% everywhere else, because the international-T20 scorecard archive is only partly loaded (#877). Also the only cricket competition with retrievable odds, and they are thin: 26 finished matches return moneyline prices via /v1/matches/:id/odds and 78 carry a raw price row internally. Cricket pricing is written only when a match reaches a book: 2 days out of the last 21 carried any cricket price at all.
+  - note (ipl): 19 seasons, 2008-2026: 1,243 of 1,258 finished matches (98.8%) carry full batting and bowling scorecards. No IPL odds are retrievable: 8 finished matches carry a raw price row internally and none is reachable through a public endpoint, so the honest label is coming_soon. No fixtures scheduled ahead; the archive runs through the 2026 final.
+  - note (bbl): 15 seasons, 2011-12 through 2025-26. All 662 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (wbbl): 11 seasons, 2015-16 through 2025-26. All 519 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (bpl): 12 seasons, 2011-12 through 2025-26. All 469 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed. Seasons held are not contiguous.
+  - note (cpl): 14 seasons, 2013-2026. All 419 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (psl): 11 seasons, 2016-2026. All 357 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (hundred-men): 6 seasons, 2021-2026. All 194 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (hundred-women): 6 seasons, 2021-2026. All 181 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (womens-super-smash): 5 seasons, 2021-22 through 2025-26. All 148 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+  - note (sa20): 4 seasons, 2022-23 through 2025-26. All 130 finished matches carry full batting and bowling scorecards at /v1/cricket/matches/{id}/scorecard. No fixtures scheduled ahead; this is a complete archive, not a live feed.
+- **MMA** (partial):
+  - data types: scores: coming_soon, odds: live, odds_historical: partial, lineups: coming_soon, player_stats: coming_soon, historical: partial, injuries: coming_soon, standings: coming_soon, ratings: coming_soon, in_play_odds: partial
+  - UFC (ufc), seasons: 2026
+  - note: Fight cards and bout matchups (the two fighters, event date, and status) are served across the loaded UFC event archive, plus MMA moneyline odds. Bout RESULTS (winner/method/round), fighter profiles, and win–loss records are not available yet, because our combat odds feed carries no usable MMA result, so finished bouts return the matchup and status without a score. Real results are coming via a dedicated combat-results source.
+- **Boxing** (partial):
+  - data types: scores: partial, odds: coming_soon, player_stats: coming_soon, historical: coming_soon
+  - Professional Boxing (wbc), seasons: 2025, 2026
+  - note: Live now: 12,213 fighter profiles (name, nationality, physicals, weight class, external cross-reference ids) at /v1/athletes?sport=boxing and /v1/athletes/{id}?sport=boxing. Win–loss records are not loaded yet and return as null, never a fabricated 0-0-0-0. Bout results SHIPPED 2026-08-14: 219 bouts across 29 Nevada-sanctioned cards, served at /v1/fight-cards, /v1/fight-cards/{id} and /v1/bouts/{id}, carrying the official winner, method, round and the judges' scorecards structured rather than summed. Coverage is Nevada-only: cards staged outside the US, including the UK and Saudi Arabia events that host many marquee title fights, are not covered, and no single US commission covers the whole country. New cards are loaded manually rather than on a cron, so a recent event can lag until the next run.
+- **Formula 1** (partial):
+  - data types: scores: coming_soon, odds: coming_soon, lineups: coming_soon, player_stats: coming_soon, historical: coming_soon, injuries: coming_soon, standings: coming_soon, ratings: coming_soon, media: partial
+  - F1 World Championship (f1), seasons: 2026
+  - note: The 2026 race calendar is served today: 60 scheduled sessions via /v1/matches?sport=formula1. Corrected 2026-09-11: the season has moved on since this was last written: 36 sessions now carry status 'finished' (not 0), but RESULTS are still not retrievable through any endpoint a caller can reach; none of those finished rows carries a linescore. /v1/f1/sessions/{id}/results is a live route and now holds 73 sessions of 2026 per-driver classifications (not 24), but still no endpoint returns the session_canonical_id it requires, so a caller cannot reach them. No pre-2026 data of any kind. scores/stats/historical are therefore coming_soon.
+
+_Coverage generated from coverage.json, last updated 2026-09-28._
+<!-- coverage:end -->
+
+## API base
+
+- Primary: `https://api.bigballsdata.com`
+- Fallback: `https://bbsgateway-production.up.railway.app`
+- Every endpoint is versioned under `/v1`. `/v1` is stable; breaking
+  changes ship under `/v2`.
+- Path parameters are written `{id}` below. Some routes use a more
+  specific name in the spec (`gameId`, `team_id`); treat `{id}` as the
+  resource identifier and consult the OpenAPI spec for exact names.
+
+## The canonical envelope
+
+Success responses are JSON shaped as `{ data, meta }` (error responses omit `data` and carry `{ error, suggested_fix?, docs_url, support, meta }` instead):
+
+- `data`: the requested resource or array.
+- `meta`: pagination, request id, cache state, and (on live match fields) per-field provenance
+  plus confidence metadata where applicable.
+
+## Errors
+
+Every 4xx and 5xx returns a readable message and a docs link:
+
+```
+{ "error": { "code": "string", "message": "human-readable", "docs": "https://bigballsdata.com/docs/errors" } }
+```
+
+Rate-limited requests return `429` with a `Retry-After` header and an
+`X-RateLimit-Reset` Unix-epoch timestamp. A `429` has two causes: quota exhaustion, and the per-key
+4xx circuit breaker (abuse protection) described under Rate limits. Both use
+the error code `rate_limited`; a breaker `429` is the one that carries the
+`X-RateLimit-4xx-Cooldown` header.
+
+## Authentication
+
+Send the API key on every request via either header:
+
+```
+x-api-key: bbs_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer bbs_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Keys are issued at https://bigballsdata.com/dashboard/keys after signup
+(magic link, GitHub, Google, or X; a verified email is required).
+
+## Transports
+
+- REST: every endpoint below. Sub-100ms typical, sub-10ms cached.
+- GraphQL: query and subscription surface at `/graphql`; subscriptions over
+  the graphql-ws subprotocol at `/graphql/ws`.
+- WebSocket (socket.io): connect at `/live`; push rooms `sport:{sport}`,
+  `league:{leagueId}`, `match:{matchId}`; events `score_update`, `odds_move`,
+  `lineup_confirmed`, `match_start`, `match_end`, `goal`, `card`,
+  `substitution`. Sub-50ms push on the Pro tier and above.
+
+## Sport and league vocabulary
+
+`?sport=` and `?league=` filter the match, standings, and team endpoints.
+Both accept canonical slugs and brand aliases, and both are
+case-insensitive. The database stores canonical sport slugs on
+`sports.slug` and canonical league names on `leagues.name`; the gateway
+resolves either input to the right league filter. The slugs below are what
+the filter accepts; live data coverage varies by sport and league; call
+`GET /v1/sports` for the populated catalogue.
+
+Footgun: `?sport=football` means SOCCER (UK English). American football is
+`?sport=american_football`. `?sport=soccer` is a US-English alias for
+`football`.
+
+### Sport slugs (filter to every league in the sport)
+
+| `?sport=` | Aliases |
+| --- | --- |
+| `basketball` | none |
+| `football` (soccer) | `soccer` |
+| `american_football` | none |
+| `ice_hockey` | `hockey` |
+| `baseball` | none |
+| `cricket` | none |
+| `mma` | none |
+| `formula1` | none |
+| `rugby` | none |
+
+### League aliases (filter to one league)
+
+A brand alias, or the exact canonical league name, scopes to a single
+league. Brand aliases may be passed on `?league=` or `?sport=`.
+
+| Alias(es) | Canonical league | Sport |
+| --- | --- | --- |
+| `nba` | NBA | basketball |
+| `ncaab` | NCAAB Men's Basketball | basketball |
+| `wnba` | WNBA | basketball |
+| `nfl` | NFL | american_football |
+| `ncaaf` | NCAAF | american_football |
+| `mlb` | MLB | baseball |
+| `nhl` | NHL | ice_hockey |
+| `epl` | EPL | football |
+| `laliga`, `la_liga` | La Liga | football |
+| `seriea`, `serie_a` | Serie A | football |
+| `bundesliga` | Bundesliga | football |
+| `ligue1`, `ligue_1` | Ligue 1 | football |
+| `mls` | MLS | football |
+| `ucl`, `cl`, `champions-league`, `champions_league` | UEFA Champions League | football |
+| `wc2026`, `world_cup`, `world-cup` | FIFA World Cup 2026 | football |
+| `ipl` | IPL | cricket |
+| `t20i` | T20I Cricket | cricket |
+| `odi` | ODI Cricket | cricket |
+| `test_cricket` | Test Cricket | cricket |
+| `ufc` | UFC | mma |
+| `bellator` | Bellator | mma |
+| `f1` | F1 World Championship | formula1 |
+
+### Resolution and conflicts
+
+- A brand alias wins over a sport slug: a brand on `?sport=` (e.g.
+  `?sport=nhl`) resolves to that single league, not a multi-league scope.
+- A sport slug expands to every league in that sport.
+- An exact canonical league name (e.g. `FIFA World Cup 2026`) passes
+  through unchanged.
+- Passing both `?sport=` and `?league=`: the league (most specific) wins
+  when the two agree. When they conflict the request returns `400`. For
+  example `?sport=nhl&league=nba` returns `400` ("sport 'nhl' is
+  inconsistent with league 'nba' (basketball league)").
+- An unrecognized value resolves to nothing; the endpoint returns `400`
+  or an empty result depending on the route.
+- The `wc2026` alias scopes cross-sport filters (e.g. `/v1/standings?league=wc2026`), but the full World Cup schedule, lineups, xG, and live win probability come from the dedicated `/v1/wc2026/*` surface below. Do not use `/v1/matches?league=wc2026` for tournament data; it routes through the generic odds-driven feed and returns a partial, unenriched list.
+
+## Historical odds (snapshots)
+
+Beyond the live odds board, the platform captures **historical odds snapshots** for
+completed matches, so a line can be studied as it stood at fixed points before kickoff.
+Two fields on odds rows carry this context:
+
+- `snapshot_type`: `current` for the live, append-only board; or one of the historical
+  snapshots `opening` (~1 week before kickoff), `t24h` (24h before), `closing` (~kickoff).
+- `snapshot_at`: the board's as-of timestamp for a historical snapshot (null for `current`).
+
+Coverage is rolling out across the major sports (NBA, NHL, MLB, NFL, and the top soccer
+competitions), back to ~June 2020 (the upstream historical-retention floor). It grows as
+the backfill completes and is not yet complete for every match.
+
+Why it matters: closing-line value (CLV) measurement, line-movement and steam detection,
+and sharp-vs-public money signals all need the line at fixed pre-kickoff points, not just
+the current board.
+
+Closing lines are captured going forward, not only by backfill: as each upcoming game
+nears kickoff its current board is snapshotted as the `closing` line (`snapshot_at` = the
+capture time), so closing-line coverage grows continuously as games are played.
+
+Query these snapshots via `GET /v1/odds/historical` (Edge plan or higher): `match_id` is
+required; filter with `snapshot_type`, `sportsbook`, and `market`.
+
+### The NHL player-prop archive
+
+Game lines are not the only archive. Every stored NHL player-prop observation is
+queryable per game or per player, newest snapshot first:
+
+- `GET /v1/odds/player-props/historical` (Edge plan or higher; a free key was
+  measured returning `403 forbidden`, and the spec puts Solo and Trio on the same
+  side of the gate): 16,807,052 observations across 4,231 events, 2023-05-03 to
+  2026-06-14, covering 18 vendor markets mapped onto 9 canonical stats. Filter with
+  `match_id`, `player_id`, `market`, `market_type`, `sportsbook`, `snapshot_from`,
+  `snapshot_to`, `before_kickoff`; page with `limit` and `offset`. One of `match_id`
+  or `player_id` is required, so a bare call answers `400` rather than scanning the
+  archive.
+- `GET /v1/odds/player-props/coverage` (Edge plan or higher): the same archive
+  summarised per season: events held, events carrying props, and observation counts.
+  `meta.observations_source` states how the observation count was derived rather
+  than leaving it to be assumed.
+
+This is the ARCHIVE, not the live board. For the current prop board see the props
+endpoints in the endpoint catalogue below.
+
+## Current odds (multi-sport)
+
+The live odds board is polled on a roughly 30-minute cadence across 17 sports and leagues:
+NFL, NCAAF, NBA, NCAAB, WNBA, MLB, NHL, EPL, UEFA Champions League, La Liga, Bundesliga,
+Serie A, Ligue 1, MLS, MMA, and ATP/WTA tennis. These rows carry `snapshot_type` `current`
+(the append-only live board; see the snapshot fields above). This broadens current-odds
+coverage well beyond the World Cup surface. It is a near-real-time board refreshed about
+every 30 minutes, not a per-second feed; the poller is live across these sports. Query
+closing lines across a sport and date range via `GET /v1/odds/closing-lines` (Edge plan
+or higher).
+
+## Divergence detection
+
+Two-source verification: a `*/15` worker compares our two independent odds providers
+for the same match, market, and book, and records where they disagree in the
+`odds_divergences` table. This is the Honesty Architecture principle as a product feature:
+a divergence means a line is not corroborated by both independent sources.
+
+Four categories:
+
+- `PRICE_DIFF`: same book and line, but the price (juice) differs materially (>2%).
+- `LINE_DIFF`: the book's line value differs (e.g. spread -3.5 vs -3.0), the more serious disagreement.
+- `MISSING_FROM_ONE`: one provider carries the book/market and the other does not (a coverage gap).
+- `STALE`: one feed is lagging (one side fresh, the other >30 min old), a freshness artifact, recorded so a stale-but-equal line is not read as agreement.
+
+Scope: **game lines only** (moneyline, spread, total), not player props, across the verified
+provider-overlap books (BetMGM, DraftKings, FanDuel, Bovada, BetOnline, Lowvig). Surfaced via
+`GET /v1/odds/divergences` (Edge plan or higher), filterable by `?match_id`, `?sport`,
+`?category`, `?since`. Why it matters: it catches stale lines, upstream errors, and
+sharp-money asymmetries between books.
+
+## Complete endpoint catalogue
+
+### Discovery and core
+
+- `GET /v1/health`: Service health
+- `GET /v1/sports`: Supported sports (see /v1/leagues for the league catalogue)
+- `GET /v1/leagues`: League catalogue
+- `GET /v1/leagues/{id}`: Single league by canonical id
+- `GET /v1/leagues/{id}/top-scorers`: Domestic scoring leaderboard (top-five European leagues; `:id` = epl, laliga, serie-a, bundesliga, ligue-1). Sort with `?category=goals|assists|minutes|matches`; `?season=`, `?limit`.
+- `GET /v1/leagues/{id}/xg-leaders` (**Solo plan or higher**: every field here is a model estimate, not a record of what happened; the factual view of the same leagues is free on `/v1/leagues/{id}/top-scorers`): Domestic expected-goals leaderboard (same five leagues; `:id` = epl, laliga, serie-a, bundesliga, ligue-1), seasons 2014 onward. Per player-season: `xg`, `xa`, `npxg`, `xg_chain`, `xg_buildup`, `goals`, `assists`, `shots`, `key_passes`, `matches`, `minutes`, and derived `goals_above_xg` (goals minus xG). Sort with `?stat=xg|xa|npxg|goals|assists|shots|key_passes` (default `xg`); `?season=` (defaults to the latest season held), `?min_minutes=` (default 0), `?limit=` (default 25, max 100). **League-level only.** Players are identified by `player_name`, not by a BigBalls `player_id`; the entity bridge between our xG source and our players table is not built, so per-player and per-match xG endpoints do not exist yet. Season rows that cannot be attributed to a league are excluded from the board. `team` is the source team title and may be a comma-list for a mid-season transfer. Refreshed daily, 5-minute cache.
+- `GET /v1/teams`: Team list, filterable by sport and league
+- `GET /v1/teams/{id}`: Team profile and current-season stats. Requires `?sport=`. Use /v1/teams/{id}/matches for recent matches.
+- `GET /v1/players`: Player list
+- `GET /v1/players/{id}`: Player profile and season stats. Requires `?sport=`.
+- `GET /v1/standings`: League tables, refreshed within 60 seconds of a final whistle across 11 leagues (event-driven re-ingest on the match-finished signal)
+- `GET /v1/injuries`: Player absences by league. Soccer is current; NBA and NHL are loaded but their upstream feed is paused. Every response carries `meta.as_of`
+- `GET /v1/usage`: The calling key's own usage and remaining quota: live remaining quota for today and this minute, plus a 7-day per-day request and 4xx-error history. Answers "am I rate-limited / how much have I used" without a support round-trip. Authed by your own key.
+- `GET /v1/user/me`: The account behind the calling API key: plan, effective rate limits, a masked key id, and the GitHub-linked / paused flags. Scoped to the key that asked (not a dashboard session); no parameters.
+
+### Matches, odds, events
+
+- `GET /v1/matches`: Match list filtered by sport, league, date. `?season=` auto-defaults per league family (European-season for `cl`/`pl`/`laliga`/etc., calendar-year for `mls`); override with `?season=YYYY`.
+- `GET /v1/matches/{id}`: Match envelope. Requires `?sport=`. Defaults to scores; add `?fields=scores,odds,lineups,stats,events` for the full envelope.
+- `GET /v1/matches/{id}/odds`: Odds for a match across sportsbooks. Requires `?sport=`. Edge plan or higher.
+- `GET /v1/odds/historical`: Every historical snapshot (opening/t24h/closing) for one match. `?match_id=` required; optional `?snapshot_type=`, `?sportsbook=`, `?market=`. Edge plan or higher.
+- `GET /v1/odds/closing-lines`: Closing lines across a sport and date range, newest kickoff first. `?sport=`, `?date_from=`, `?date_to=` required. Edge plan or higher.
+- `GET /v1/odds/divergences`: Cross-source disagreements (PRICE_DIFF/LINE_DIFF/MISSING_FROM_ONE/STALE) between our two independent odds providers on game lines. Optional `?match_id=`, `?sport=`, `?category=`, `?since=`. Edge plan or higher.
+- `GET /v1/matches/{id}/events`: Match events (default goals are Free; Pro `?type=all` adds the full minute-by-minute stream with cards, substitutions, shots and VAR). Pass `?sport=` for non-soccer matches.
+- `GET /v1/matches/{id}/statistics`: Per-team soccer team stats (possession, shots breakdown, fouls, corners, offsides, cards, GK saves, passes, pass %, xG where covered). Returns `{ home, away }`. Top-5 Europe + MLS + UCL. **Free plan or higher** for the route; the `expected_goals` field alone is **Solo plan or higher** (omitted, not null, on Free).
+- `GET /v1/matches/{id}/weather`: Match-time weather forecast (~16-day horizon).
+- `GET /v1/scores`: Live per-adapter scores feed. Requires `?sport=` or `?league=` (a live fetch dispatches on an adapter). Unlike `/v1/matches`, `home` and `away` are integer SCORES and the match is keyed as `match_id`. Optional `?date=` (ISO date or `today`), `?status=`, `?season=`, `?limit=`, `?offset=`. A sport with no adapter returns 200 with `data.scores` null and `meta.coverage` false.
+- `GET /v1/games`: Odds-centric game list. Requires `?sport=` or `?league=`.
+- `GET /v1/games/{id}/books`: Per-book odds for a game (Edge+)
+- `GET /v1/games/{id}/line-movement`: Line movement history for a game (Edge+)
+
+### Team analytics and intelligence
+
+- `GET /v1/teams/{id}/matches`: Team match list. Requires `?sport=`.
+- `GET /v1/teams/{id}/season`: Season summary
+- `GET /v1/teams/{id}/stats`: Team statistics
+- `GET /v1/teams/{id}/form`: Recent form (Solo+)
+- `GET /v1/teams/{id}/trends`: Performance and betting trends: ATS cover and over/under rates over the last 5 and 10 (Edge+)
+- `GET /v1/teams/{id}/ats`: Against-the-spread record with home/away and favorite/underdog splits (Edge+)
+- `GET /v1/teams/{id}/ats-record`: Alias of /ats (Edge+)
+- `GET /v1/teams/{id}/depth-chart`: Depth chart inferred from playing time (NBA by minutes, NHL goalies by games played). Other sports return supported:false.
+- `GET /v1/teams/{id}/h2h-intelligence`: Head-to-head intelligence vs an opponent. Requires `?opponent_id=` (the other team's UUID). Solo plan or higher.
+- `GET /v1/teams/{id}/schedule-context`: Rest and schedule context: days_rest, back-to-back, games in the last 7 days, last-5 form (Edge+)
+- `GET /v1/teams/{id}/elo`: Current Elo rating and league rank
+
+### Player analytics
+
+- `GET /v1/players/{id}/profile`: Extended player profile
+- `GET /v1/players/{id}/stats`: Player statistics. Requires `?sport=`.
+- `GET /v1/players/{id}/game-log`: Per-game log
+- `GET /v1/players/{id}/rolling-stats`: Rolling averages (Solo+)
+- `GET /v1/players/{id}/season-projection`: Season projection (Solo+)
+- `GET /v1/players/{id}/streak`: Active streaks (Solo+)
+- `GET /v1/players/{id}/birthday-splits`: Splits by birthday
+- `GET /v1/players/{id}/tier`: Quality tier with overall and position percentile. NBA and NHL only; untiered players return `tier: null` with a `reason` string (there is no `supported` field). Solo plan or higher.
+
+### Predictions and intelligence
+
+- `GET /v1/predictions`: Elo-based match predictions and win probabilities. Requires a Solo plan or higher.
+- `GET /v1/intelligence/trending`: NBA and NHL hot/cold movers, last-5 vs season average. `?sport=nba|nhl` (default nba). Solo plan or higher.
+- `GET /v1/intelligence/value-finder`: Model-edge value opportunities on moneyline markets (Elo win probability vs de-vigged implied odds). For ATS, see /v1/teams/{id}/ats. Edge plan or higher.
+- `GET /v1/intelligence/value-props`: NBA player props where the empirical hit rate beats the de-vigged market line. `?window=upcoming|all`, `?market=points|rebounds|assists|points_rebounds_assists|threes`, `?min_edge`. `window=all` returns a backtest (record, ROI, avg edge). Solo plan or higher.
+
+### MLB
+
+- `GET /v1/mlb/leaders`: Season batting or pitching leaderboard, computed at request time from `player_stats`; no pre-aggregated season table exists. `?category=batting|pitching` splits by the same rule `/v1/players/{id}/stats?sport=baseball` uses: a player-game counts as pitching iff it carries ERA, earned runs or innings pitched, otherwise batting. Filter with `stat`, `season`, `min_games`, `limit`.
+
+### NBA
+
+- `GET /v1/nba/games`: NBA games
+- `GET /v1/nba/games/{id}`: NBA game detail
+- `GET /v1/nba/games/{id}/plays`: Play-by-play, 13.6M plays (1996 to 2023; pre-1996 games return an empty set). Pro plan or higher.
+- `GET /v1/nba/games/{id}/matchup`: Matchup with season stats, last-5 form, rest days, roster, head-to-head
+- `GET /v1/nba/games/{id}/lineups`: Starting five and bench for each side (2025-26 season, including playoffs)
+- `GET /v1/nba/leaders`: Statistical leaders with team affiliation (id, abbreviation)
+- `GET /v1/nba/players/{id}/splits`: Player splits
+- `GET /v1/nba/players/{id}/props`: Player props with historical hit rates
+- `GET /v1/nba/players/{id}/season-averages`: Per-game season averages exactly as the vendor publishes them, one row per season, regular season only. Seasons 2023-2025, 1,723 rows across 802 players. Derived differently from `/v1/nba/players/{id}/season`, so the two differ in the last decimal.
+- `GET /v1/nba/players/{id}/advanced-stats`: Advanced season aggregates (shooting efficiency, usage, on/off ratings, pace, PIE) plus league rank for each under `ranks`. Splits regular season from playoffs; `?season_type=` selects one. Seasons 2023-2025 regular season plus 2023 playoffs, 1,937 rows across 802 players.
+
+### NCAAB
+
+- `GET /v1/ncaab/tournament`: The March Madness bracket (men's and women's), one row per game: school, seed, round, score and winner. Currently holds season 2025 only (134 rows: 67 men's + 67 women's), which is the bracket played 17 March - 7 April 2026; a season label is the year the season began, not the year it was played. Region labels are not populated.
+
+### NFL
+
+NFL is a parallel surface that uses league-standard text identifiers (`player_id` like `00-0033873`, `game_id` like `2024_10_KC_BUF`) rather than BBS UUIDs. The cross-sport `/v1/players/{id}/*` routes accept `?sport=american_football` but currently return empty for NFL players; a bridge between these ids and `players.bbs_id` is pending.
+
+- `GET /v1/nfl/games`: NFL schedules. Requires `season`; further filter by week, team, and game type.
+- `GET /v1/nfl/games/{id}`: NFL game detail (stadium, surface, roof, scores, rest days)
+- `GET /v1/nfl/games/{id}/plays`: Play-by-play with Expected Points Added (EPA) and Win Probability (WP) fields on every play (null on non-football plays such as timeouts and kickoffs). Pro plan or higher.
+- `GET /v1/live-stats/american_football/{id}/plays`: Live descriptive play-by-play (NFL, NCAAF, NCAAF FCS), during the game and after it finishes, keyed on the match UUID rather than the text game id. Different table from `nfl/games/{id}/plays` above (updates in-progress, vs. a nightly EPA/WP rebuild) and never blended with it. Pro plan or higher.
+- `GET /v1/nfl/players/{id}/stats`: Weekly stat rows (passing, rushing, receiving, PPR fantasy)
+- `GET /v1/nfl/players/{id}/game-log`: Chronological game log for one season
+- `GET /v1/nfl/leaders`: Season leaderboard aggregated from those weekly player-stat rows. Rank regular-season or postseason players by fantasy points, passing, rushing, receiving or defensive totals; filter by minimum games and return up to 100 leaders. Omit `season` for the newest populated season. `player_id` uses the same NFL identifier as the player-stat endpoints. This code-only stage intentionally omits `data_as_of` until the production view exposes a truthful value-change timestamp.
+- `GET /v1/nfl/injuries`: Weekly injury and practice report: report status and practice status per player per week, 34,810 rows across 2020-2025, all 32 teams, every regular-season week plus the postseason. Omit `season` and it resolves to the newest week available, naming it in `meta.resolved`. `meta.data_as_of` is the newest `updated_at` in the response and sits in the past between seasons, because nothing new is published then; read it rather than assuming a returned status is current.
+- `GET /v1/nfl/team-stats`: Team-week offensive totals (passing, rushing, receiving) with EPA and CPOE. 3,386 rows across 2020-2025, 544 per 17-game season, which is every team in every game. Omit `season` for the newest available; `meta.resolved` names what was served.
+- `GET /v1/nfl/depth-charts`: Interval-shaped depth charts: one row per player per position per contiguous stretch of state. Defaults to the open intervals; pass `as_of` to read the chart as it stood at a past instant. An open interval is not the same as "today's chart": no 2026 charts have been published yet, so the open intervals are currently the final 2025 chart, and `meta.season_covered` names the season the chart belongs to. A depth chart is the team's stated hierarchy before a game, which is a different question from `lineups` (who actually started one).
+- `GET /v1/nfl/rosters`: Season rosters for all 32 teams, 21,795 rows across 2020-2026: player, position, depth-chart position, jersey number, roster status (ACT, RES, DEV, CUT) and years of experience. Keyed on the same `player_id` as the weekly stats endpoints, so joining a stat line to a roster needs no id reconciliation. A row is the snapshot for that SEASON, not a point-in-time roster for a given week; for who was listed where on a particular date use `depth-charts` with `as_of`. Omit `season` and it resolves to the newest present, naming it in `meta.resolved` along with whether it was defaulted.
+
+### NCAAF
+
+- `GET /v1/ncaaf/leaders`: Season player leaderboard for NCAAF (FBS). Rank by `stat=`: `fantasy_points_ppr` (the default), `passing_yards`, `passing_touchdowns`, `rushing_yards`, `rushing_touchdowns`, `receiving_yards`, `receiving_touchdowns`, `receptions`, `total_tackles`, `sacks` or `interceptions`, with `limit` up to 100. Every row carries the player's whole stat line, not only the measure being ranked. `fantasy_points_ppr` is our own standard PPR computation over the raw box-score totals (0.04 per passing yard, 4 per passing touchdown, -2 per interception thrown, 0.1 per rushing or receiving yard, 6 per rushing or receiving touchdown, 1 per reception) rather than a figure the upstream feed publishes. There is no `min_games` parameter, because the underlying rows carry no games-played field at all. Leaders are identified by name, position and jersey number, and teams by name and abbreviation; no player or team ids are returned, so there is no join key back to `/v1/players` or `/v1/teams`. Omit `season` for the newest season carrying rows.
+
+### NHL
+
+- `GET /v1/nhl/games/{id}/plays`: Play-by-play for one game, one row per event with sequence, period, clock, play type, scoring and shooting flags, rink coordinates and the running score. Narrow with `play_type`, `period` or `scoring_only`; paginated, up to 500 rows per call. Covers the finished 2025-26 season. A game we hold with no play-by-play behind it returns HTTP 200 with an empty `data` and `meta.pbp_available: false`, not a 404, so absence is distinguishable from a bad id. Pro plan or higher.
+- `GET /v1/nhl/games/{id}/box-scores`: Per-player, per-game box score for one game: goals, assists, points, shots on goal, plus/minus, penalty minutes, power-play goals, blocked shots, hits, giveaways, takeaways, faceoff win percentage, time on ice and shifts, each with the player's team and sweater number. Covers the finished 2025-26 season. Gated on sport entitlement and history depth rather than the play-by-play plan above, making it the same product class as `/v1/players/{id}/gamelog`. A game with no box score behind it returns an empty `data` with `meta.box_score_available: false`. `player.id` is null for the occasional skater not matched to one of our own player records.
+- `GET /v1/nhl/games/{id}/matchup`: Matchup bundle
+- `GET /v1/nhl/leaders`: NHL season statistical leaders backed by licensed all-situations counting stats and our computed per-skater xG model
+- `GET /v1/nhl/xg-leaders`: NHL skater expected-goals leaderboard computed by us from play-by-play (shot location, type, rebound/rush and empty-net detection). `/v1/nhl/leaders?stat=xg` uses this same model in the legacy response envelope.
+- `GET /v1/nhl/goalies/gsax`: NHL goalie goals-saved-above-expected (expected goals against minus actual, over shots faced), the goaltending counterpart to `xg-leaders`, same computed model.
+- `GET /v1/nhl/team-leaders`: NHL team season leaders for faceoff rate, special-teams percentages, and shots for/against per game
+- `GET /v1/nhl/players/{id}/props`: NHL player props (5 markets: shots_on_goal, goals, assists, points, saves) with historical hit rates
+- `GET /v1/nhl/props/freshness`: Dataset-wide freshness for NHL player props (no player or market required): `data_as_of`, `age_days` and `status` (`live`/`recent`/`stale`/`no_data`) derived from `MAX(fetched_at)` across every held prop line, the same shape returned per-player above
+
+### World Cup 2026
+
+These are the canonical World Cup 2026 endpoints. Use them, not `/v1/matches?league=wc2026`, for tournament data.
+
+- `GET /v1/wc2026/standings`: Group standings and live tables
+- `GET /v1/wc2026/groups`: All twelve group tables (A-L) in one call, four teams each, with the standings row plus model advancement outputs (`advancement_prob`, `p_top2`, `p_win_group`, `expected_points`) per team. `data.groups` keyed by group letter. 5m cache.
+- `GET /v1/wc2026/matches`: All World Cup 2026 fixtures, one row per match. Filter with `?group=A-L` and/or `?status=upcoming|live|final`. No date parameter; the full schedule is always returned, so filter by kickoff client-side if you need a single day.
+- `GET /v1/wc2026/matches/{id}`: Match with lineups, xG shot maps, odds, Elo win probability
+- `GET /v1/wc2026/matches/{id}/live-probability`: Live win/draw/loss probability with pre-match Elo baseline, live-adjusted probability, and signed percentage-point delta per outcome. 15s cache. 422 when pre-match Elo not seeded for either team.
+- `GET /v1/wc2026/teams/{id}`: Team profile
+- `GET /v1/formulas/wc2026/group-standings`: Live group-stage standings computed from finished matches
+- `GET /v1/formulas/wc2026/progression`: Knockout progression odds
+- `GET /v1/wc2026/golden-boot`: Tournament-wide top-scorers leaderboard. Returns `tournament_state: "pre_tournament"` with `leaders: []` before June 11; `in_progress` with the running leaderboard during the tournament; `finished` with the final frozen list after. Daily refresh from the upstream provider, filtered to the 48 qualified nations.
+- `GET /v1/wc2026/leaders`: Top scorers with rank, goals, assists, and games played per player, a flat per-player team object, and an explicit `tournament_state`. Lighter sibling of golden-boot (no FIFA tiebreaker sort or squad filter). 60s cache.
+- `GET /v1/wc2026/group/{group}/advancement`: Per-team probability of finishing 1st/2nd/3rd/4th in one group from a 10,000-iteration Monte Carlo over the remaining fixtures. `p_advance` (1st + 2nd) and `p_third_contention`. Group letter A through L. 1h cache.
+- `GET /v1/odds?tournament=wc2026`: Tournament-wide odds list, freshest snapshot per (match, sportsbook, market, participant), grouped per match. Returns `matches: []` until books open their markets. Optional `date` (YYYY-MM-DD) and `market` filters. 60s cache. Edge plan or higher.
+
+Correction (2026-05-29): CPV vs KSA kickoff corrected to 2026-06-27T00:00:00Z (was 01:00:00Z). Re-verified 2026-05-31 via /v1/stored/matches/{id}; fix stable.
+
+### MMA and boxing
+
+- `GET /v1/fight-cards`: Fight cards. Requires `?sport=mma|boxing`; optional `?date=YYYY-MM-DD`.
+- `GET /v1/fight-cards/{id}`: Single card. Requires `?sport=mma|boxing`.
+- `GET /v1/bouts/{id}`: Bout detail. Requires `?sport=mma|boxing`.
+- `GET /v1/athletes/{id}`: Athlete profile. Requires `?sport=mma|boxing`.
+- `GET /v1/athletes/{id}/record`: Athlete fight record. Requires `?sport=mma|boxing`.
+
+Boxing scope. Read this before building on it:
+
+- **Fighter profiles are live** (12,213 worldwide bios: name, nationality, physicals,
+  weight class, external cross-reference ids) at `/v1/athletes?sport=boxing`. Win–loss records
+  are not loaded and return `null`, never a fabricated `0-0-0-0`.
+- **Fight cards and bout results are NOT loaded yet.** `/v1/fight-cards?sport=boxing`
+  returns an honest empty list (HTTP 200) rather than a 404 or invented rows.
+- **When results land they will be US-only.** They cover bouts sanctioned by US state
+  commissions, Nevada first, with the official winner,
+  method, round, and judges' scorecards for bouts sanctioned in that state. Cards
+  staged outside the US, including the UK and Saudi Arabia events that host many
+  marquee title fights, are outside every US commission's jurisdiction and will NOT be
+  covered. No single US commission covers the whole country either; broader US coverage
+  means integrating each state separately.
+- Do not describe our boxing results as global or complete. Profiles are worldwide;
+  results are US-scoped.
+
+### Cricket
+
+- `GET /v1/cricket/series`: Series list
+- `GET /v1/cricket/matches`: Cricket matches
+- `GET /v1/cricket/matches/{id}`: Match detail
+- `GET /v1/cricket/matches/{id}/scorecard`: Full scorecard
+- `GET /v1/cricket/matches/{id}/state`: Current innings state for one match: overs bowled, runs, wickets, target and run rates. The hourly cricket ingest appends a snapshot ONLY while a match is in progress, so `meta.available` is false and `data.state` null whenever none was ever recorded: a scheduled match, a match between innings before the first hourly capture, or a match that finished between captures. Absence here means no snapshot, not no match.
+- `GET /v1/cricket/players/{id}`: Player profile
+
+### Formula 1
+
+- `GET /v1/f1/sessions/{id}/results`: Session results
+
+### Stored historical surfaces
+
+- `GET /v1/stored/sports`, `GET /v1/stored/players`, `GET /v1/stored/standings`
+- `GET /v1/stored/matches`, `GET /v1/stored/matches/{id}`: UEFA Champions League: 189 fixtures via `?sport=football&league=UEFA Champions League` (DB-backed, no upstream quota). Live UCL standings and matches via `/v1/standings?league=cl` and `/v1/matches?sport=football&league=cl` are wired through our upstream provider. Same surface available for MLS via `league=MLS` (stored) and `league=mls` (live standings + matches).
+- `GET /v1/stored/matches/{id}/h2h`: Head-to-head history
+- `GET /v1/stored/matches/{id}/lineups`: Stored lineups
+- `GET /v1/stored/matches/{id}/plays`: Stored play-by-play
+- `GET /v1/stored/matches/{id}/stats`: Stored match stats
+
+### Images
+
+- `GET /v1/assets/{id}`: The image behind every `logo_url`, `headshot_url`, `photo_url` and `flag_url`. Those fields always point here; no response field points at a third-party host. The id is opaque and is the only way to reach an asset, so do not parse, construct or derive anything from it. No API key is required, an authenticated request returns byte-identical content to an unauthenticated one, and responses carry `cache-control: public, max-age=31536000, immutable`, so the bytes may be cached and stored.
+
+### Webhooks
+
+- `GET /v1/webhooks`: List webhook subscriptions
+- `POST /v1/webhooks` (Edge+): Register a subscription
+- `DELETE /v1/webhooks/{id}`: Delete a subscription
+- `POST /v1/webhooks/{id}/unpark`: Re-enable a subscription after fixing its endpoint
+- Edge and higher plans can register HTTPS subscriptions for `score_update`,
+  `match_start`, and `match_end`. Registration requires `webhook:write` scope.
+
+## Why the intelligence endpoints matter
+
+Most sports APIs return raw resources and leave you to join them. The
+intelligence endpoints return a fully assembled page in one request. An
+NBA matchup call bundles season stats, last-5 form, rest days, the active
+roster, and head-to-head; a World Cup 2026 match bundles lineups, xG shot
+maps, odds, and Elo win probabilities. One call here replaces roughly
+eight raw-data calls you would otherwise write and maintain.
+
+## Rate limits
+
+| Tier | Daily limit |
+| --- | --- |
+| Free | 250 / day (500 with GitHub) |
+| Solo | 10,000 / day |
+| Trio | 25,000 / day |
+| Edge | 100,000 / day |
+| Pro | 200,000 / day |
+| Enterprise | unlimited |
+
+Two independent buckets cap traffic (a per-minute sliding window and a per-day
+UTC window); exhausting either returns `429` with `Retry-After`.
+
+Separate from quota, each key has a **4xx circuit breaker** (abuse protection,
+not a punitive throttle). Over a rolling 1-hour window it trips when a key
+sends either 500 client-error (`4xx`) responses, or a 4xx rate of 80%+ once at
+least 200 requests have been seen (Free plan; a paid plan gets 10x both floors
+- 5,000 and 2,000 - the 80% ratio gate itself is unchanged for every plan). On
+a trip the key gets `429` for a 600-second (10-minute) cooldown regardless of
+remaining quota; successful responses never count toward it, so normal usage
+never trips it. A breaker `429` carries `Retry-After`, `X-RateLimit-4xx-Cooldown`
+(seconds left), and `X-RateLimit-4xx-Reset` (epoch). It can trip a key on any
+plan including Enterprise, but not identically - see the docs page for the
+paid-plan thresholds. Avoid it by fixing the failing requests (read
+`error.message` and `suggested_fix`) instead of blind-retrying. Full detail:
+https://bigballsdata.com/docs/rate-limits
+
+## Agent and SDK integration
+
+- OpenAPI 3.1: https://bigballsdata.com/openapi.json
+- MCP server (live, JSON-RPC over Streamable HTTP):
+  https://mcp.bigballsdata.com/mcp, using OAuth 2.1 with Dynamic Client
+  Registration (sign in, no key to paste), or bearer-token auth with the
+  same API key as REST. Call `tools/list` for its authoritative tool set;
+  it answered with six read tools when last queried (`get_matches`,
+  `get_standings`, `get_player_stats`, `get_team_elo`, `get_coverage` and
+  `find_players`), which is not the same list as the static manifest below.
+  `tools/list` is the authority, not this sentence.
+  Server card: https://bigballsdata.com/.well-known/mcp/server-card.json
+- Connect guide (Claude and other MCP clients):
+  https://bigballsdata.com/docs/mcp
+- MCP tool manifest (static REST catalogue, not the live server):
+  https://bigballsdata.com/mcp
+- ChatGPT plugin manifest: https://bigballsdata.com/.well-known/ai-plugin.json
+- Agent onboarding: https://bigballsdata.com/skill.md
+- Official TypeScript SDK, generated from the OpenAPI spec
+
+## Build guides
+
+Step-by-step tutorials that end in a working prototype on this API. Each one
+gives two paths (point an MCP client at the live MCP server and let an agent
+build it, or hand-code against REST), and every endpoint in them is verified
+against production before publication.
+
+- [How to build a fantasy hockey app](https://bigballsdata.com/how-to-build-a-fantasy-hockey-app):
+  an NHL draft board ranked on all-situations production and expected goals. Uses
+  `/v1/nhl/leaders`, `/v1/players/{id}/stats?sport=ice_hockey`,
+  `/v1/injuries?sport=ice_hockey`, `/v1/standings?league=NHL`,
+  `/v1/teams/{id}/elo` and `/v1/players/{id}/tier`. Free tier is enough to
+  build it; player tiers and Elo rank are Solo.
+
+- [How to build a fantasy basketball app](https://bigballsdata.com/how-to-build-a-fantasy-basketball-app):
+  an NBA draft board ranked on scoring, true shooting and full Hollinger PER.
+  Uses `/v1/nba/leaders`, `/v1/injuries?sport=basketball`,
+  `/v1/standings?league=NBA`, `/v1/teams/{id}/elo` and
+  `/v1/players/{id}/tier`. Free tier is enough to build it; player tiers and
+  Elo rank are Solo. States plainly that the NBA is out of season and that
+  `/v1/players/{id}/stats` has partial NBA coverage.
+
+- [How to build a soccer xG app](https://bigballsdata.com/how-to-build-a-soccer-xg-app):
+  an expected-goals board for the big five leagues. Uses
+  `/v1/leagues/{id}/xg-leaders`, `/v1/leagues/{id}/top-scorers`,
+  `/v1/standings?league=EPL`, `/v1/matches?sport=soccer`, `/v1/teams/{id}/form`
+  and `/v1/players/{id}/club-form`. The xG leaderboard itself needs Solo: a free
+  key answers `403 forbidden` on `/v1/leagues/{id}/xg-leaders`, while
+  `/v1/leagues/{id}/top-scorers` over the same five leagues is free. Form and
+  per-club history are Solo. States plainly that xG rows carry `player_name`
+  and no player id, that soccer has no Elo or tier ratings, and that xG covers
+  the big five rather than all 63 soccer leagues.
+- [How to build a cricket app](https://bigballsdata.com/how-to-build-a-cricket-app):
+  a batting-analysis dashboard built on per-innings scorecards: 421,886
+  batting and 293,453 bowling rows across 22,898 finished matches and 765
+  competitions, back to 2001. Uses `/v1/cricket/series`,
+  `/v1/cricket/matches`, `/v1/cricket/matches/{id}/scorecard`,
+  `/v1/cricket/matches/{id}/state` and `/v1/cricket/players/{id}`. Free tier is
+  enough to build it; rolling team form is Solo. States plainly that cricket
+  has NO Elo ratings and NO player tiers, and that live innings state is empty
+  between fixtures (next match 2026-11-15).
+
+- [NFL fantasy football API tutorial](https://bigballsdata.com/how-to-build-a-fantasy-football-app):
+  a PPR draft board that ranks receivers by floor and boom rate rather than by
+  season average, built on per-week `fantasy_points_ppr`, populated on all
+  112,333 player-weeks across six seasons (2020–2025). Uses
+  `/v1/players?name=`, `/v1/players/{id}/stats?sport=american_football`,
+  `/v1/nfl/depth-charts`, `/v1/teams/{id}/elo` and `/v1/nfl/games`. Free tier
+  builds the whole board on the 2025 season; the multi-season archive and Elo
+  rank are Solo. States plainly that NFL INJURIES ARE NOT USABLE (the endpoint
+  answers 200 with four rows across two of thirty-two teams and holds nothing
+  for the 2026 season), that NFL standings report preseason results, and that
+  there is no 2026 in-season scoring until the season opens on 2026-09-09.
+
+- [How to build an NCAAF scoreboard and live game center](https://bigballsdata.com/how-to-build-an-ncaaf-scoreboard):
+  an FBS score board on `/v1/matches`, with licensed descriptive play context
+  from `/v1/live-stats/american_football/{matchId}/plays`. Scores are Free and
+  play-by-play is Pro. States plainly that scores and plays update on different
+  cadences, NCAAF win probability is not served, and player box scores are
+  postgame rather than live.
+
+- [How to build college football rankings and conference standings](https://bigballsdata.com/how-to-build-college-football-rankings):
+  a league-wide FBS record table plus a separately labeled Elo power order,
+  using `/v1/standings`, `/v1/teams/{id}/elo` and the Solo Elo-history route.
+  This is not an AP, Coaches or CFP poll, and conference grouping requires a
+  caller-owned list of canonical team ids because membership is not served.
+
+- [How to build an NCAAF fantasy football app](https://bigballsdata.com/how-to-build-an-ncaaf-fantasy-football-app):
+  a 2026 season-total PPR board on `/v1/ncaaf/leaders`, with optional player
+  history only where `player.id` is non-null. No per-game average is claimed:
+  the licensed leaderboard has no games-played field. No NCAAF injuries or
+  licensed headshots are advertised, and unresolved player ids are never
+  replaced by a name guess.
+
+<!-- inventory:start -->
+## Optional
+
+For one derived block per sitemap page, grouped by routing importance, use
+https://bigballsdata.com/llms/pages.txt. Skip it when the endpoint catalogue
+and coverage sections above already answer the question.
+<!-- inventory:end -->
+
+## Support
+
+- Discord (fastest): https://discord.gg/H2WJBQurbq
+- Email: support@bigballsdata.com
+- Status: https://bigballsdata.com/status
+
+### Support response times
+
+These are HUMAN response times. They are not API latency. The "sub-100ms"
+figures elsewhere in this document describe how long an API request takes and
+say nothing about how quickly a person replies.
+
+We do not publish a response-time SLA on the free or self-serve paid plans.
+Replies are best effort. A contractual response-time SLA is available on
+Enterprise; contact support@bigballsdata.com to discuss one.
+
+If a thread has gone quiet, reply in it or email support@bigballsdata.com and
+reference the thread. Both reach the same place.

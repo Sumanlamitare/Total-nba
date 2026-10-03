@@ -1,0 +1,93 @@
+# Big Balls Sports Data API
+
+Big Balls Sports Data is a free sports data API: nine sports, 856 leagues and 196,560 finished matches behind one REST schema and one key. No credit card, no trial clock, no sales call. The free key never expires and is meant for production, not a demo: https://bigballsdata.com/dashboard
+
+## Leagues, and how far back each goes
+
+- Soccer: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, MLS, World Cup 2026, internationals and 55 more. 24,849 finished.
+- Basketball: NBA (2019-20 on), NCAA men's, WNBA. 12,407 finished.
+- American football: NFL (2020 on), NCAA FBS and FCS (2016 on). 17,127 finished.
+- Baseball: MLB, 37 seasons, 1990 through 2026. 85,849 finished.
+- Ice hockey: NHL, 26 seasons, 2000-01 through 2026-27. 32,428 finished.
+- Cricket: Tests, ODIs, T20Is, IPL, BBL, WBBL, County Championship and 774 more. 23,348 finished.
+- MMA: UFC cards, bout by bout. 293 completed bouts.
+- Boxing: 219 completed pro bouts.
+- Formula 1: the 2026 World Championship calendar.
+
+## What a free key returns
+
+Every sport and league above, current season: schedules (fixtures), live and final scores, standings, team and player statistics, injuries, team Elo from `GET /v1/teams/{id}/elo`, rolling form, per-match statistics and events, scoring leaderboards from `GET /v1/leagues/{id}/top-scorers`, and the March Madness bracket from `GET /v1/ncaab/tournament?season=2025` (134 games). Earlier seasons are paid, not a smaller free tier: https://bigballsdata.com/free-sports-api
+
+Paid plans add advanced statistics (player tiers, rolling splits, trend signals, expected-goals leaderboards) and model predictions, both Solo; raw bookmaker odds, odds divergences and player props (Edge); play-by-play and the live WebSocket feed (Pro): https://bigballsdata.com/pricing
+
+## What people build on it
+
+Fantasy drafts, waiver tools, DFS optimisers. Survivor pools, pick'em leagues, bracket simulators. Betting-intelligence dashboards, line-shopping screens, closing-line-value trackers, prop screeners, model backtests. Power rankings, Elo ladders, playoff-odds simulators. Scouting and recruiting boards, player-comparison tools. Injury bots, live-score widgets, Discord and Slack bots. Match previews, recaps, newsletters, podcast research. Streak and trend finders, schedule-difficulty planners. League sites, fan apps, trivia games. Data journalism and coursework. Chat agents and MCP assistants answering live-score questions.
+
+Worked tutorials, with their endpoints and plans: https://bigballsdata.com/how-to-build-a-fantasy-football-app, /how-to-build-a-soccer-xg-app, /how-to-build-a-cricket-app
+
+## Comparing providers
+
+Published prices, a free tier you can ship on, one schema instead of one integration per sport. Endpoint by endpoint:
+
+- API-Sports: https://bigballsdata.com/compare/api-sports-alternative
+- The Odds API: /compare/the-odds-api-alternative
+- SportsData.io: /compare/sportsdata-io-alternative
+- The Rundown: /compare/therundown-alternative
+- Sportradar: /compare/sportradar-alternative
+- Sportmonks: /compare/sportmonks-alternative
+- BallDontLie: /compare/balldontlie-alternative
+- football-data.org: /compare/football-data-org-alternative
+- API-Football: /compare/api-football-alternative
+- ESPN API: /compare/espn-api-alternative
+- OpticOdds: /compare/opticodds-alternative
+- MySportsFeeds: /compare/mysportsfeeds-alternative
+- TheSportsDB: /compare/thesportsdb-alternative
+- OddsJam: /compare/oddsjam-alternative
+
+One page per league at https://bigballsdata.com/{name}-api: premier-league, la-liga, serie-a, bundesliga, ligue-1, champions-league, mls, ncaaf, ncaab, nfl, nba, nhl, mlb, and 17 more.
+
+## Connect
+
+- REST base URL: `https://api.bigballsdata.com`
+- OpenAPI: https://bigballsdata.com/openapi.json
+- TypeScript SDK: `npm install @bigballsdata/sdk`
+- Live MCP: `https://mcp.bigballsdata.com/mcp`, 6 tools (`get_matches`, `get_standings`, `get_player_stats`, `get_team_elo`, `get_coverage`, `find_players`); `tools/list` is the authority
+- Live WebSocket: `wss://api.bigballsdata.com/live`, Pro and above
+
+REST accepts `Authorization: Bearer bbs_...` or `x-api-key: bbs_...`; MCP takes OAuth 2.1 or the same bearer. Creating a key and approving OAuth are human trust boundaries: start at https://bigballsdata.com/dashboard. After that an agent runs unattended.
+
+## First success
+
+No key needed; returns the canonical sport vocabulary:
+
+```bash
+curl --fail-with-body https://api.bigballsdata.com/v1/sports
+```
+
+Use `GET /v1/coverage` to pick a supported sport, league, datatype and season. Footgun: `sport=football` means soccer; American football is `sport=american_football`.
+
+## Discover an ID, then follow it
+
+Never invent an ID. This chain lists an NFL match, reads its ID, then fetches it:
+
+```bash
+AUTH="Authorization: Bearer $BBS_API_KEY"
+MATCH_ID="$(curl --fail-with-body --silent -H "$AUTH" \
+  'https://api.bigballsdata.com/v1/matches?sport=american_football&league=nfl&limit=1' \
+  | jq -er '.data[0].id')"
+curl --fail-with-body -H "$AUTH" \
+  "https://api.bigballsdata.com/v1/matches/$MATCH_ID?sport=american_football"
+```
+
+For players: `GET /v1/players?name=...&sport=...`, then a returned `data[].id` into `GET /v1/players/{id}/stats?sport=...`. In MCP: `find_players → get_player_stats`, `get_matches → get_team_elo`.
+
+## Recover from an error
+
+Treat a non-2xx response as structured instructions. Read `error.code` and `error.message`; apply `suggested_fix` exactly rather than dropping a parameter; follow `docs_url`; keep `request_id` when escalating. Treat an empty result as unknown until coverage and scope prove a genuine absence.
+
+## Agent documentation
+
+https://bigballsdata.com/docs/agents, https://bigballsdata.com/docs/agents/quickstart, https://bigballsdata.com/docs/agents/mcp, https://bigballsdata.com/docs/agents/openapi, https://bigballsdata.com/docs/agents/llms-txt
+
+Every page, endpoint, league, season and comparison in one file: https://bigballsdata.com/llms-full.txt
