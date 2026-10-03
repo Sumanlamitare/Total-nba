@@ -3,19 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Personal NBA leaderboard: React front end, data from the Big Balls Data API",
+  "description": "Personal NBA leaderboard (MERN): React app, Vercel API functions, MongoDB, Big Balls Data API",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
     "build": "vite build",
-    "preview": "vite build && cp -r data dist/ && vite preview",
-    "fetch": "node scripts/fetch-bbs.mjs",
+    "ingest": "node scripts/ingest.mjs",
     "probe:bbs": "node tools/probe-bbs.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
+    "mongodb": "^6.21.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^5.4.21"

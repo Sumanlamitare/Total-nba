@@ -1,0 +1,31 @@
+name: Pull NBA data into MongoDB
+
+# Fills MongoDB from the Big Balls Data API within the free plan's 500 requests/day
+# (the job stops at 365/day so live date pulls in the app always have quota left).
+on:
+  schedule:
+    - cron: '7 */2 * * *'   # every 2 hours
+  workflow_dispatch:
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - name: Pull into MongoDB
+        env:
+          BBS_API_KEY: ${{ secrets.BBS_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          if [ -z "$MONGODB_URI" ]; then echo "::warning::Add the MONGODB_URI secret to start pulling"; exit 0; fi
+          npm run ingest

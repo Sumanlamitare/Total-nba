@@ -1,46 +1,45 @@
-import { STATS, LABEL, key, parse, dstr, seasonName, slug, addDays, weekStart } from './util.js';
+import { STATS, LABEL, key, parse, dstr, seasonName, slug } from './util.js';
 
-// Static JSON written by scripts/fetch-bbs.mjs from the Big Balls Data API
-const cache = {};
-const load = p => (cache[p] ||= fetch('data/' + p, { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).catch(() => null));
+// The /api functions answer from MongoDB and pull from Big Balls only when a date isn't stored yet
+async function call(path) {
+  const r = await fetch('/api/' + path);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || r.status);
+  return body;
+}
 
-export const getMeta = async () => (await load('index.json')) || { seasons: [], dates: [] };
+export const getMeta = () => call('meta');
 
-// Player photos: Big Balls headshot when the plan includes it, otherwise ESPN's free CDN by name
+// Player photos from ESPN's free headshot CDN, matched by name (Big Balls headshots need a paid plan)
 const normName = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/[^a-z ]/g, ' ').replace(/\b(jr|sr|ii|iii|iv)\b/g, ' ').split(/\s+/).filter(Boolean).join(' ');
 let photos = {};
-export const loadPhotos = async () => { photos = (await load('photos.json')) || {}; };
-export const photo = (name, img) => img || (photos[normName(name || '')] ? `https://a.espncdn.com/i/headshots/nba/players/full/${photos[normName(name)]}.png` : '');
+export const loadPhotos = async () => { photos = await fetch('photos.json').then(r => r.json()).catch(() => ({})); };
+const photo = name => (photos[normName(name || '')] ? `https://a.espncdn.com/i/headshots/nba/players/full/${photos[normName(name)]}.png` : '');
 
-// Day file rows: [playerId, name, team, opp, pts, reb, ast, stl, blk, tpm, min, gameId]
-const COL = { pts: 4, reb: 5, ast: 6, stl: 7, blk: 8, tpm: 9 };
-function dayTop(day, stat) {
-  if (!day?.p) return [];
-  const c = COL[STATS[stat]], date = parse(day.date), period = dstr(date);
-  return day.p.filter(r => r[c] > 0).sort((a, b) => b[c] - a[c] || b[4] - a[4]).slice(0, 5)
-    .map(r => ({ n: r[1], img: photo(r[1]), v: r[c], g: `${r[2]} vs ${r[3]}`, stat, period, k: slug(['D', stat, period, r[1]]) }));
-}
+const daySlide = (l, stat) => {
+  const period = dstr(parse(l.date));
+  return { n: l.name, img: photo(l.name), v: l[STATS[stat]], g: `${l.team} vs ${l.opp}`, stat, period, k: slug(['D', stat, period, l.name]) };
+};
 
-// Slides for the current view: daily top 5, season leaders, or the week ranked by your likes
+// Slides for the current view, plus status about live pulls: { rows, pulled, quotaReached, loaded }
 export async function build(s, meta, votes) {
   if (s.season) {
-    // regular-season totals, summed from every box score loaded so far
     const label = meta.seasons[s.si];
-    const T = label && await load(`totals/${label}.json`);
-    const partial = T && T.gamesLoaded < T.totalGames;
-    return (T?.stats?.[STATS[s.stat]] || []).map(r => ({ n: r.n, img: photo(r.n), v: r.v, g: r.team, gp: r.gp, stat: s.stat,
-      period: seasonName(label), loaded: partial ? `${T.gamesLoaded.toLocaleString()} of ${T.totalGames.toLocaleString()} games` : null,
-      k: slug(['S', s.stat, seasonName(label), r.n]) }));
+    if (!label) return { rows: [] };
+    const T = await call(`season?season=${label}&stat=${STATS[s.stat]}`);
+    const partial = T.totalGames && T.gamesLoaded < T.totalGames;
+    return { rows: T.leaders.map(r => ({ n: r.name, img: photo(r.name), v: r.v, g: r.team, gp: r.gp, stat: s.stat, period: seasonName(label),
+      loaded: partial ? `${T.gamesLoaded.toLocaleString()} of ${T.totalGames.toLocaleString()} games` : null,
+      k: slug(['S', s.stat, seasonName(label), r.name]) })) };
   }
   if (s.week) {
-    const a = weekStart(s.date), out = [];
-    const days = await Promise.all(Array.from({ length: 7 }, (_, i) => key(addDays(a, i)))
-      .map(d => (meta.has.has(d) ? load(`days/${d}.json`) : null)));
-    days.forEach(day => Object.keys(STATS).forEach((stat, si) => dayTop(day, stat).forEach((r, rank) => out.push({ ...r, rank, si }))));
-    const liked = k => (votes[k] === 1 ? 1 : 0);
-    return out.sort((x, y) => liked(y.k) - liked(x.k) || x.rank - y.rank || x.si - y.si || y.v - x.v).slice(0, 5);
+    const W = await call(`week?date=${key(s.date)}`);
+    const order = Object.values(STATS), liked = k => (votes[k] === 1 ? 1 : 0);
+    const rows = W.lines.map(l => ({ ...daySlide(l, LABEL[l.stat]), rank: l.rank, si: order.indexOf(l.stat) }))
+      .sort((x, y) => liked(y.k) - liked(x.k) || x.rank - y.rank || x.si - y.si || y.v - x.v).slice(0, 5);
+    return { rows, pulled: W.pulled, quotaReached: W.quotaReached };
   }
-  return meta.has.has(key(s.date)) ? dayTop(await load(`days/${key(s.date)}.json`), s.stat) : [];
+  const D = await call(`day?date=${key(s.date)}&stat=${STATS[s.stat]}`);
+  return { rows: D.lines.map(l => daySlide(l, s.stat)), pulled: D.pulled, quotaReached: D.quotaReached };
 }
-export { LABEL };

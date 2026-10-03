@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
-import { STATS, key, parse, addDays, dstr, seasonName, periodLabel, ago } from './util.js';
+import { STATS, key, parse, addDays, dstr, seasonName, periodLabel } from './util.js';
 import useReactions from './useReactions.js';
 import Loader from './components/Loader.jsx';
 import Slide, { Empty } from './components/Slide.jsx';
@@ -17,21 +17,27 @@ export default function App() {
   const [pos, setPos] = useState(0);
   const [ov, setOv] = useState(null);
   const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
   const pan = useRef(null), posR = useRef(0), lenR = useRef(1), lastOv = useRef(null);
   const rx = useReactions();
   lenR.current = Math.max(1, data.length);
 
-  const load = (s, m) => api.build(s, m, rx.votes).catch(e => { setErr('Could not load data (' + e.message + ')'); return []; });
+  const [status, setStatus] = useState(null); // result of the last load: live pull / quota info
+  const load = async (s, m) => {
+    setErr('');
+    try { const r = await api.build(s, m, rx.votes); setStatus(r); return r.rows; }
+    catch (e) { setErr('Could not load data (' + e.message + ')'); setStatus(null); return []; }
+  };
 
   // boot: load meta, show the latest game day
   useEffect(() => {
     const t0 = Date.now();
     (async () => {
-      const [m] = await Promise.all([api.getMeta(), api.loadPhotos()]);
+      const [m] = await Promise.all([api.getMeta().catch(e => { setErr('Server unreachable (' + e.message + ')'); return { dates: [], seasons: [] }; }), api.loadPhotos()]);
       m.has = new Set(m.dates);
       setMeta(m);
       // open on the latest game day; while history is still loading with no days yet, open on season leaders
-      const s = { season: !m.dates.length && m.seasons.length > 0, week: false, stat: 'POINTS', si: 0, date: m.dates.length ? parse(m.dates.at(-1)) : new Date() };
+      const s = { season: false, week: false, stat: 'POINTS', si: 0, date: m.dates.length ? parse(m.dates.at(-1)) : new Date() };
       const rows = await load(s, m);
       setSt(s); setView(s); setData(rows);
       setTimeout(() => setStage(1), Math.max(0, 3500 - (Date.now() - t0)));
@@ -45,7 +51,13 @@ export default function App() {
     setSt(nx);
     el.style.transition = 'opacity .45s,transform .45s,filter .45s';
     el.style.opacity = 0; el.style.transform = 'translateY(-26px)'; el.style.filter = 'blur(6px)';
-    Promise.all([load(nx, meta), new Promise(r => setTimeout(r, 480))]).then(([rows]) => { setView(nx); setData(rows); setVer(v => v + 1); });
+    setLoading(true);
+    Promise.all([load(nx, meta), new Promise(r => setTimeout(r, 480))]).then(([rows]) => {
+      setLoading(false); setView(nx); setData(rows); setVer(v => v + 1);
+      // remember newly pulled dates so the calendar lights them up
+      if (rows.length && !nx.season && !nx.week && !meta.has.has(key(nx.date))) setMeta(m => ({ ...m, has: new Set([...m.has, key(nx.date)]) }));
+      api.getMeta().then(m2 => setMeta(m => ({ ...m, quota: m2.quota }))).catch(() => {});
+    });
   };
   useEffect(() => {
     if (!ver) return;
@@ -82,12 +94,11 @@ export default function App() {
 
   if (!st) return <Loader gone={false} />;
 
-  // daily arrows jump to the previous/next day that had games
+  // daily arrows step one day; a date that isn't stored yet is pulled live
   const step = d => {
     if (st.season) { const n = Math.min(meta.seasons.length - 1, Math.max(0, st.si - d)); if (n !== st.si) change({ si: n }); return; }
     if (st.week) { change({ date: addDays(st.date, 7 * d) }); return; }
-    const k = key(st.date), nx = d > 0 ? meta.dates.find(x => x > k) : meta.dates.findLast(x => x < k);
-    if (nx) change({ date: parse(nx) });
+    change({ date: addDays(st.date, d) });
   };
   if (ov) lastOv.current = ov;
   const shown = ov || lastOv.current;
@@ -99,8 +110,7 @@ export default function App() {
   if (shown === 'stat') overlay = list(Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
   else if (shown === 'season') overlay = list(meta.seasons, st.si, 'si');
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
-  const emptyMsg = !meta.dates.length && !meta.seasons.length ? 'NO DATA YET — THE FIRST UPDATE IS STILL RUNNING'
-    : !view.season && !view.week && meta.backfillLeft ? 'NOT LOADED YET — HISTORY FILLS IN DAILY (' + meta.backfillLeft + ' GAMES TO GO)'
+  const emptyMsg = status?.quotaReached ? 'DAILY API LIMIT REACHED — THIS LOADS AFTER MIDNIGHT UTC'
     : view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
 
   return (
@@ -137,7 +147,8 @@ export default function App() {
         </footer>
       </div>
       <div id="ov" className={ov ? 'on' : ''} onClick={() => setOv(null)}>{overlay}</div>
-      <div id="note">{err || 'TotalNBA · Big Balls Data' + (meta.updated ? ' · updated ' + ago(meta.updated) : '')}</div>
+      <div id="note">{err || (loading ? 'Loading… pulling from Big Balls if this date isn’t saved yet'
+        : 'TotalNBA · Big Balls Data' + (status?.pulled ? ` · just pulled (${status.pulled} requests)` : '') + (meta.quota ? ` · API ${meta.quota.used}/${meta.quota.cap} today` : ''))}</div>
     </>
   );
 }
