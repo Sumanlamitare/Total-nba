@@ -22,7 +22,7 @@ export default function App() {
   const rx = useReactions();
   lenR.current = Math.max(1, data.length);
 
-  const [status, setStatus] = useState(null); // result of the last load: live pull / quota info
+  const [status, setStatus] = useState(null); // result of the last load (was it pulled live?)
   const load = async (s, m) => {
     setErr('');
     try { const r = await api.build(s, m, rx.votes); setStatus(r); return r.rows; }
@@ -33,7 +33,7 @@ export default function App() {
   useEffect(() => {
     const t0 = Date.now();
     (async () => {
-      const [m] = await Promise.all([api.getMeta().catch(e => { setErr('Server unreachable (' + e.message + ')'); return { dates: [], seasons: [] }; }), api.loadPhotos()]);
+      const m = await api.getMeta().catch(e => { setErr('Server unreachable (' + e.message + ')'); return { dates: [], seasons: [] }; });
       m.has = new Set(m.dates);
       setMeta(m);
       // open on the latest game day; while history is still loading with no days yet, open on season leaders
@@ -56,7 +56,6 @@ export default function App() {
       setLoading(false); setView(nx); setData(rows); setVer(v => v + 1);
       // remember newly pulled dates so the calendar lights them up
       if (rows.length && !nx.season && !nx.week && !meta.has.has(key(nx.date))) setMeta(m => ({ ...m, has: new Set([...m.has, key(nx.date)]) }));
-      api.getMeta().then(m2 => setMeta(m => ({ ...m, quota: m2.quota }))).catch(() => {});
     });
   };
   useEffect(() => {
@@ -110,9 +109,7 @@ export default function App() {
   if (shown === 'stat') overlay = list(Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
   else if (shown === 'season') overlay = list(meta.seasons, st.si, 'si');
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
-  const emptyMsg = status?.notInPlan ? 'NOT SAVED, AND THE FREE BIG BALLS PLAN ONLY COVERS THE CURRENT SEASON'
-    : status?.quotaReached ? 'DAILY API LIMIT REACHED — THIS LOADS AFTER MIDNIGHT UTC'
-    : view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
+  const emptyMsg = view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
 
   return (
     <>
@@ -148,8 +145,8 @@ export default function App() {
         </footer>
       </div>
       <div id="ov" className={ov ? 'on' : ''} onClick={() => setOv(null)}>{overlay}</div>
-      <div id="note">{err || (loading ? 'Loading… pulling from Big Balls if this date isn’t saved yet'
-        : 'TotalNBA · Big Balls Data' + (status?.pulled ? ` · just pulled (${status.pulled} requests)` : '') + (meta.quota ? ` · API ${meta.quota.used}/${meta.quota.cap} today` : ''))}</div>
+      <div id="note">{err || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'
+        : 'TotalNBA · ESPN data' + (status?.pulled ? ' · just pulled live' : ''))}</div>
     </>
   );
 }

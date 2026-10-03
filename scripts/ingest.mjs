@@ -1,59 +1,31 @@
-// Scheduled job (GitHub Actions): keeps MongoDB filled from the Big Balls Data API within the daily quota.
-//   1. one-time import of games already pulled into data/ (so they're never requested again)
-//   2. recent days, so new games are stored without anyone opening them
-//   3. backfill of the current season (and last season until nba_api stores it), leaving LIVE_RESERVE
-//      requests a day for live date pulls
-import fs from 'node:fs';
-import path from 'node:path';
+// Scheduled job (GitHub Actions): keeps MongoDB filled from ESPN's free NBA API.
+// First run loads every season from HISTORY_FROM (default 2015-16) to now, newest first;
+// after that each run only touches days that aren't complete yet (today and recent days).
 import { db, close } from '../lib/db.js';
-import { OutOfQuota, usedToday, DAILY_CAP } from '../lib/bbs.js';
-import { ensureDay, backfill, saveGame, seasonOf } from '../lib/store.js';
+import { backfill, ensureDay, etToday, seasonOf } from '../lib/store.js';
 
-// History comes from scripts/history_nba_api.py; Big Balls covers the current season and the one before
-// (until nba_api has stored it). Older seasons aren't in the free Big Balls plan anyway.
-const start = (d => (d.getUTCMonth() >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1))(new Date());
-const SEASONS = [start, start - 1];
-const DATA = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'data');
-const iso = d => d.toISOString().slice(0, 10);
+const from = +(process.env.HISTORY_FROM || '2015').slice(0, 4);
+const iso = t => new Date(t).toISOString().slice(0, 10);
 
-async function importRepoData() {
+// One-time cleanup: earlier versions stored Big Balls data with different game ids
+async function dropOldSources() {
   const d = await db();
-  if (await d.collection('imports').findOne({ _id: 'repo-data' }) || !fs.existsSync(path.join(DATA, 'days'))) return;
-  let games = 0;
-  for (const f of fs.readdirSync(path.join(DATA, 'schedule')).filter(f => f.endsWith('.json'))) {
-    const y = +f.slice(0, 4);
-    const sched = JSON.parse(fs.readFileSync(path.join(DATA, 'schedule', f)));
-    await d.collection('games').bulkWrite(sched.map(g => ({ updateOne: { filter: { _id: g.id },
-      update: { $setOnInsert: { date: g.date, season: y, type: g.type, home: g.home, away: g.away, hs: g.hs, as: g.as, boxed: false } }, upsert: true } })), { ordered: false });
-    await d.collection('schedules').updateOne({ _id: y }, { $set: { games: sched.length, regular: sched.filter(g => g.type === 'Regular Season').length, at: new Date() } }, { upsert: true });
-  }
-  for (const f of fs.readdirSync(path.join(DATA, 'days')).filter(f => f.endsWith('.json'))) {
-    const day = JSON.parse(fs.readFileSync(path.join(DATA, 'days', f)));
-    for (const g of day.games.filter(g => g.boxed)) {
-      const rows = day.p.filter(r => r[11] === g.id).map(r => ({ playerId: r[0], name: r[1], team: r[2], opp: r[3],
-        pts: r[4], reb: r[5], ast: r[6], stl: r[7], blk: r[8], tpm: r[9], min: r[10] }));
-      const { boxed, ...game } = g;
-      await saveGame(day.date, game, rows);
-      games++;
-    }
-  }
-  await d.collection('imports').insertOne({ _id: 'repo-data', games, at: new Date() });
-  console.log(`imported ${games} games from data/`);
+  if (await d.collection('imports').findOne({ _id: 'espn-v1' })) return;
+  for (const c of ['games', 'lines']) await d.collection(c).deleteMany({ source: { $ne: 'espn' } });
+  for (const c of ['days', 'schedules', 'seasons', 'quota']) await d.collection(c).deleteMany({});
+  await d.collection('imports').insertOne({ _id: 'espn-v1', at: new Date() });
+  console.log('cleared data from earlier sources');
 }
 
 try {
-  await importRepoData();
-  const today = new Date(Date.now() - 5 * 3600e3);
-  for (let i = 2; i >= 0; i--) {
-    const date = iso(new Date(today - i * 864e5)), m = +date.slice(5, 7);
-    if (m >= 7 && m <= 9) continue; // off-season
-    const r = await ensureDay(date);
-    if (r.pulled) console.log(`recent ${date}: ${r.pulled} requests`);
-  }
-  await backfill(SEASONS);
+  await dropOldSources();
+  const today = etToday();
+  for (let i = 3; i >= 0; i--) { const date = iso(Date.parse(today) - i * 864e5); await ensureDay(date); } // recent days first
+  const now = seasonOf(today);
+  await backfill(Array.from({ length: now - from + 1 }, (_, i) => now - i));
+  console.log('done');
 } catch (e) {
-  if (e instanceof OutOfQuota) console.log(`stopping: ${e.message}`); else { console.error(e); process.exitCode = 1; }
+  console.error(e); process.exitCode = 1;
 } finally {
-  console.log(`requests used today (UTC): ${await usedToday()}/${DAILY_CAP}`);
   await close();
 }

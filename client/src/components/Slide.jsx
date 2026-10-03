@@ -37,7 +37,7 @@ export default function Slide({ r, i, season, rx }) {
           <div><small>{season ? 'TEAM' : 'GAME'}</small><span>{r.g}</span></div>
           {season && <div><small>GAMES</small><span>{r.gp}</span></div>}
           <div><small>{season ? 'SEASON' : 'DATE'}</small><span>{r.period}</span></div>
-          {r.loaded && <div><small>SO FAR</small><span>{r.loaded}</span></div>}
+          {r.loaded && <div><small>THROUGH</small><span>{r.loaded}</span></div>}
         </div>
       </div>
       <Frame src={r.img} />

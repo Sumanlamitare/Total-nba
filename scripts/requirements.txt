@@ -1,2 +1,0 @@
-nba_api>=1.10
-pymongo>=4.6
