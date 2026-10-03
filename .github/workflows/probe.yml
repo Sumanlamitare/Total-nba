@@ -8,7 +8,10 @@ on:
         default: 'docs'
       paths:
         description: 'API paths (space separated) when mode=api'
-        default: '/v1/nba/games?date=2026-03-01'
+        default: '/v1/leagues'
+
+permissions:
+  contents: write
 
 jobs:
   probe:
@@ -18,6 +21,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - env:
+      - name: Probe
+        env:
           BBS_API_KEY: ${{ secrets.BBS_API_KEY }}
-        run: node tools/probe-bbs.js "${{ inputs.mode }}" ${{ inputs.paths }}
+          PATHS: ${{ inputs.paths }}
+        run: node tools/probe-bbs.js "${{ inputs.mode }}"
+      - name: Push output to bbs-probe branch
+        run: |
+          cd probe-out
+          git init -q && git checkout -q -b bbs-probe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "probe output ${{ inputs.mode }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" bbs-probe:bbs-probe-${{ inputs.mode }}
