@@ -1,0 +1,26 @@
+204
+access-control-allow-headers: Authorization, Content-Type, Accept, X-Api-Key, Idempotency-Key, X-Request-Id, Bbs-Version
+access-control-allow-methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS
+access-control-allow-origin: https://sumanlamitare.github.io
+access-control-expose-headers: X-Request-Id, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Limit-Minute, X-RateLimit-Limit-Day, Retry-After, Idempotency-Replay, Bbs-Version, Deprecation, Sunset, Link, X-Bbs-Access-Ends-At, X-Bbs-Access-Ends-In-Days, X-Bbs-Access-Ending-Notice
+access-control-max-age: 86400
+bbs-version: 2026-09-01
+connection: keep-alive
+content-length: 0
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+date: Sat, 03 Oct 2026 22:29:18 GMT
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+server: railway-hikari
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-hikari-trace: iad1.fp5t
+x-permitted-cross-domain-policies: none
+x-railway-edge: iad1
+x-railway-request-id: z1nXv2QdSf6TsMgvqmzx2A
+x-xss-protection: 0
