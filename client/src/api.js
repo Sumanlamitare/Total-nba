@@ -28,7 +28,9 @@ export async function build(s, meta, votes) {
     const label = meta.seasons[s.si];
     const L = label && await load(`leaders/${label}.json`);
     return (L?.stats?.[STATS[s.stat]] || []).map(r => ({ n: r.n, img: photo(r.n, r.img), v: r.v, decimals: 1, g: r.team, gp: r.gp,
-      stat: s.stat, perGame: true, period: seasonName(label), k: slug(['S', s.stat, seasonName(label), r.n]) }));
+      stat: s.stat, perGame: true, k: slug(['S', s.stat, seasonName(label), r.n]),
+      // seasons computed from box scores say how much of the season has loaded so far
+      period: seasonName(label) + (L.computed && L.gamesLoaded < L.totalGames ? ` · ${L.gamesLoaded}/${L.totalGames} games` : '') }));
   }
   if (s.week) {
     const a = weekStart(s.date), out = [];

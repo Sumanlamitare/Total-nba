@@ -94,15 +94,19 @@ async function leaders() {
   for (const y of [current, ...LEADER_SEASONS.filter(s => s !== current)]) {
     const file = `leaders/${seasonLabel(y)}.json`;
     const prev = read(file);
-    const ended = y < current && prev?.complete;
-    const fresh = prev && Date.now() - Date.parse(prev.updated) < 20 * 3600e3;
-    if (ended || fresh) continue;
+    const ended = y < current && prev?.complete && !prev.computed;
+    const fresh = prev && !prev.computed && Date.now() - Date.parse(prev.updated) < 20 * 3600e3;
+    const emptyAt = state.leaders[y]?.emptyAt;
+    const recheck = y === current ? 20 * 3600e3 : 7 * 864e5; // empty seasons: current one daily, past ones weekly
+    if (ended || fresh || (emptyAt && Date.now() - Date.parse(emptyAt) < recheck)) continue;
     const out = { season: seasonLabel(y), updated: now.toISOString(), complete: y < current, stats: {} };
     for (const [ours, theirs] of Object.entries(STATS)) {
       const res = await api(`/v1/nba/leaders?stat=${theirs}&season=${y}&season_type=regular&limit=5`);
       out.stats[ours] = (res.data?.leaders || []).map(l => ({ id: l.player?.id, n: l.player?.name, team: l.team?.abbreviation, v: l.value, gp: l.games_played, img: l.player?.headshot_url || null }));
+      if (ours === 'pts' && !out.stats.pts.length) break;
     }
-    if (Object.values(out.stats).some(a => a.length)) write(file, out);
+    if (Object.values(out.stats).some(a => a.length)) { write(file, out); delete state.leaders[y]; }
+    else state.leaders[y] = { emptyAt: now.toISOString() };
     console.log(`leaders ${out.season}: ${out.stats.pts.length ? 'ok' : 'empty'}`);
   }
 }
@@ -186,6 +190,43 @@ async function backfill() {
   }
 }
 
+// --- leaders computed from box scores, for seasons the leaders endpoint doesn't cover ---
+const ABBR = { '76ers': 'PHI', Bucks: 'MIL', Bulls: 'CHI', Cavaliers: 'CLE', Celtics: 'BOS', Clippers: 'LAC', Grizzlies: 'MEM', Hawks: 'ATL', Heat: 'MIA',
+  Hornets: 'CHA', Jazz: 'UTA', Kings: 'SAC', Knicks: 'NYK', Lakers: 'LAL', Magic: 'ORL', Mavericks: 'DAL', Nets: 'BKN', Nuggets: 'DEN', Pacers: 'IND',
+  Pelicans: 'NOP', Pistons: 'DET', Raptors: 'TOR', Rockets: 'HOU', Spurs: 'SAS', Suns: 'PHX', Thunder: 'OKC', Timberwolves: 'MIN', 'Trail Blazers': 'POR',
+  Warriors: 'GSW', Wizards: 'WAS' };
+function computedLeaders() {
+  for (const y of BACKFILL_SEASONS) {
+    const file = `leaders/${seasonLabel(y)}.json`;
+    const prev = read(file);
+    if (prev && !prev.computed) continue; // the API has this season
+    const reg = new Set(read(`schedule/${y}.json`, []).filter(g => g.type === 'Regular Season').map(g => g.id));
+    const dates = new Set(read(`schedule/${y}.json`, []).map(g => g.date));
+    const tot = new Map();
+    let games = 0;
+    for (const date of dates) {
+      const d = read(`days/${date}.json`);
+      for (const g of d?.games || []) if (reg.has(g.id) && g.boxed) games++;
+      for (const r of d?.p || []) {
+        if (!reg.has(r[11])) continue;
+        const t = tot.get(r[0]) || { id: r[0], n: r[1], team: r[2], gp: 0, s: [0, 0, 0, 0, 0, 0] };
+        t.gp++; t.team = r[2]; for (let i = 0; i < 6; i++) t.s[i] += r[4 + i];
+        tot.set(r[0], t);
+      }
+    }
+    if (games < 100) continue; // not enough of the season loaded yet
+    const all = [...tot.values()];
+    const minGp = Math.max(5, Math.floor(0.5 * Math.max(...all.map(t => t.gp))));
+    const out = { season: seasonLabel(y), updated: new Date().toISOString(), complete: false, computed: true, gamesLoaded: games, totalGames: reg.size, stats: {} };
+    Object.keys(STATS).forEach((k, i) => {
+      out.stats[k] = all.filter(t => t.gp >= minGp).map(t => ({ ...t, v: Math.round((t.s[i] / t.gp) * 10) / 10 }))
+        .sort((a, b) => b.v - a.v).slice(0, 5).map(t => ({ id: t.id, n: t.n, team: ABBR[t.team] || t.team, v: t.v, gp: t.gp, img: null }));
+    });
+    write(file, out);
+    console.log(`leaders ${out.season}: computed from ${games}/${reg.size} box scores`);
+  }
+}
+
 // --- index ----------------------------------------------------------------------------
 function index() {
   const days = fs.existsSync(path.join(DATA, 'days')) ? fs.readdirSync(path.join(DATA, 'days')).filter(f => f.endsWith('.json')).sort() : [];
@@ -203,6 +244,7 @@ try {
   }
 } finally {
   saveState();
+  computedLeaders();
   index();
   console.log(`requests used today (UTC): ${state.usage.used}/${DAILY_CAP}`);
 }
