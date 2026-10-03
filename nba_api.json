@@ -1,0 +1,22 @@
+{
+ "gamelog_2025-26": {
+  "ok": false,
+  "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='stats.nba.com', port=443): Read timed out. (read timeout=60)\"))",
+  "secs": 60.1
+ },
+ "gamelog_2025-26_playoffs": {
+  "ok": false,
+  "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='stats.nba.com', port=443): Read timed out. (read timeout=60)\"))",
+  "secs": 60.1
+ },
+ "gamelog_2015-16": {
+  "ok": false,
+  "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='stats.nba.com', port=443): Read timed out. (read timeout=60)\"))",
+  "secs": 60.1
+ },
+ "live_scoreboard": {
+  "ok": false,
+  "error": "JSONDecodeError('Expecting value: line 1 column 1 (char 0)')",
+  "secs": 0.1
+ }
+}
