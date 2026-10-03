@@ -1,0 +1,18 @@
+# One-click deploy on Render (free plan): New + → Blueprint → pick this repo
+services:
+  - type: web
+    name: totalnba
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGODB_URI
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: BBS_API_KEY
+        sync: false
