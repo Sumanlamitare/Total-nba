@@ -1,0 +1,2 @@
+200 x-ratelimit-limit=500 x-ratelimit-limit-day=500 x-ratelimit-limit-minute=100 x-ratelimit-remaining=23 x-ratelimit-reset=1791072000
+{"data":{"player_id":"58a31261-9273-49db-be8c-28bfa8c5347a","sport":"basketball","season":"2025","split":"all","gp":66,"gs":66,"ppg":33.3,"rpg":7.7,"apg":8.2,"spg":1.6,"bpg":0.5,"fg_pct":0.476,"fg3_pct":0.37,"ft_pct":0.779},"meta":{"source":"unknown-source","matches_counted":66}}
