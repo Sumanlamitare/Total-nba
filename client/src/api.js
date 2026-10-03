@@ -38,8 +38,8 @@ export async function build(s, meta, votes) {
     const order = Object.values(STATS), liked = k => (votes[k] === 1 ? 1 : 0);
     const rows = W.lines.map(l => ({ ...daySlide(l, LABEL[l.stat]), rank: l.rank, si: order.indexOf(l.stat) }))
       .sort((x, y) => liked(y.k) - liked(x.k) || x.rank - y.rank || x.si - y.si || y.v - x.v).slice(0, 5);
-    return { rows, pulled: W.pulled, quotaReached: W.quotaReached };
+    return { rows, pulled: W.pulled, quotaReached: W.quotaReached, notInPlan: W.notInPlan };
   }
   const D = await call(`day?date=${key(s.date)}&stat=${STATS[s.stat]}`);
-  return { rows: D.lines.map(l => daySlide(l, s.stat)), pulled: D.pulled, quotaReached: D.quotaReached };
+  return { rows: D.lines.map(l => daySlide(l, s.stat)), pulled: D.pulled, quotaReached: D.quotaReached, notInPlan: D.notInPlan };
 }

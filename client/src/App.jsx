@@ -110,7 +110,8 @@ export default function App() {
   if (shown === 'stat') overlay = list(Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
   else if (shown === 'season') overlay = list(meta.seasons, st.si, 'si');
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
-  const emptyMsg = status?.quotaReached ? 'DAILY API LIMIT REACHED — THIS LOADS AFTER MIDNIGHT UTC'
+  const emptyMsg = status?.notInPlan ? 'NOT SAVED, AND THE FREE BIG BALLS PLAN ONLY COVERS THE CURRENT SEASON'
+    : status?.quotaReached ? 'DAILY API LIMIT REACHED — THIS LOADS AFTER MIDNIGHT UTC'
     : view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
 
   return (
