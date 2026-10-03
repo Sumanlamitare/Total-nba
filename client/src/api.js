@@ -10,16 +10,18 @@ async function call(path) {
 
 export const getMeta = () => call('meta');
 
-// Player photos from ESPN's free headshot CDN, matched by name (Big Balls headshots need a paid plan)
+// Player photos (Big Balls headshots need a paid plan)
 const normName = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   .replace(/[^a-z ]/g, ' ').replace(/\b(jr|sr|ii|iii|iv)\b/g, ' ').split(/\s+/).filter(Boolean).join(' ');
 let photos = {};
 export const loadPhotos = async () => { photos = await fetch('photos.json').then(r => r.json()).catch(() => ({})); };
-const photo = name => (photos[normName(name || '')] ? `https://a.espncdn.com/i/headshots/nba/players/full/${photos[normName(name)]}.png` : '');
+// NBA.com's own headshot when the line came from nba_api, otherwise ESPN's by name
+const photo = (name, nbaId) => (nbaId ? `https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaId}.png`
+  : photos[normName(name || '')] ? `https://a.espncdn.com/i/headshots/nba/players/full/${photos[normName(name)]}.png` : '');
 
 const daySlide = (l, stat) => {
   const period = dstr(parse(l.date));
-  return { n: l.name, img: photo(l.name), v: l[STATS[stat]], g: `${l.team} vs ${l.opp}`, stat, period, k: slug(['D', stat, period, l.name]) };
+  return { n: l.name, img: photo(l.name, l.nbaId), v: l[STATS[stat]], g: `${l.team} vs ${l.opp}`, stat, period, k: slug(['D', stat, period, l.name]) };
 };
 
 // Slides for the current view, plus status about live pulls: { rows, pulled, quotaReached, loaded }
@@ -29,7 +31,7 @@ export async function build(s, meta, votes) {
     if (!label) return { rows: [] };
     const T = await call(`season?season=${label}&stat=${STATS[s.stat]}`);
     const partial = T.totalGames && T.gamesLoaded < T.totalGames;
-    return { rows: T.leaders.map(r => ({ n: r.name, img: photo(r.name), v: r.v, g: r.team, gp: r.gp, stat: s.stat, period: seasonName(label),
+    return { rows: T.leaders.map(r => ({ n: r.name, img: photo(r.name, r.nbaId), v: r.v, g: r.team, gp: r.gp, stat: s.stat, period: seasonName(label),
       loaded: partial ? `${T.gamesLoaded.toLocaleString()} of ${T.totalGames.toLocaleString()} games` : null,
       k: slug(['S', s.stat, seasonName(label), r.name]) })) };
   }

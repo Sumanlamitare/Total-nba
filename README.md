@@ -1,8 +1,16 @@
 # TotalNBA
 
 Personal NBA leaderboard (MERN): the top 5 single-game performances for any date, regular-season totals
-leaders, and a "performance of the week" picked from your own likes. Data from the
-[Big Balls Data API](https://bigballsdata.com/docs/introduction); player photos from ESPN's headshot CDN.
+leaders, and a "performance of the week" picked from your own likes.
+
+Data comes from two sources:
+- **History:** [swar/nba_api](https://github.com/swar/nba_api) (NBA.com stats), loaded once from your own
+  computer with `scripts/history_nba_api.py`. stats.nba.com blocks cloud servers, so this can't run on
+  GitHub or Vercel.
+- **Current season and live pulls:** the [Big Balls Data API](https://bigballsdata.com/docs/introduction)
+  (free plan covers the current season only).
+
+Photos come from NBA.com's headshot CDN for nba_api seasons, and ESPN's (matched by name) otherwise.
 
 | Layer | What |
 | --- | --- |
@@ -17,7 +25,9 @@ leaders, and a "performance of the week" picked from your own likes. Data from t
   Big Balls (1 request for the day's games + 1 per finished game), saves it to MongoDB, and returns it.
   Past days are never requested twice.
 - **Scheduled pull** → `.github/workflows/ingest.yml` runs every 2 hours: stores recent days, then backfills
-  2025-26, 2024-25 and 2023-24 newest first.
+  the current season (and last season, until nba_api has stored it) newest first.
+- **History** → `scripts/history_nba_api.py` replaces whole seasons with NBA.com data (6 requests a season).
+  Seasons it stores are never pulled from Big Balls again.
 - **Season totals** are summed in MongoDB from the stored regular-season box scores (the API only publishes
   per-game averages). The app shows how many games they cover until a season is complete.
 
@@ -36,6 +46,16 @@ backfill stops at 365 so 120 a day are always left for dates you open.
    `BBS_API_KEY`, then deploy.
 3. **GitHub** → Settings → Secrets and variables → Actions: add `MONGODB_URI` (`BBS_API_KEY` is already there).
    The first scheduled run imports the games already in `data/` so they cost nothing.
+
+## Load history (on your computer)
+
+```bash
+pip install -r scripts/requirements.txt
+MONGODB_URI="mongodb+srv://..." python scripts/history_nba_api.py --from 2015-16 --to 2025-26
+```
+
+Windows PowerShell: `$env:MONGODB_URI="mongodb+srv://..."` first, then `python scripts/history_nba_api.py ...`.
+Each season is about 26,000 player lines (~10 MB in MongoDB); the free Atlas tier holds 512 MB.
 
 ## Local dev
 

@@ -1,14 +1,18 @@
 // Scheduled job (GitHub Actions): keeps MongoDB filled from the Big Balls Data API within the daily quota.
 //   1. one-time import of games already pulled into data/ (so they're never requested again)
 //   2. recent days, so new games are stored without anyone opening them
-//   3. historic backfill, newest first, leaving LIVE_RESERVE requests a day for live date pulls
+//   3. backfill of the current season (and last season until nba_api stores it), leaving LIVE_RESERVE
+//      requests a day for live date pulls
 import fs from 'node:fs';
 import path from 'node:path';
 import { db, close } from '../lib/db.js';
 import { OutOfQuota, usedToday, DAILY_CAP } from '../lib/bbs.js';
 import { ensureDay, backfill, saveGame, seasonOf } from '../lib/store.js';
 
-const SEASONS = [2025, 2024, 2023];
+// History comes from scripts/history_nba_api.py; Big Balls covers the current season and the one before
+// (until nba_api has stored it). Older seasons aren't in the free Big Balls plan anyway.
+const start = (d => (d.getUTCMonth() >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1))(new Date());
+const SEASONS = [start, start - 1];
 const DATA = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'data');
 const iso = d => d.toISOString().slice(0, 10);
 
