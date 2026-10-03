@@ -1,0 +1,26 @@
+name: Probe nba_api
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q nba_api
+      - run: python tools/probe_nba.py
+      - name: Push output to nba-probe branch
+        if: always()
+        run: |
+          cd probe-out
+          git init -q && git checkout -q -b nba-probe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "nba_api probe"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" nba-probe:nba-probe
