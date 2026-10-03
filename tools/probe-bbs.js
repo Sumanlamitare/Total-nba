@@ -30,6 +30,14 @@ async function api(path, max = 3000) {
 }
 
 const mode = process.argv[2] || 'docs';
+if (mode === 'cors') {
+  // What a browser on the live site would send: preflight, then the real request with an Origin header
+  const origin = 'https://sumanlamitare.github.io', url = BASE + '/v1/matches?league=nba&date=2026-03-01&tz=America/New_York&limit=1';
+  const show = (label, r) => save('cors_' + label, `${r.status}\n` + [...r.headers].map(([k, v]) => `${k}: ${v}`).join('\n'));
+  show('preflight', await fetch(url, { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'GET', 'access-control-request-headers': 'authorization,x-api-key' } }));
+  show('get', await fetch(url, { headers: { origin, authorization: 'Bearer ' + KEY } }));
+  console.log('cors probe saved');
+}
 if (mode === 'docs') {
   for (const u of ['https://bigballsdata.com/llms.txt', 'https://bigballsdata.com/llms-full.txt', 'https://bigballsdata.com/nba-api',
     'https://bigballsdata.com/docs/introduction', 'https://bigballsdata.com/pricing', 'https://bigballsdata.com/basketball-api',
