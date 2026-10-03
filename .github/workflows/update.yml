@@ -33,6 +33,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Probe Big Balls Data API
+        continue-on-error: true
+        env:
+          BBS_API_KEY: ${{ secrets.BBS_API_KEY }}
+        run: node scripts/probe-bbs.mjs
       - name: Fetch box scores from ESPN
         run: node scripts/update.mjs --from "${{ github.event.inputs.from || '2023-10-24' }}"
       - name: Commit data
@@ -47,6 +52,8 @@ jobs:
           cp index.html _site/
           cp -r data _site/
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
