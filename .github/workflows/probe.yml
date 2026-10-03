@@ -1,0 +1,23 @@
+name: Probe Big Balls API
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'docs or api'
+        default: 'docs'
+      paths:
+        description: 'API paths (space separated) when mode=api'
+        default: '/v1/nba/games?date=2026-03-01'
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - env:
+          BBS_API_KEY: ${{ secrets.BBS_API_KEY }}
+        run: node tools/probe-bbs.js "${{ inputs.mode }}" ${{ inputs.paths }}

@@ -23,11 +23,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --omit=dev
-      - name: Probe Big Balls Data API
-        continue-on-error: true
-        env:
-          BBS_API_KEY: ${{ secrets.BBS_API_KEY }}
-        run: npm run probe:bbs
       - name: Sync box scores into MongoDB
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
