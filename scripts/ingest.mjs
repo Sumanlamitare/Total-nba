@@ -1,10 +1,11 @@
 // Scheduled job (GitHub Actions): keeps MongoDB filled from ESPN's free NBA API.
-// First run loads every season from HISTORY_FROM (default 2015-16) to now, newest first;
+// First run loads every season from HISTORY_FROM (default 2001-02) to now, newest first, until the
+// database nears the free Atlas size limit;
 // after that each run only touches days that aren't complete yet (today and recent days).
 import { db, close } from '../lib/db.js';
 import { backfill, ensureDay, etToday, seasonOf } from '../lib/store.js';
 
-const from = +(process.env.HISTORY_FROM || '2015').slice(0, 4);
+const from = +(process.env.HISTORY_FROM || '2001').slice(0, 4);
 const iso = t => new Date(t).toISOString().slice(0, 10);
 
 // One-time cleanup: earlier versions stored Big Balls data with different game ids

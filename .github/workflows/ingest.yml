@@ -25,7 +25,7 @@ jobs:
       - name: Pull into MongoDB
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          HISTORY_FROM: '2015'
+          HISTORY_FROM: '2001'
         run: |
           if [ -z "$MONGODB_URI" ]; then echo "::warning::Add the MONGODB_URI secret to start pulling"; exit 0; fi
           npm run ingest

@@ -196,7 +196,7 @@ footer{flex:none;display:flex;justify-content:center;align-items:center;gap:var(
 .sheet h3{font:400 13px var(--sans);letter-spacing:.3em;color:var(--dim);text-align:center;margin-bottom:var(--s4)}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s3)}
 .chip{display:flex;align-items:center;justify-content:center;min-height:56px;padding:var(--s3);border:1px solid var(--line);border-radius:var(--s4);font:18px var(--serif);letter-spacing:.1em;text-align:center;color:var(--dim);overflow-wrap:anywhere;animation:rise .6s var(--ease) both;animation-delay:calc(var(--i)*35ms)}
-.chip:hover{border-color:var(--gold-line);color:var(--ink);transform:translateY(-2px)}
+@media(hover:hover){.chip:hover{border-color:var(--gold-line);color:var(--ink);transform:translateY(-2px)}}
 .chip.a{color:var(--bg);background:var(--gold);border-color:var(--gold)}
 @media(max-width:420px){.chips{grid-template-columns:1fr 1fr}.chip{font-size:15px;min-height:50px}}
 
@@ -229,3 +229,29 @@ footer{flex:none;display:flex;justify-content:center;align-items:center;gap:var(
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ---------- scrollable pickers (stats, seasons, years) ---------- */
+.lsheet{width:min(440px,100%);display:flex;flex-direction:column;max-height:min(640px,calc(100vh - 48px))}
+.slist{display:flex;flex-direction:column;gap:var(--s2);overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:var(--s3) var(--s1);margin:calc(var(--s3) * -1) calc(var(--s1) * -1);scrollbar-width:thin;scrollbar-color:var(--gold-line) transparent;
+  -webkit-mask-image:linear-gradient(transparent,#000 12px,#000 calc(100% - 12px),transparent);mask-image:linear-gradient(transparent,#000 12px,#000 calc(100% - 12px),transparent)}
+.li{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);min-height:52px;padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:var(--s4);color:var(--dim);flex:none;animation:rise .5s var(--ease) both;animation-delay:calc(var(--i,0)*30ms)}
+@media(hover:hover){.li:hover:not(.a){border-color:var(--gold-line);color:var(--ink);transform:translateX(3px)}}
+.li.a{color:var(--bg);background:var(--gold);border-color:var(--gold)}
+.li-main{font:18px/1.2 var(--serif);letter-spacing:.08em;min-width:0;overflow-wrap:anywhere}
+.li-sub{font:600 10px var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.75;text-align:right;min-width:0;overflow-wrap:anywhere}
+
+/* calendar: month / year pickers */
+.cal{display:flex;flex-direction:column;max-height:min(560px,calc(100vh - 48px))}
+.cal .hd{gap:var(--s1)}
+.cal .my{display:flex;gap:var(--s1);min-width:0;flex-wrap:wrap;justify-content:center}
+.cal .pick{display:inline-flex;align-items:center;gap:2px;padding:var(--s1) var(--s2);border-radius:var(--r-pill);font:clamp(17px,5vw,20px) var(--serif);white-space:nowrap}
+.cal .pick:hover,.cal .pick.on{background:rgba(227,196,140,.14);color:var(--gold)}
+.cal .pick .chev{font-size:.6em;margin-left:2px}
+.cal .ib:disabled{opacity:.15;pointer-events:none}
+.cal .wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--s1);margin-bottom:var(--s1);text-align:center;font:600 10px var(--sans);letter-spacing:.15em;color:var(--faint)}
+.cal .years{max-height:300px}
+.cal .years .li{justify-content:center}
+.mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2)}
+.mo{display:grid;place-items:center;min-height:52px;border:1px solid var(--line);border-radius:var(--s4);font:17px var(--serif);color:var(--dim);animation:rise .5s var(--ease) both;animation-delay:calc(var(--i)*25ms)}
+.mo:hover{border-color:var(--gold-line);color:var(--ink)}
+.mo.a{background:var(--gold);color:var(--bg);border-color:var(--gold)}

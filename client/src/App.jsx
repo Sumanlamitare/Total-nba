@@ -7,6 +7,7 @@ import Slide, { Empty } from './components/Slide.jsx';
 import Calendar from './components/Calendar.jsx';
 import { Icon } from './components/Icons.jsx';
 import GraphicModal from './components/GraphicModal.jsx';
+import ListSheet from './components/ListSheet.jsx';
 
 export default function App() {
   const [meta, setMeta] = useState({ seasons: [], dates: [], has: new Set() });
@@ -109,19 +110,15 @@ export default function App() {
     if (k === 'date' ? key(v) === key(st.date) : v === st[k]) return;
     if (k === 'stat' && st.week) setSt({ ...st, stat: v }); else change({ [k]: v });
   };
-  const sheet = (title, items, cur, k) => (
-    <div className="sheet" onClick={e => e.stopPropagation()}>
-      <h3>{title}</h3>
-      <div className="chips">
-        {items.map((x, i) => (
-          <button key={x} className={'chip' + (i === cur ? ' a' : '')} style={{ '--i': i }} onClick={() => pick(k, k === 'si' ? i : x)}>{k === 'si' ? seasonName(x) : x}</button>
-        ))}
-      </div>
-    </div>
-  );
   let overlay = null;
-  if (shown === 'stat') overlay = sheet('CHOOSE A STAT', Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
-  else if (shown === 'season') overlay = sheet('CHOOSE A SEASON', meta.seasons, st.si, 'si');
+  if (shown === 'stat') overlay = (
+    <ListSheet title="CHOOSE A STAT" current={st.stat} onPick={v => pick('stat', v)}
+      items={Object.keys(STATS).map(k => ({ key: k, label: k, sub: LONG[k] !== k[0] + k.slice(1).toLowerCase() ? LONG[k] : null }))} />
+  );
+  else if (shown === 'season') overlay = (
+    <ListSheet title="CHOOSE A SEASON" current={st.si} onPick={i => pick('si', i)}
+      items={meta.seasons.map((x, i) => ({ key: i, label: seasonName(x), sub: i === 0 ? 'LATEST' : null }))} />
+  );
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
   else if (shown === 'graphic' && graphic) overlay = <GraphicModal key={graphic.id} ctx={graphic.ctx} meta={meta} onClose={() => setOv(null)} />;
   // Create Graphic always uses the selection on screen: mode, stat, date / season

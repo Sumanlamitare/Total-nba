@@ -20,9 +20,9 @@ API (no key); player photos from ESPN's headshot CDN.
 - **Pick a date** → `/api/day` answers from MongoDB. If the date isn't stored yet, it pulls that day from
   ESPN (scoreboard + one box score per finished game), saves it, and returns it. Completed days are never
   pulled twice; today is refreshed at most every 5 minutes.
-- **Scheduled job** → `.github/workflows/ingest.yml` runs every 2 hours. Its first run loads every season
-  from 2015-16 (`HISTORY_FROM`) to now; later runs only refresh recent days. Dates before 2015-16 still work:
-  they're pulled live the first time you open them.
+- **Scheduled job** → `.github/workflows/ingest.yml` runs every 2 hours. It loads every season from 2001-02
+  (`HISTORY_FROM`) to now, newest first, and stops before the free Atlas tier's 512 MB limit (`SIZE_CAP_MB`,
+  default 460). Later runs only refresh recent days. Any date that isn't stored is pulled live when opened.
 - **Season totals** are summed in MongoDB from the stored regular-season box scores.
 
 ESPN's site API is free and unofficial: it has no key and no published rate limit, so the job keeps a
