@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MO, key } from '../util.js';
 
-const FIRST_YEAR = 2001; // ESPN box scores go back about this far; any date can still be pulled live
+const FIRST_YEAR = 1993; // ESPN has player box scores from the 1993-94 season on
 
 // Month grid with month and year pickers. Days already saved are bright; others are dimmed but still
 // pickable (they're pulled live).
