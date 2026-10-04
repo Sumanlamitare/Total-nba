@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
-import { STATS, key, parse, addDays, dstr, seasonName, periodLabel } from './util.js';
+import { STATS, LONG, key, parse, addDays, dstr, seasonName, periodLabel } from './util.js';
 import useReactions from './useReactions.js';
 import Loader from './components/Loader.jsx';
 import Slide, { Empty } from './components/Slide.jsx';
 import Calendar from './components/Calendar.jsx';
 import { Icon } from './components/Icons.jsx';
+import GraphicModal from './components/GraphicModal.jsx';
 
 export default function App() {
   const [meta, setMeta] = useState({ seasons: [], dates: [], has: new Set() });
@@ -18,6 +19,7 @@ export default function App() {
   const [ov, setOv] = useState(null);
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [graphic, setGraphic] = useState(null); // { id, ctx } — the selection captured when Create Graphic was tapped
   const pan = useRef(null), posR = useRef(0), lenR = useRef(1), lastOv = useRef(null);
   const rx = useReactions();
   lenR.current = Math.max(1, data.length);
@@ -86,7 +88,7 @@ export default function App() {
     const el = pan.current;
     if (!el) return;
     const wheel = e => { if (e.target.closest?.('.cl')) return; if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); el.scrollBy({ left: e.deltaY * 1.3 }); } };
-    const keys = e => { if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') go(posR.current + 1); if (e.key === 'ArrowLeft') go(posR.current - 1); };
+    const keys = e => { if (e.key === 'Escape') setOv(null); if (e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') go(posR.current + 1); if (e.key === 'ArrowLeft') go(posR.current - 1); };
     el.addEventListener('wheel', wheel, { passive: false }); addEventListener('keydown', keys);
     return () => { el.removeEventListener('wheel', wheel); removeEventListener('keydown', keys); };
   }, [!st]);
@@ -101,14 +103,29 @@ export default function App() {
   };
   if (ov) lastOv.current = ov;
   const shown = ov || lastOv.current;
-  const pick = (k, v) => { setOv(null); if (k === 'date' ? key(v) !== key(st.date) : v !== st[k]) change({ [k]: v }); };
-  const list = (items, cur, k) => items.map((x, i) => (
-    <button key={x} className={i === cur ? 'a' : ''} onClick={e => { e.stopPropagation(); pick(k, k === 'si' ? i : x); }}>{k === 'si' ? seasonName(x) : x}</button>
-  ));
+  // in the week view the stat only drives the graphic, so changing it doesn't reload the slides
+  const pick = (k, v) => {
+    setOv(null);
+    if (k === 'date' ? key(v) === key(st.date) : v === st[k]) return;
+    if (k === 'stat' && st.week) setSt({ ...st, stat: v }); else change({ [k]: v });
+  };
+  const sheet = (title, items, cur, k) => (
+    <div className="sheet" onClick={e => e.stopPropagation()}>
+      <h3>{title}</h3>
+      <div className="chips">
+        {items.map((x, i) => (
+          <button key={x} className={'chip' + (i === cur ? ' a' : '')} style={{ '--i': i }} onClick={() => pick(k, k === 'si' ? i : x)}>{k === 'si' ? seasonName(x) : x}</button>
+        ))}
+      </div>
+    </div>
+  );
   let overlay = null;
-  if (shown === 'stat') overlay = list(Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
-  else if (shown === 'season') overlay = list(meta.seasons, st.si, 'si');
+  if (shown === 'stat') overlay = sheet('CHOOSE A STAT', Object.keys(STATS), Object.keys(STATS).indexOf(st.stat), 'stat');
+  else if (shown === 'season') overlay = sheet('CHOOSE A SEASON', meta.seasons, st.si, 'si');
   else if (shown === 'cal') overlay = <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => pick('date', d)} />;
+  else if (shown === 'graphic' && graphic) overlay = <GraphicModal key={graphic.id} ctx={graphic.ctx} meta={meta} onClose={() => setOv(null)} />;
+  // Create Graphic always uses the selection on screen: mode, stat, date / season
+  const createGraphic = () => { setGraphic({ id: Date.now(), ctx: { ...st } }); setOv('graphic'); };
   const emptyMsg = view.week ? 'NONE THIS WEEK' : view.season ? 'NO SEASON DATA' : 'NONE ON ' + dstr(view.date).toUpperCase();
 
   return (
@@ -123,13 +140,18 @@ export default function App() {
             <button className={st.week ? 'a' : ''} onClick={() => change({ season: false, week: true })}>WEEK</button>
           </div>
           {st.week
-            ? <div id="stat" className="wk">PERFORMANCE OF THE WEEK<small>RANKED BY YOUR LIKES</small></div>
-            : <button id="stat" onClick={() => setOv('stat')}>{st.stat} ⌄</button>}
+            ? <div className="wk">PERFORMANCE OF THE WEEK<small>RANKED BY YOUR LIKES</small>
+                <button className="sub" onClick={() => setOv('stat')} aria-label="Stat for the graphic">GRAPHIC STAT: {st.stat} ⌄</button></div>
+            : <button className="stat" onClick={() => setOv('stat')} aria-label={'Stat: ' + LONG[st.stat]}>{st.stat}<span className="chev">⌄</span></button>}
           <div className="per">
-            <button onClick={() => step(-1)}><Icon d="M15 5l-7 7 7 7" /></button>
-            <span style={{ cursor: 'pointer' }} onClick={() => setOv(st.season ? 'season' : 'cal')}>{periodLabel(st, meta.seasons)}</span>
-            <button onClick={() => step(1)}><Icon d="M9 5l7 7-7 7" /></button>
+            <button className="ib" aria-label="Previous" onClick={() => step(-1)}><Icon d="M15 5l-7 7 7 7" /></button>
+            <button className="lbl" onClick={() => setOv(st.season ? 'season' : 'cal')}>{periodLabel(st, meta.seasons)}</button>
+            <button className="ib" aria-label="Next" onClick={() => step(1)}><Icon d="M9 5l7 7-7 7" /></button>
           </div>
+          <button className="cg" onClick={createGraphic} aria-label={`Create Top 10 graphic for ${LONG[st.stat]}`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M7 15l3-3 3 3 4-5" /></svg>
+            <span>CREATE<span className="long"> GRAPHIC</span></span>
+          </button>
         </header>
         <div id="wrap">
           <div id="panel" ref={pan} className={stage >= 1 ? 'on' : ''} onScroll={fx}>
@@ -139,14 +161,14 @@ export default function App() {
           </div>
         </div>
         <footer>
-          <button onClick={() => go(pos - 1)}><Icon d="M19 12H5m6-6l-6 6 6 6" /></button>
-          <span>{Array.from({ length: Math.max(1, data.length) }, (_, i) => <span key={i} className={'dot' + (i === pos ? ' a' : '')} onClick={() => go(i)} />)}</span>
-          <button onClick={() => go(pos + 1)}><Icon d="M5 12h14m-6-6l6 6-6 6" /></button>
+          <button className="ib" aria-label="Previous player" onClick={() => go(pos - 1)}><Icon d="M19 12H5m6-6l-6 6 6 6" /></button>
+          <span className="dots">{Array.from({ length: Math.max(1, data.length) }, (_, i) => <span key={i} className={'dot' + (i === pos ? ' a' : '')} onClick={() => go(i)} />)}</span>
+          <button className="ib" aria-label="Next player" onClick={() => go(pos + 1)}><Icon d="M5 12h14m-6-6l6 6-6 6" /></button>
         </footer>
+        <div id="note">{err || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'
+          : 'TotalNBA · ESPN data' + (status?.pulled ? ' · just pulled live' : ''))}</div>
       </div>
       <div id="ov" className={ov ? 'on' : ''} onClick={() => setOv(null)}>{overlay}</div>
-      <div id="note">{err || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'
-        : 'TotalNBA · ESPN data' + (status?.pulled ? ' · just pulled live' : ''))}</div>
     </>
   );
 }

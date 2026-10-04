@@ -1,4 +1,4 @@
-import { STATS, LABEL, key, parse, dstr, seasonName, slug } from './util.js';
+import { STATS, LABEL, MO, key, parse, dstr, seasonName, slug } from './util.js';
 
 // The /api functions answer from MongoDB and pull from ESPN only when a date isn't stored yet
 async function call(path) {
@@ -38,3 +38,25 @@ export async function build(s, meta, votes) {
   const D = await call(`day?date=${key(s.date)}&stat=${STATS[s.stat]}`);
   return { rows: D.lines.map(l => daySlide(l, s.stat)), pulled: D.pulled };
 }
+
+// Top 10 for the graphic, from exactly the view on screen: { title, subtitle, rows }
+export async function top10(s, meta) {
+  const stat = STATS[s.stat];
+  const img = id => (/^\d+$/.test(id || '') ? `/api/img?id=${id}` : ''); // same-origin, so the PNG can be exported
+  let q, title, subtitle;
+  if (s.season) {
+    const label = meta.seasons[s.si];
+    q = `top?mode=season&season=${label}&stat=${stat}`;
+    title = seasonName(label);
+  } else if (s.week) {
+    q = `top?mode=week&date=${key(s.date)}&stat=${stat}`;
+  } else {
+    q = `top?mode=day&date=${key(s.date)}&stat=${stat}`;
+    title = dstr(s.date); subtitle = 'Best single-game performances';
+  }
+  const T = await call(q);
+  if (s.season) subtitle = 'Regular-season totals' + (T.through ? ` · through ${dstr(parse(T.through))}` : '');
+  if (s.week) { title = `${shortDate(T.start)} – ${shortDate(T.end)}`; subtitle = 'Best single game of the week'; }
+  return { title, subtitle, rows: T.rows.map(r => ({ ...r, img: img(r.espnId) })) };
+}
+const shortDate = s => { const d = parse(s); return `${MO[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`; };

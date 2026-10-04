@@ -1,13 +1,17 @@
 # TotalNBA
 
 Personal NBA leaderboard (MERN): the top 5 single-game performances for any date, regular-season totals
-leaders, and a "performance of the week" picked from your own likes. Data comes from ESPN's free public NBA
+leaders, and a "performance of the week" picked from your own likes, for ten stats: points, rebounds,
+assists, steals, blocks, 3PM, 2PM, FTM, turnovers and fouls.
+
+**Create Graphic** (on Daily, Season and Week) builds a 1080×1350 Top 10 image for the stat, date, week or
+season on screen, with player photos, previews it, and saves it as a PNG (`client/src/graphic.js`). Data comes from ESPN's free public NBA
 API (no key); player photos from ESPN's headshot CDN.
 
 | Layer | What |
 | --- | --- |
 | **MongoDB** | Every game and player box score line pulled so far (the historic store) |
-| **API** | Vercel functions in `api/`: `/api/day`, `/api/week`, `/api/season`, `/api/meta` |
+| **API** | Vercel functions in `api/`: `/api/day`, `/api/week`, `/api/season`, `/api/top` (graphic), `/api/img` (photos), `/api/meta` |
 | **React** | Vite app in `client/` |
 | **Node** | `lib/espn.js` (ESPN client), `lib/store.js` (MongoDB), `scripts/ingest.mjs` (scheduled job) |
 

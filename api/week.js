@@ -1,8 +1,7 @@
 import { handler, bad, isDate } from '../lib/http.js';
-import { ensureDay, dayTop } from '../lib/store.js';
+import { ensureDay, dayTop, STATS } from '../lib/store.js';
 import { pool } from '../lib/espn.js';
 
-const STATS = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm'];
 const addDays = (date, n) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 
 // GET /api/week?date=YYYY-MM-DD — every daily top-5 line in that Monday–Sunday week, pulling missing days

@@ -1,5 +1,9 @@
 // Stat label shown in the UI -> field name in the API
-export const STATS = { POINTS: 'pts', REBOUNDS: 'reb', ASSISTS: 'ast', STEALS: 'stl', BLOCKS: 'blk', '3PM': 'tpm' };
+export const STATS = { POINTS: 'pts', REBOUNDS: 'reb', ASSISTS: 'ast', STEALS: 'stl', BLOCKS: 'blk', '3PM': 'tpm',
+  '2PM': 'fg2m', FTM: 'ftm', TURNOVERS: 'tov', FOULS: 'pf' };
+// Longer names for the graphic and the stat picker
+export const LONG = { POINTS: 'Points', REBOUNDS: 'Rebounds', ASSISTS: 'Assists', STEALS: 'Steals', BLOCKS: 'Blocks',
+  '3PM': '3-Pointers Made', '2PM': '2-Pointers Made', FTM: 'Free Throws Made', TURNOVERS: 'Turnovers', FOULS: 'Personal Fouls' };
 export const LABEL = Object.fromEntries(Object.entries(STATS).map(([k, v]) => [v, k]));
 export const MO = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 

@@ -17,8 +17,20 @@ async function dropOldSources() {
   console.log('cleared data from earlier sources');
 }
 
+// One-time: v2 adds 2PM, FTM, turnovers and fouls. Forgetting which days/seasons are complete makes the
+// backfill pull them again; games stored before v2 are re-boxed and their lines rewritten with the new fields.
+async function upgradeSchema() {
+  const d = await db();
+  if (await d.collection('imports').findOne({ _id: 'schema-v2' })) return;
+  await d.collection('days').deleteMany({});
+  await d.collection('seasons').deleteMany({});
+  await d.collection('imports').insertOne({ _id: 'schema-v2', at: new Date() });
+  console.log('schema v2: re-pulling stored seasons for the new stats');
+}
+
 try {
   await dropOldSources();
+  await upgradeSchema();
   const today = etToday();
   for (let i = 3; i >= 0; i--) { const date = iso(Date.parse(today) - i * 864e5); await ensureDay(date); } // recent days first
   const now = seasonOf(today);

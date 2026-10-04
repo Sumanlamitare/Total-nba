@@ -8,13 +8,13 @@ export default function Reactions({ k, rx }) {
   const post = () => { const x = text.trim(); if (!x) return; rx.note(k, x); setText(''); };
   return (
     <>
-      <div className="rx r" style={{ '--d': '1.1s' }}>
+      <div className="rx r" style={{ '--d': '1s' }}>
         <button className={'rb2' + (mine === 1 ? ' on' : '')} aria-label="Like" onClick={() => rx.vote(k, 1)}><Thumb /></button>
         <button className={'rb2 dn' + (mine === -1 ? ' on' : '')} aria-label="Dislike" onClick={() => rx.vote(k, -1)}><Thumb /></button>
         <button className={'rb2' + (open ? ' on' : '')} aria-label="Notes" onClick={() => setOpen(!open)}><Bubble /><span>{notes.length}</span></button>
       </div>
       <div className={'cm' + (open ? ' open' : '')}>
-        <button className="cx" aria-label="Close notes" onClick={() => setOpen(false)}>✕</button>
+        <div className="cm-hd"><span>NOTES</span><button className="ib" aria-label="Close notes" onClick={() => setOpen(false)}>✕</button></div>
         <div className="cl">
           {notes.length
             ? notes.map((c, i) => <p key={c._id || i}><b>{new Date(c.ts).toLocaleDateString()}</b>{c.text}</p>)
