@@ -70,21 +70,35 @@ export default function App() {
     el.style.opacity = 1; el.style.transform = 'none'; el.style.filter = 'none';
   }, [ver]);
 
-  // gallery: neighbours scale/dim by distance from centre
+  // gallery: neighbours scale/dim by distance from centre. With hundreds of cards, only the few
+  // around the current one are measured and styled.
+  const styled = useRef(new Set());
+  const goT = useRef(null); // target of the last arrow tap, so quick taps aren't lost mid-scroll
   const fx = useCallback(() => {
     const el = pan.current;
-    if (!el) return;
-    const c = el.getBoundingClientRect();
-    let best = 0, bd = 9;
-    [...el.children].forEach((e, i) => {
-      const r = e.getBoundingClientRect(), d = Math.min(1, Math.abs(r.left + r.width / 2 - c.left - c.width / 2) / r.width);
+    if (!el || !el.children.length) return;
+    const first = el.children[0], step = (el.children[1]?.offsetLeft ?? first.offsetLeft + first.offsetWidth) - first.offsetLeft || 1;
+    const best = Math.max(0, Math.min(el.children.length - 1, Math.round(el.scrollLeft / step)));
+    const c = el.getBoundingClientRect(), near = new Set();
+    for (let i = Math.max(0, best - 2); i <= Math.min(el.children.length - 1, best + 2); i++) {
+      const e = el.children[i], r = e.getBoundingClientRect();
+      const d = Math.min(1, Math.abs(r.left + r.width / 2 - c.left - c.width / 2) / r.width);
       e.style.transform = `scale(${1 - 0.06 * d})`; e.style.opacity = 1 - 0.6 * d;
-      if (d < bd) { bd = d; best = i; }
-    });
+      near.add(e);
+    }
+    for (const e of styled.current) if (!near.has(e)) { e.style.transform = 'scale(.94)'; e.style.opacity = .4; }
+    styled.current = near;
+    if (goT.current && Date.now() < goT.current.until) return; // a tap's smooth scroll is still on its way
     posR.current = best; setPos(best);
   }, []);
   useEffect(() => { if (stage >= 2) fx(); }, [stage, ver]);
-  const go = i => { const el = pan.current; if (i < 0 || i >= lenR.current || !el.children[i]) return; el.children[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); };
+  const go = i => {
+    const el = pan.current;
+    if (i < 0 || i >= lenR.current || !el.children[i]) return;
+    goT.current = { i, until: Date.now() + 700 };
+    posR.current = i; setPos(i);
+    el.children[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  };
   useEffect(() => {
     const el = pan.current;
     if (!el) return;
@@ -159,7 +173,15 @@ export default function App() {
         </div>
         <footer>
           <button className="ib" aria-label="Previous player" onClick={() => go(pos - 1)}><Icon d="M19 12H5m6-6l-6 6 6 6" /></button>
-          <span className="dots">{Array.from({ length: Math.max(1, data.length) }, (_, i) => <span key={i} className={'dot' + (i === pos ? ' a' : '')} onClick={() => go(i)} />)}</span>
+          {data.length > 12
+            ? (
+              <div className="scrub">
+                <span className="count"><b>{pos + 1}</b> / {data.length}</span>
+                <input type="range" min="1" max={data.length} value={pos + 1} aria-label="Jump to player"
+                  onChange={e => { const i = +e.target.value - 1; posR.current = i; setPos(i); pan.current.children[i]?.scrollIntoView({ inline: 'center', block: 'nearest' }); }} />
+              </div>
+            )
+            : <span className="dots">{Array.from({ length: Math.max(1, data.length) }, (_, i) => <span key={i} className={'dot' + (i === pos ? ' a' : '')} onClick={() => go(i)} />)}</span>}
           <button className="ib" aria-label="Next player" onClick={() => go(pos + 1)}><Icon d="M5 12h14m-6-6l6 6-6 6" /></button>
         </footer>
         <div id="note">{err || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'

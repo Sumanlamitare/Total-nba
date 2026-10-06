@@ -15,7 +15,7 @@ const photo = id => (/^\d+$/.test(id || '') ? `https://a.espncdn.com/i/headshots
 
 const daySlide = (l, stat) => {
   const period = dstr(parse(l.date));
-  return { n: l.name, img: photo(l.espnId), v: l[STATS[stat]], g: `${l.team} vs ${l.opp}`, stat, period, k: slug(['D', stat, period, l.name]) };
+  return { n: l.name, img: photo(l.espnId), v: l[STATS[stat]] ?? 0, g: `${l.team} vs ${l.opp}`, min: l.min, stat, period, k: slug(['D', stat, period, l.name]) };
 };
 
 // Slides for the current view, plus whether the date had to be pulled live: { rows, pulled }
@@ -35,7 +35,7 @@ export async function build(s, meta, votes) {
       .sort((x, y) => liked(y.k) - liked(x.k) || x.rank - y.rank || x.si - y.si || y.v - x.v).slice(0, 5);
     return { rows, pulled: W.pulled };
   }
-  const D = await call(`day?date=${key(s.date)}&stat=${STATS[s.stat]}`);
+  const D = await call(`day?date=${key(s.date)}&stat=${STATS[s.stat]}&n=all`); // every player who played
   return { rows: D.lines.map(l => daySlide(l, s.stat)), pulled: D.pulled };
 }
 

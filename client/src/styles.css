@@ -255,3 +255,12 @@ footer{flex:none;display:flex;justify-content:center;align-items:center;gap:var(
 .mo{display:grid;place-items:center;min-height:52px;border:1px solid var(--line);border-radius:var(--s4);font:17px var(--serif);color:var(--dim);animation:rise .5s var(--ease) both;animation-delay:calc(var(--i)*25ms)}
 .mo:hover{border-color:var(--gold-line);color:var(--ink)}
 .mo.a{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+
+/* long lists (every player of the day): counter + slider instead of dots */
+.scrub{display:flex;align-items:center;gap:var(--s3);flex:1;max-width:420px;min-width:0}
+.scrub .count{flex:none;font:13px var(--sans);letter-spacing:.12em;color:var(--dim);font-variant-numeric:tabular-nums;min-width:72px;text-align:center}
+.scrub .count b{color:var(--gold);font-weight:600}
+.scrub input{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--faint);outline:none}
+.scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px rgba(227,196,140,.5);cursor:pointer;transition:transform .2s}
+.scrub input::-webkit-slider-thumb:active{transform:scale(1.25)}
+.scrub input::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:var(--gold);cursor:pointer}
