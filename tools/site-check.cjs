@@ -47,8 +47,10 @@ const CHECK=(scope)=>{
 
 (async () => {
   const report = [];
-  for (const p of ['/api/meta', '/api/day?date=2026-03-01&stat=pts', '/api/season?season=2025-26&stat=pts', '/api/top?mode=season&season=2025-26&stat=fg2m']) {
-    try { const r = await fetch(BASE + p); const t = await r.text(); report.push(`API ${p} ${r.status}\n${t.slice(0, 1500)}\n`); }
+  for (const p of ['/api/meta', '/api/day?date=2026-03-01&stat=pts&n=all', '/api/season?season=2025-26&stat=pts', '/api/top?mode=season&season=2025-26&stat=fg2m']) {
+    try { const r = await fetch(BASE + p); const t = await r.text(); let extra = '';
+      try { const j = JSON.parse(t); if (j.lines) { const v = j.lines.map(l => l.pts); extra = `\n  -> ${j.lines.length} players, sorted desc: ${v.every((x, i) => !i || v[i - 1] >= x)}, first ${v.slice(0, 3)}, last ${v.slice(-3)}`; } } catch {}
+      report.push(`API ${p} ${r.status}${extra}\n${t.slice(0, 600)}\n`); }
     catch (e) { report.push(`API ${p} ERROR ${e.message}`); }
   }
   const b = await chromium.launch();
