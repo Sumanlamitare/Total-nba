@@ -487,3 +487,4 @@ button.tile:hover:not(:disabled){border-color:var(--gold-line);transform:transla
 /* phones: long totals (2,145 / 3,902.6) shrink so they never reach the photo */
 @media(max-width:800px){.num{font-size:min(clamp(48px,11vh,96px),calc((100vw - 220px) / (var(--len,3) * .6)))}}
 @media(max-width:800px){button.nm{overflow-wrap:normal;font-size:min(clamp(24px,7vw,32px),calc((100vw - 220px) / (var(--w,8) * .5)))}}
+.slide.ghost{background:var(--card);box-shadow:none}

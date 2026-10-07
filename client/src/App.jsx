@@ -13,6 +13,9 @@ import PlayerSheet from './components/PlayerSheet.jsx';
 import SearchSheet from './components/SearchSheet.jsx';
 import Book from './components/Book.jsx';
 
+// Only the cards around the current one are rendered in full; the rest are empty placeholders that keep
+// the scroll width. Hundreds of full cards (photos, foil, animations) crash mobile Safari.
+const NEAR = 3;
 const BURST = { common: '#cfc6b5', rare: '#7cc4ff', epic: '#c08bff', legendary: '#e3c48c' };
 
 // a little firework where you tapped Collect
@@ -246,7 +249,9 @@ export default function App() {
             : (
               <div id="panel" ref={pan} className={stage >= 1 ? 'on' : ''} onScroll={fx}>
                 {stage >= 2 && (rows.length
-                  ? rows.map((c, i) => <Slide key={ver + '-' + c.k} c={c} i={i} book={book} onPlayer={openPlayer} onCollect={collect} />)
+                  ? rows.map((c, i) => (Math.abs(i - pos) <= NEAR
+                    ? <Slide key={ver + '-' + c.k} c={c} i={i} book={book} onPlayer={openPlayer} onCollect={collect} />
+                    : <div key={ver + '-' + c.k} className="slide ghost" aria-hidden="true" />))
                   : <Empty key={ver} msg={emptyMsg} />)}
               </div>
             )}
