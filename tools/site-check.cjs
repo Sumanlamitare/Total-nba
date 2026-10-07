@@ -61,7 +61,7 @@ const CHECK=(scope)=>{
     try {
       await p.goto(BASE + '/'); await p.waitForTimeout(7000);
       const res = {};
-      for (const mode of ['DAILY', 'SEASON', 'WEEK']) {
+      for (const mode of ['DAY', 'SEASON', 'WEEK']) {
         await p.click(`.tg button:text-is("${mode}")`); await p.waitForTimeout(4000);
         res[mode] = await p.evaluate(CHECK, '#app');
         await p.screenshot({ path: `${OUT}/${w}-${mode}.png` });
@@ -71,6 +71,16 @@ const CHECK=(scope)=>{
       res.graphic = await p.evaluate(CHECK, '#ov');
       await p.screenshot({ path: `${OUT}/${w}-graphic.png` });
       if (w === 1440) { const [dl] = await Promise.all([p.waitForEvent('download'), p.click('.gactions .btn >> nth=0')]); await dl.saveAs(`${OUT}/graphic.png`); }
+      // player page from the first card, then player search
+      await p.keyboard.press('Escape'); await p.waitForTimeout(800);
+      await p.click('.slide .nm >> nth=0'); await p.waitForSelector('.psheet .pp-hd', { timeout: 60000 }); await p.waitForTimeout(1500);
+      res.player = await p.evaluate(CHECK, '#ov');
+      await p.screenshot({ path: `${OUT}/${w}-player.png` });
+      await p.keyboard.press('Escape'); await p.waitForTimeout(800);
+      await p.click('.srch'); await p.waitForTimeout(500); await p.keyboard.type('lebron'); await p.waitForTimeout(4000);
+      res.searchHits = [String(await p.locator('.sr-row').count())];
+      await p.screenshot({ path: `${OUT}/${w}-search.png` });
+      await p.keyboard.press('Escape'); await p.waitForTimeout(600);
       report.push(`${w}x${h}: ` + JSON.stringify(res) + (errs.length ? ' ERRORS ' + errs.join(' | ') : ''));
     } catch (e) { report.push(`${w}x${h}: FAILED ${e.message} ${errs.join(' | ')}`); await p.screenshot({ path: `${OUT}/${w}-failed.png` }).catch(() => {}); }
     await ctx.close();

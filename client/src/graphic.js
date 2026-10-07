@@ -132,7 +132,7 @@ export async function drawGraphic(g) {
     ctx.fillText(String(i + 1).padStart(2, '0'), rankX, cy + 2);
     avatar(ctx, imgs[i], r.name, photoCX, cy, photoR, i === 0);
     // value (measured first so the name gets the rest of the width)
-    const value = fmt(r.value);
+    const value = fmt(r.value, Number.isInteger(r.value) ? 0 : 1); // fantasy points keep one decimal
     ctx.textAlign = 'right'; ctx.fillStyle = i === 0 ? C.gold : C.ink; ctx.font = `400 46px ${SERIF}`;
     const vw = ctx.measureText(value).width;
     ctx.fillText(value, valueX, cy + 2);

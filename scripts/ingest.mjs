@@ -3,7 +3,7 @@
 // database nears the free Atlas size limit;
 // after that each run only touches days that aren't complete yet (today and recent days).
 import { db, close } from '../lib/db.js';
-import { backfill, ensureDay, etToday, seasonOf } from '../lib/store.js';
+import { backfill, ensureDay, etToday, seasonOf, rebuildPlayers } from '../lib/store.js';
 
 const from = +(process.env.HISTORY_FROM || '1990').slice(0, 4);
 const iso = t => new Date(t).toISOString().slice(0, 10);
@@ -36,6 +36,8 @@ try {
   for (let i = 3; i >= 0; i--) { const date = iso(Date.parse(today) - i * 864e5); await ensureDay(date); } // recent days first
   const now = seasonOf(today);
   await backfill(Array.from({ length: now - from + 1 }, (_, i) => now - i));
+  // player search + player pages: index by player and refresh the players collection
+  console.log(`players: ${await rebuildPlayers()} in the search index`);
   console.log('done');
 } catch (e) {
   console.error(e); process.exitCode = 1;

@@ -1,17 +1,26 @@
 # TotalNBA
 
-Personal NBA leaderboard (MERN): the top 5 single-game performances for any date, regular-season totals
-leaders, and a "performance of the week" picked from your own likes, for ten stats: points, rebounds,
-assists, steals, blocks, 3PM, 2PM, FTM, turnovers and fouls.
+A personal NBA statbook that plays like a trading-card collection. Every performance is a card:
 
-**Create Graphic** (on Daily, Season and Week) builds a 1080×1350 Top 10 image for the stat, date, week or
-season on screen, with player photos, previews it, and saves it as a PNG (`client/src/graphic.js`). Data comes from ESPN's free public NBA
-API (no key); player photos from ESPN's headshot CDN.
+- **DAY** — every player who played that date, ranked by the stat you pick, with a scoreboard strip to
+  filter by game and an **On This Day** chip (best line on the same date in another season).
+- **WEEK / SEASON** — every player ranked by totals (no averages) for the week or regular season.
+- **Rarity** — single games are Common / Rare / Epic / Legendary by fantasy score (≥30 / 42 / 55 FPTS);
+  week and season cards by rank. Holographic glare follows your pointer; legendary cards get an animated foil.
+- **Badges** — TRIPLE-DOUBLE, 40 PIECE, 50 BOMB, SNIPER, GLASS CLEANER, BLOCK PARTY, ZERO TURNOVERS and more.
+- **BOOK** — tap COLLECT to keep a card (stored in your browser), with notes.
+- **Player pages** — tap a name: career total and high, season-by-season bars, last 10 games, greatest hits.
+  Every bar and game jumps to that date or season. Press `/` to search any player since 1993-94.
+- **Stats** — points, rebounds, assists, steals, blocks, 3PM, 2PM, FTM, turnovers, fouls and FANTASY
+  (DraftKings scoring).
+- **Create Graphic** — a 1080×1350 Top 10 PNG of exactly the view on screen (`client/src/graphic.js`).
+
+Data comes from ESPN's free public NBA API (no key); player photos from ESPN's headshot CDN.
 
 | Layer | What |
 | --- | --- |
 | **MongoDB** | Every game and player box score line pulled so far (the historic store) |
-| **API** | Vercel functions in `api/`: `/api/day`, `/api/week`, `/api/season`, `/api/top` (graphic), `/api/img` (photos), `/api/meta` |
+| **API** | Vercel functions in `api/`: `/api/day`, `/api/week`, `/api/season`, `/api/top` (graphic), `/api/img` (photos), `/api/meta`, `/api/player`, `/api/search`, `/api/onthisday` |
 | **React** | Vite app in `client/` |
 | **Node** | `lib/espn.js` (ESPN client), `lib/store.js` (MongoDB), `scripts/ingest.mjs` (scheduled job) |
 
@@ -20,7 +29,7 @@ API (no key); player photos from ESPN's headshot CDN.
 - **Pick a date** → `/api/day` answers from MongoDB. If the date isn't stored yet, it pulls that day from
   ESPN (scoreboard + one box score per finished game), saves it, and returns it. Completed days are never
   pulled twice; today is refreshed at most every 5 minutes.
-- **Scheduled job** → `.github/workflows/ingest.yml` runs every 2 hours. It loads every season from 2001-02
+- **Scheduled job** → `.github/workflows/ingest.yml` runs every 2 hours. It loads every season from 1993-94
   (`HISTORY_FROM`) to now, newest first, and stops before the free Atlas tier's 512 MB limit (`SIZE_CAP_MB`,
   default 460). Later runs only refresh recent days. Any date that isn't stored is pulled live when opened.
 - **Season totals** are summed in MongoDB from the stored regular-season box scores.
