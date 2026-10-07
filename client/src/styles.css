@@ -484,3 +484,6 @@ button.tile:hover:not(:disabled){border-color:var(--gold-line);transform:transla
 @media(max-width:600px){.pp-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2)}.tile{padding:var(--s3)}.tile b{font-size:22px}.tile small{font-size:8.5px;letter-spacing:.12em}.tile span{font-size:11px}.pp-photo{width:68px;height:68px}}
 @media(min-width:801px){.sc{grid-template-rows:minmax(min-content,1fr) auto}}
 .stat{white-space:nowrap}
+/* phones: long totals (2,145 / 3,902.6) shrink so they never reach the photo */
+@media(max-width:800px){.num{font-size:min(clamp(48px,11vh,96px),calc((100vw - 220px) / (var(--len,3) * .6)))}}
+@media(max-width:800px){button.nm{overflow-wrap:normal;font-size:min(clamp(24px,7vw,32px),calc((100vw - 220px) / (var(--w,8) * .5)))}}

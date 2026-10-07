@@ -13,7 +13,7 @@ function Num({ v, animate, decimals }) {
     raf = requestAnimationFrame(f);
     return () => cancelAnimationFrame(raf);
   }, [v]);
-  return <div className="num">{fmt(n, decimals)}</div>;
+  return <div className="num" style={{ '--len': fmt(v, decimals).length }}>{fmt(n, decimals)}</div>;
 }
 
 function Frame({ src, name, eager, rarity }) {
@@ -93,7 +93,7 @@ export default function Slide({ c, i, book, onPlayer, onCollect }) {
         <div className="holo" aria-hidden="true" />
         <div className="txt">
           <div {...rise(0.2)}><div className="rk">RANK <b>#{i + 1}</b></div></div>
-          <button className="nm r" style={{ '--d': '.35s' }} onClick={() => onPlayer(c)} aria-label={`Open ${c.n}'s player page`}>{c.n}<span className="go">↗</span></button>
+          <button className="nm r" style={{ '--d': '.35s', '--w': Math.max(...c.n.split(/\s+/).map(w => w.length)) }} onClick={() => onPlayer(c)} aria-label={`Open ${c.n}'s player page`}>{c.n}<span className="go">↗</span></button>
           <div className="numrow r" style={{ '--d': '.5s' }}>
             <Num v={c.v} animate={i < 3} decimals={decimalsFor(c.f) && !Number.isInteger(c.v) ? 1 : 0} />
             <div className="lb">{total ? 'TOTAL ' : ''}{c.stat}</div>
@@ -115,8 +115,8 @@ export default function Slide({ c, i, book, onPlayer, onCollect }) {
           <button className={'rb2' + (notesOpen ? ' on' : '')} aria-label="Notes" onClick={() => setNotesOpen(!notesOpen)}><Bubble /><span>{book.notes(c.k).length}</span></button>
           <button className="rb2" aria-label={`Open ${c.n}'s player page`} onClick={() => onPlayer(c)}><span>PLAYER</span></button>
         </div>
-        <Notes k={c.k} book={book} open={notesOpen} onClose={() => setNotesOpen(false)} />
       </div>
+      <Notes k={c.k} book={book} open={notesOpen} onClose={() => setNotesOpen(false)} />
     </div>
   );
 }
