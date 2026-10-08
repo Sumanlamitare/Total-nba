@@ -31,6 +31,18 @@ function Burst({ b }) {
   );
 }
 
+// Crash trace: what the app was doing is kept in localStorage; if the tab died mid-step, the next visit
+// shows it (with the iOS version) in the footer note.
+const trace = step => { try { localStorage.setItem('tn_trace', JSON.stringify({ step, at: Date.now() })); } catch { /* storage off */ } };
+const lastCrash = (() => {
+  try {
+    const t = JSON.parse(localStorage.getItem('tn_trace') || 'null');
+    if (!t || t.step === 'ok') return '';
+    const ios = (navigator.userAgent.match(/OS (\d+[_\d]*) like Mac/) || [])[1];
+    return `Last visit stopped while ${t.step}${ios ? ' · iOS ' + ios.replace(/_/g, '.') : ''}`;
+  } catch { return ''; }
+})();
+
 export default function App() {
   const [meta, setMeta] = useState({ seasons: [], dates: [], has: new Set() });
   const [stage, setStage] = useState(0);
@@ -97,10 +109,12 @@ export default function App() {
   const change = patch => {
     const nx = { ...st, ...patch }, el = pan.current;
     setSt(nx);
+    trace('loading ' + (nx.season ? 'SEASON' : nx.week ? 'WEEK' : nx.book ? 'BOOK' : 'DAY'));
     if (el) { el.style.transition = 'opacity .45s,transform .45s'; el.style.opacity = 0; el.style.transform = 'translateY(-26px)'; }
     setLoading(!nx.book);
     Promise.all([load(nx, meta), new Promise(r => setTimeout(r, 480))]).then(([r]) => {
-      setLoading(false); show(nx, r);
+      setLoading(false); trace('showing ' + (nx.season ? 'SEASON' : nx.week ? 'WEEK' : nx.book ? 'BOOK' : 'DAY') + ` (${r.rows.length} cards)`); show(nx, r);
+      setTimeout(() => trace('ok'), 4000);
       if (r.rows.length && !nx.season && !nx.week && !nx.book && !meta.has.has(key(nx.date))) setMeta(m => ({ ...m, has: new Set([...m.has, key(nx.date)]) }));
     });
   };
@@ -307,7 +321,7 @@ export default function App() {
             <button className="ib" aria-label="Next player" onClick={() => go(pos + 1)}><Icon d="M5 12h14m-6-6l6 6-6 6" /></button>
           </footer>
         )}
-        <div id="note">{err || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'
+        <div id="note">{err || (ver < 2 && lastCrash) || (loading ? 'Loading… pulling from ESPN if this date isn’t saved yet'
           : 'TotalNBA · ESPN data' + (status?.pulled ? ' · just pulled live' : '') + ' · press / to search')}</div>
       </div>
       <div id="ov" className={ov ? 'on' : ''} onClick={() => setOv(null)}>{overlay}</div>

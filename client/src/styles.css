@@ -496,3 +496,17 @@ button.tile:hover:not(:disabled){border-color:var(--gold-line);transform:transla
 .slide.more b{font:400 clamp(30px,6vw,56px)/1.1 var(--serif)}
 .slide.more span{color:var(--dim);letter-spacing:.12em;font-size:13px}
 .slide.more:hover{border-color:var(--gold)}
+
+/* Touch screens (iPhone): no 3D tilt, no blend-mode foil, no animated gradients or backdrop blur.
+   These GPU-heavy effects stacked on the top-ranked season cards crashed Safari on iPhone. Rarity still
+   shows through the coloured borders, glows and a static gold edge on legendary cards. */
+@media (hover:none),(pointer:coarse){
+  .sc,.sc.tilting{transform:none;transition:none}
+  .holo{mix-blend-mode:normal;animation:none;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.05) 45%,transparent 65%)}
+  .slide.legendary{animation:none;background:var(--card) padding-box,linear-gradient(135deg,#e3c48c,#fff3cf,#b8975c,#6d5122) border-box}
+  .mini.legendary{animation:deal .6s var(--ease) both;background:var(--card) padding-box,linear-gradient(135deg,#e3c48c,#fff3cf,#b8975c,#6d5122) border-box}
+  .gem{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(5,5,7,.85)}
+  .gem.legendary{background:linear-gradient(135deg,#fff3cf,var(--gold))}
+  .frame img{filter:none}
+  .frame:before{animation:none}
+}
