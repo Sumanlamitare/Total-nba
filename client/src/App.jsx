@@ -85,11 +85,12 @@ export default function App() {
     return () => { alive = false; };
   }, [view]);
 
-  // scene change: current gallery lifts away, the new one rises in
+  // scene change: current gallery lifts away, the new one rises in. No blur filter here: the gallery is
+  // hundreds of cards wide, and Safari renders a filtered element into one huge bitmap (tab crash).
   const change = patch => {
     const nx = { ...st, ...patch }, el = pan.current;
     setSt(nx);
-    if (el) { el.style.transition = 'opacity .45s,transform .45s,filter .45s'; el.style.opacity = 0; el.style.transform = 'translateY(-26px)'; el.style.filter = 'blur(6px)'; }
+    if (el) { el.style.transition = 'opacity .45s,transform .45s'; el.style.opacity = 0; el.style.transform = 'translateY(-26px)'; }
     setLoading(!nx.book);
     Promise.all([load(nx, meta), new Promise(r => setTimeout(r, 480))]).then(([r]) => {
       setLoading(false); show(nx, r);
@@ -102,8 +103,8 @@ export default function App() {
     if (!el) return;
     el.scrollLeft = 0; posR.current = 0; setPos(0); styled.current = new Set();
     el.style.transition = 'none'; el.style.transform = 'translateY(26px)'; void el.offsetWidth;
-    el.style.transition = 'opacity .8s,transform .9s cubic-bezier(.2,.7,.2,1),filter .8s';
-    el.style.opacity = 1; el.style.transform = 'none'; el.style.filter = 'none';
+    el.style.transition = 'opacity .8s,transform .9s cubic-bezier(.2,.7,.2,1)';
+    el.style.opacity = 1; el.style.transform = 'none';
     requestAnimationFrame(() => fx());
   }, [ver]);
 
