@@ -16,6 +16,9 @@ import Book from './components/Book.jsx';
 // Only the cards around the current one are rendered in full; the rest are empty placeholders that keep
 // the scroll width. Hundreds of full cards (photos, foil, animations) crash mobile Safari.
 const NEAR = 3;
+// The strip holds at most PAGE cards; a season (580+ players) is browsed in batches so the strip's size
+// never depends on how many players there are (one huge strip crashed Safari on iPhone).
+const PAGE = 50;
 const BURST = { common: '#cfc6b5', rare: '#7cc4ff', epic: '#c08bff', legendary: '#e3c48c' };
 
 // a little firework where you tapped Collect
@@ -49,7 +52,11 @@ export default function App() {
   const pan = useRef(null), posR = useRef(0), lenR = useRef(1), lastOv = useRef(null);
   const book = useBook();
   const rows = game ? data.filter(c => c.gameId === game) : data;
-  lenR.current = Math.max(1, rows.length);
+  const [page, setPage] = useState(0);
+  const pending = useRef(null); // card (index within the page) to centre once a new page renders
+  const start = page * PAGE, pageRows = rows.slice(start, start + PAGE), hasMore = start + PAGE < rows.length;
+  const gpos = start + Math.min(pos, Math.max(0, pageRows.length - 1)); // overall rank index on screen
+  lenR.current = Math.max(1, pageRows.length);
 
   const [status, setStatus] = useState(null); // result of the last load (was it pulled live?)
   const load = async (s, m) => {
@@ -59,7 +66,7 @@ export default function App() {
     catch (e) { setErr('Could not load data (' + e.message + ')'); setStatus(null); return { rows: [] }; }
   };
   const show = (nx, r) => {
-    setView(nx); setData(r.rows); setGames(r.games || []); setGame(null); setOtd(null); setVer(v => v + 1);
+    setView(nx); setData(r.rows); setGames(r.games || []); setGame(null); setOtd(null); setPage(0); setVer(v => v + 1);
   };
 
   // boot: load meta, show the latest game day
@@ -130,13 +137,34 @@ export default function App() {
     posR.current = best; setPos(best);
   }, []);
   useEffect(() => { if (stage >= 2) fx(); }, [stage, ver]);
+  // jump to any overall index: switch batch if needed, then centre the card
+  const jump = g => {
+    g = Math.max(0, Math.min(rows.length - 1, g));
+    const p = Math.floor(g / PAGE), l = g - p * PAGE;
+    if (p !== page) { pending.current = l; setPage(p); return; }
+    const el = pan.current;
+    if (!el?.children[l]) return;
+    posR.current = l; setPos(l);
+    el.children[l].scrollIntoView({ inline: 'center', block: 'nearest' });
+  };
+  useEffect(() => {
+    const el = pan.current;
+    if (!el || pending.current === null) return;
+    const l = pending.current; pending.current = null; styled.current = new Set();
+    el.children[l]?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    posR.current = l; setPos(l);
+    requestAnimationFrame(() => fx());
+  }, [page]);
   const go = i => {
     const el = pan.current;
-    if (!el || i < 0 || i >= lenR.current || !el.children[i]) return;
+    if (i < 0) { if (page > 0) jump(start - 1); return; }
+    if (i >= lenR.current) { if (hasMore) jump(start + PAGE); return; }
+    if (!el || !el.children[i]) return;
     goT.current = { i, until: Date.now() + 700 };
     posR.current = i; setPos(i);
     el.children[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   };
+  const goR = useRef(go); goR.current = go; // the key handler is bound once; it always calls the latest go
   useEffect(() => {
     const el = pan.current;
     if (!el) return;
@@ -144,8 +172,8 @@ export default function App() {
     const keys = e => {
       if (e.key === 'Escape') setOv(null);
       if (e.target.tagName === 'INPUT') return;
-      if (e.key === 'ArrowRight') go(posR.current + 1);
-      if (e.key === 'ArrowLeft') go(posR.current - 1);
+      if (e.key === 'ArrowRight') goR.current(posR.current + 1);
+      if (e.key === 'ArrowLeft') goR.current(posR.current - 1);
       if (e.key === '/') { e.preventDefault(); setOv('search'); }
     };
     el.addEventListener('wheel', wheel, { passive: false }); addEventListener('keydown', keys);
@@ -171,7 +199,7 @@ export default function App() {
   const toDate = d => { setOv(null); change({ season: false, week: false, book: false, date: parse(d) }); };
   const toSeason = label => { const si = meta.seasons.indexOf(label); if (si < 0) return; setOv(null); change({ season: true, week: false, book: false, si }); };
   const openPlayer = c => { if (!c.key) return; setPlayerKey(c.key); setOv('player'); };
-  const pickGame = g => { setGame(g); setVer(v => v + 1); };
+  const pickGame = g => { setGame(g); setPage(0); setVer(v => v + 1); };
 
   const collect = (c, e) => {
     const snap = { k: c.k, n: c.n, key: c.key, img: c.img, v: c.v, f: c.f, stat: c.stat, kind: c.kind, rarity: c.rarity,
@@ -250,10 +278,17 @@ export default function App() {
             : (
               <div id="panel" ref={pan} className={stage >= 1 ? 'on' : ''} onScroll={fx}>
                 {stage >= 2 && (rows.length
-                  ? rows.map((c, i) => (Math.abs(i - pos) <= NEAR
-                    ? <Slide key={ver + '-' + c.k} c={c} i={i} book={book} onPlayer={openPlayer} onCollect={collect} />
+                  ? pageRows.map((c, i) => (Math.abs(i - pos) <= NEAR
+                    ? <Slide key={ver + '-' + c.k} c={c} i={start + i} book={book} onPlayer={openPlayer} onCollect={collect} />
                     : <div key={ver + '-' + c.k} className="slide ghost" aria-hidden="true" />))
                   : <Empty key={ver} msg={emptyMsg} />)}
+                {stage >= 2 && hasMore && (
+                  <button key={ver + '-more-' + page} className="slide more" onClick={() => jump(start + PAGE)}>
+                    <small>KEEP GOING</small>
+                    <b>RANKS {start + PAGE + 1}–{Math.min(rows.length, start + 2 * PAGE)}</b>
+                    <span>{rows.length - start - PAGE} more players →</span>
+                  </button>
+                )}
               </div>
             )}
         </div>
@@ -263,9 +298,9 @@ export default function App() {
             {rows.length > 12
               ? (
                 <div className="scrub">
-                  <span className="count"><b>{pos + 1}</b> / {rows.length}</span>
-                  <input type="range" min="1" max={rows.length} value={pos + 1} aria-label="Jump to player"
-                    onChange={e => { const i = +e.target.value - 1; posR.current = i; setPos(i); pan.current.children[i]?.scrollIntoView({ inline: 'center', block: 'nearest' }); }} />
+                  <span className="count"><b>{gpos + 1}</b> / {rows.length}</span>
+                  <input type="range" min="1" max={rows.length} value={gpos + 1} aria-label="Jump to player"
+                    onChange={e => jump(+e.target.value - 1)} />
                 </div>
               )
               : <span className="dots">{Array.from({ length: Math.max(1, rows.length) }, (_, i) => <span key={i} className={'dot' + (i === pos ? ' a' : '')} onClick={() => go(i)} />)}</span>}

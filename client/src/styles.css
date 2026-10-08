@@ -490,3 +490,9 @@ button.tile:hover:not(:disabled){border-color:var(--gold-line);transform:transla
 .slide.ghost{background:var(--card);box-shadow:none}
 /* keep the foil's blend mode inside each card, so Safari never blends against the whole gallery */
 .slide{isolation:isolate}
+/* end of a batch: a card that loads the next 50 ranks */
+.slide.more{display:grid;place-content:center;justify-items:center;gap:var(--s3);text-align:center;border:1px dashed var(--gold-line);background:radial-gradient(60% 50% at 50% 40%,rgba(227,196,140,.10),transparent),var(--card);color:var(--ink);cursor:pointer}
+.slide.more small{font:700 11px var(--sans);letter-spacing:.3em;color:var(--gold)}
+.slide.more b{font:400 clamp(30px,6vw,56px)/1.1 var(--serif)}
+.slide.more span{color:var(--dim);letter-spacing:.12em;font-size:13px}
+.slide.more:hover{border-color:var(--gold)}
