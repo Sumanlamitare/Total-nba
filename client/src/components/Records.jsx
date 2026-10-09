@@ -35,7 +35,7 @@ export default function Records({ stat, onStat, onDate, onPlayer, pro, onPro }) 
   return (
     <div className="rec">
       <div className="headline">
-        <small className="kicker">ALL-TIME · SINCE 1993–94</small>
+        <small className="kicker">REGULAR SEASON · SINCE 1993–94</small>
         <h1><span key={stat}>MOST {STAT_NAME[stat].toUpperCase()} IN A GAME</span></h1>
         <p>The 25 biggest single games in our archive. Tap one to open that night.</p>
       </div>

@@ -67,7 +67,7 @@ export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason, pro
         <div className="pp-id">
           <small>PLAYER FILE</small>
           <h2>{p.name}</h2>
-          <p>{p.team} · {span} · {p.career.gp.toLocaleString()} GAMES</p>
+          <p>{p.team} · {span} · {p.career.gp.toLocaleString()} REGULAR-SEASON GAMES{p.playoffs ? ` · ${p.playoffs.gp} PLAYOFF` : ''}</p>
         </div>
         <button className="ib" aria-label="Close" onClick={onClose}>✕</button>
       </div>
@@ -77,9 +77,9 @@ export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason, pro
       </div>
 
       <div className="pp-tiles">
-        <div className="tile"><small>CAREER {SHORT[f]}</small><b>{fmtStat(p.career[f] || 0, f)}</b><span>all games stored</span></div>
+        <div className="tile"><small>CAREER {SHORT[f]}</small><b>{fmtStat(p.career[f] || 0, f)}</b><span>regular season{p.playoffs ? ` · ${fmtStat(p.playoffs[f] || 0, f)} in playoffs` : ''}</span></div>
         <button className="tile hi" disabled={!high} onClick={() => high && onDate(high.date)}>
-          <small>CAREER HIGH</small><b>{high ? fmtStat(high[f] || 0, f) : '—'}</b>
+          <small>CAREER HIGH · REG. SEASON</small><b>{high ? fmtStat(high[f] || 0, f) : '—'}</b>
           <span>{high ? `vs ${high.opp} · ${shortDate(high.date)}` : ''}</span>
         </button>
         <button className="tile" disabled={!best} onClick={() => best && onSeason(best.season)}>

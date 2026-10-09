@@ -49,7 +49,7 @@ async function page(origin, path) {
     const rows = (await records(f)).slice(0, 25);
     return {
       title: `Most ${sn.toLowerCase()} in an NBA game since 1993 · TotalNBA`,
-      desc: rows[0] ? `The NBA single-game ${sn.toLowerCase()} record since 1993–94: ${rows[0].name}, ${fmt(rows[0][f])} vs ${rows[0].opp} on ${long(rows[0].date)}. Top 25 games ranked.` : 'All-time NBA single-game records.',
+      desc: rows[0] ? `The NBA regular-season single-game ${sn.toLowerCase()} record since 1993–94: ${rows[0].name}, ${fmt(rows[0][f])} vs ${rows[0].opp} on ${long(rows[0].date)}. Top 25 games ranked.` : 'All-time NBA single-game records.',
       image: face(rows[0]?.espnId),
       body: `<h1>Most ${esc(sn.toLowerCase())} in a game since 1993</h1><ol>` + rows.map(x => `<li><a href="${playerPath(x.name, x.key)}">${esc(x.name)}</a> — ${fmt(x[f])} vs ${esc(x.opp)}, <a href="/games/${x.date}">${long(x.date)}</a></li>`).join('') + '</ol>',
     };
