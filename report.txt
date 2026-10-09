@@ -1,0 +1,68 @@
+API /api/meta 200
+{"dates":["1993-11-05","1993-11-06","1993-11-07","1993-11-08","1993-11-09","1993-11-10","1993-11-11","1993-11-12","1993-11-13","1993-11-14","1993-11-15","1993-11-16","1993-11-17","1993-11-18","1993-11-19","1993-11-20","1993-11-21","1993-11-22","1993-11-23","1993-11-24","1993-11-26","1993-11-27","1993-11-28","1993-11-29","1993-11-30","1993-12-01","1993-12-02","1993-12-03","1993-12-04","1993-12-05","1993-12-06","1993-12-07","1993-12-08","1993-12-09","1993-12-10","1993-12-11","1993-12-12","1993-12-13","1993-12-14","1993-12-15","1993-12-16","1993-12-17","1993-12-18","1993-12-19","1993-12-20","1993
+
+API /api/day?date=2026-03-01&stat=pts&n=all 200
+  -> 243 players, sorted desc: true, first 35,33,30, last 0,0,0
+{"date":"2026-03-01","pulled":false,"games":[{"_id":"401810723","as":89,"away":"Spurs","home":"Knicks","hs":114,"type":"Regular Season"},{"_id":"401810724","as":106,"away":"Cavaliers","home":"Nets","hs":102,"type":"Regular Season"},{"_id":"401810725","as":97,"away":"Bucks","home":"Bulls","hs":120,"type":"Regular Season"},{"_id":"401810726","as":117,"away":"Timberwolves","home":"Nuggets","hs":108,"type":"Regular Season"},{"_id":"401810727","as":125,"away":"Grizzlies","home":"Pacers","hs":106,"type":"Regular Season"},{"_id":"401810728","as":101,"away":"Trail Blazers","home":"Hawks","hs":135,"typ
+
+API /api/season?season=2025-26&stat=pts 200
+{"season":"2025-26","through":"2026-04-12","complete":true,"rows":[{"pts":2145,"reb":495,"ast":532,"stl":105,"blk":34,"tpm":254,"fg2m":440,"ftm":503,"tov":255,"pf":153,"min":2298,"fan":3902.6,"gp":65,"key":"3945274","name":"Luka Doncic","team":"Lakers","espnId":"3945274"},{"pts":2117,"reb":292,"ast":448,"stl":95,"blk":52,"tpm":115,"fg2m":616,"ftm":540,"tov":151,"pf":139,"min":2262,"fan":3442.4,"gp":68,"key":"4278073","name":"Shai Gilgeous-Alexander","team":"Thunder","espnId":"4278073"},{"pts":2053,"reb":497,"ast":366,"stl":73,"blk":30,"tpm":141,"fg2m":602,"ftm":426,"tov":259,"pf":193,"min":247
+
+API /api/top?mode=season&season=2025-26&stat=fg2m 200
+{"mode":"season","season":"2025-26","through":null,"rows":[{"name":"Shai Gilgeous-Alexander","team":"Thunder","espnId":"4278073","value":616,"detail":"Thunder · 68 GP"},{"name":"Jaylen Brown","team":"Celtics","espnId":"3917376","value":602,"detail":"Celtics · 74 GP"},{"name":"Alperen Sengun","team":"Rockets","espnId":"4871144","value":543,"detail":"Rockets · 74 GP"},{"name":"Kevin Durant","team":"Rockets","espnId":"3202","value":533,"detail":"Rockets · 81 GP"},{"name":"Nikola Jokic","team":"Nuggets","espnId":"3112335","value":532,"detail":"Nuggets · 66 GP"},{"name":"Amen Thompson","team":"Rock
+
+PAGE /games/2026-03-01 200 text/html; charset=utf-8
+  title: Points leaders — NBA games on March 1, 2026 · TotalNBA
+  desc: Nikola Jokic led all players with 35 points on March 1, 2026. Every player from all 11 NBA games, ranked by points.
+  ssr: <h1>NBA Points leaders, March 1, 2026</h1><p>Spurs 89, Knicks 114 · Cavaliers 106, Nets 102 · Bucks 97, Bulls 120 · Timberwolves 117, Nuggets 108 · Grizzlies 125, Pacers 106 · Trail Blazers 101, Hawks 135 · 76ers 98, Celtics 114 · Pistons 106, Magic 92 · Thunder 100, Mavericks 87 · Pelicans 117, Cli
+
+PAGE /season/2025-26/rebounds 200 text/html; charset=utf-8
+  title: 2025–26 NBA Rebounds leaders — regular-season totals · TotalNBA
+  desc: Karl-Anthony Towns leads the 2025–26 NBA regular season with 903 total rebounds. Full ranking of every player, totals not averages.
+  ssr: <h1>2025–26 NBA Rebounds leaders</h1><ol><li><a href="/player/karl-anthony-towns-3136195">Karl-Anthony Towns</a> — 903 Rebounds · Knicks · 78 games</li><li><a href="/player/donovan-clingan-5105565">Donovan Clingan</a> — 892 Rebounds · Trail Blazers · 77 games</li><li><a href="/player/rudy-gobert-303
+
+PAGE /records/points 200 text/html; charset=utf-8
+  title: Most points in an NBA game since 1993 · TotalNBA
+  desc: The NBA single-game points record since 1993–94: Bam Adebayo, 83 vs Wizards on March 10, 2026. Top 25 games ranked.
+  ssr: <h1>Most points in a game since 1993</h1><ol><li><a href="/player/bam-adebayo-4066261">Bam Adebayo</a> — 83 vs Wizards, <a href="/games/2026-03-10">March 10, 2026</a></li><li><a href="/player/kobe-bryant-110">Kobe Bryant</a> — 81 vs Raptors, <a href="/games/2006-01-22">January 22, 2006</a></li><li><
+
+PAGE /player/lebron-james-1966 200 text/html; charset=utf-8
+  title: LeBron James stats — career totals, game logs &amp; career highs · TotalNBA
+  desc: LeBron James (Lakers): 50,448 points, 14,311 rebounds and 13,733 assists in 1873 games (2003-04–2025-26). Career high 61 points vs Bobcats.
+  ssr: <h1>LeBron James career stats</h1><p>Lakers · 1873 games · 50,448 PTS · 14,311 REB · 13,733 AST</p><ol><li><a href="/season/2003-04">2003-04</a>: 1,654 PTS, 432 REB, 465 AST in 79 games (Cavaliers)</li><li><a href="/season/2004-05">2004-05</a>: 2,175 PTS, 588 REB, 577 AST in 80 games (Cavaliers)</li
+
+PAGE /pro 200 text/html; charset=utf-8
+  title: TotalNBA Pro — splits, exports, no ads
+  desc: Player splits (last 5/10/20, home/away, vs every opponent), CSV exports, clean graphics and no ads.
+  ssr: <h1>TotalNBA Pro — splits, exports, no ads</h1><p>Player splits (last 5/10/20, home/away, vs every opponent), CSV exports, clean graphics and no ads.</p><p><a href="/">TotalNBA</a> · every NBA player, every night, since 1993</p></main></div>
+</body>
+</html>
+
+
+PAGE /sitemap.xml 200 application/xml; charset=utf-8
+  title: undefined
+  desc: undefined
+  ssr: <?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://total-nba-ja9d.vercel.app/</loc></url>
+<url><loc>https://total-nba-ja9d.vercel.app
+
+PAGE /ads.txt 200 text/plain; charset=utf-8
+  title: undefined
+  desc: undefined
+  ssr: # ads.txt: set ADSENSE_PUB in Vercel
+
+
+PAGE /robots.txt 200 text/plain; charset=utf-8
+  title: undefined
+  desc: undefined
+  ssr: User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://total-nba-ja9d.vercel.app/sitemap.xml
+
+
+360x640: {"DAY":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Anunoby 3\""],"SEASON":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Wallace 150\""],"WEEK":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN B\"STL\"","OFFSCREEN SMALL\"Champagnie 6\""],"seasonRows":["50 rows rendered of 582 players · regular-season totalsCSV · PRO"],"graphic":[],"card":["OVERLAP .card-rank\"#4\" x IMG\"\" (59x56)","OVERLAP .tag\"rare\" x IMG\"\" (52x21)"],"player":["OFFSCREEN BUTTON\"3PM\""],"searchHits":["1"]}
+390x844: {"DAY":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)"],"SEASON":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)"],"WEEK":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Champagnie 6\""],"seasonRows":["50 rows rendered of 582 players · regular-season totalsCSV · PRO"],"graphic":[],"card":["OVERLAP .card-rank\"#4\" x IMG\"\" (59x56)","OVERLAP .tag\"rare\" x IMG\"\" (52x21)"],"player":["OFFSCREEN BUTTON\"2PM\""],"searchHits":["1"]}
+768x1024: {"DAY":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Brunson 13\""],"SEASON":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)"],"WEEK":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN B\"FTM\"","OFFSCREEN SMALL\"Brunson 29\""],"seasonRows":["50 rows rendered of 582 players · regular-season totalsCSV · PRO"],"graphic":[],"card":["OVERLAP .card-rank\"#4\" x IMG\"\" (59x56)","OVERLAP .tag\"rare\" x IMG\"\" (52x21)"],"player":[],"searchHits":["1"]}
+1440x900: {"DAY":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Brunson 57.8\""],"SEASON":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Carter 267\""],"WEEK":["OVERLAP IMG\"\" x .prk\"2\" (21x26)","OVERLAP IMG\"\" x .prk\"1\" (25x30)","OVERLAP IMG\"\" x .prk\"3\" (21x26)","OFFSCREEN SMALL\"Wembanyama 162.2\""],"seasonRows":["50 rows rendered of 582 players · regular-season totalsCSV · PRO"],"graphic":[],"card":["OVERLAP .card-rank\"#4\" x IMG\"\" (59x56)","OVERLAP .tag\"rare\" x IMG\"\" (52x21)"],"player":["OFFSCREEN BUTTON\"FTM\""],"searchHits":["1"]}
