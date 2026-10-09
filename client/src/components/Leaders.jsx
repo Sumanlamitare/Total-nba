@@ -43,9 +43,8 @@ export function Podium({ cards, stat, onOpen }) {
         return (
           <button key={c.key || c.n} className={'pod p' + rank} style={{ '--tc': teamColor(c.team), '--d': [0.15, 0, 0.3][j] + 's' }} onClick={() => onOpen(c, rank - 1)}>
             {rank === 1 && <span className="crown">{I.crown}</span>}
-            <Avatar id={c.espnId} name={c.n} team={c.team} size="xl" w={350} />
+            <span className="pav"><Avatar id={c.espnId} name={c.n} team={c.team} size="xl" w={350} /><span className="prk">{rank}</span></span>
             <span className="pillar" style={{ '--h': 0.55 + 0.45 * Math.max(0, c.v) / top }}>
-              <span className="pr">{rank}</span>
               <b className="pv"><Num v={c.v} decimals={decimalsFor(f) ? dec(c.v) : 0} delay={300 + j * 120} /></b>
               <small className="pu">{SHORT[f]}</small>
               <span className="pn">{short(c.n)}</span>
