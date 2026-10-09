@@ -35,7 +35,8 @@ export async function fetchView(s, meta) {
     if (!label) return { kind: 'total', raw: [], period: '', extra: {}, prefix: [] };
     const T = await call(`season?season=${label}&stat=pts`);
     const loaded = !T.complete && T.through ? dstr(parse(T.through)) : null;
-    return { kind: 'total', raw: T.rows, period: seasonName(label), extra: { loaded, scope: 'season', label }, prefix: ['S', label] };
+    const partial = T.complete && T.games && T.boxed < T.games ? { boxed: T.boxed, games: T.games } : null;
+    return { kind: 'total', raw: T.rows, period: seasonName(label), extra: { loaded, scope: 'season', label }, partial, prefix: ['S', label] };
   }
   if (s.mode === 'week') {
     const W = await call(`week?date=${key(s.date)}&stat=pts`);

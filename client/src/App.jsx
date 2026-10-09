@@ -280,6 +280,7 @@ export default function App() {
                       {cards.length} player{cards.length === 1 ? '' : 's'}
                       {st.mode === 'season' ? ' · regular-season totals' : st.mode === 'week' ? ' · weekly totals' : ''}
                       {v?.extra?.loaded ? ` · through ${v.extra.loaded}` : ''}
+                      {st.mode === 'season' && v?.partial && <span className="partial" title="ESPN has no player box scores for the other games, so these totals are lower than the official ones">based on {v.partial.boxed.toLocaleString()} of {v.partial.games.toLocaleString()} games — ESPN is missing the rest</span>}
                       {game && <button className="clear" onClick={() => setGame(null)}>ALL GAMES ✕</button>}
                       {cards.length > 0 && <button className="clear csvb" onClick={pro.pro ? exportCSV : toPro}>{pro.pro ? 'CSV ↓' : 'CSV · PRO'}</button>}
                     </p>

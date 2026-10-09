@@ -536,3 +536,4 @@ main.view{max-width:760px;margin:0 auto;padding:6px 16px 24px;animation:.55s var
 .site-foot a{color:var(--dim);text-decoration:none;font-weight:600}
 .site-foot a:hover{color:var(--ink)}
 .psheet>*{min-width:0}
+.partial{flex-basis:100%;color:var(--acc2);font-size:12px}

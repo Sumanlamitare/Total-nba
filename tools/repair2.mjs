@@ -21,14 +21,29 @@ try {
 
   // 0b. only the Cup championship game stays out of the regular season
   const cup = await G.find({ type: 'Cup Final' }).toArray();
-  for (const x of [...new Set(cup.map(g => g.date))]) {
+  for (const x of [...new Set([...cup.map(g => g.date), '2023-12-09'])]) {
     const sb = await fetch(`${BASE}/scoreboard?dates=${x.replace(/-/g, '')}`).then(r => r.json()).catch(() => ({}));
     for (const e of sb.events || []) {
       const notes = (e.competitions?.[0]?.notes || []).map(n => n.headline || '').join(' ');
-      if (!cup.some(g => g._id === String(e.id))) continue;
+      const was = cup.some(g => g._id === String(e.id));
+      if (!was && !isCupFinal(notes)) continue;
       const type = isCupFinal(notes) ? 'Cup Final' : 'Regular Season';
       await G.updateOne({ _id: String(e.id) }, { $set: { type } }); await L.updateMany({ gameId: String(e.id) }, { $set: { type } });
       console.log(`  ${x} ${e.shortName} "${notes}" -> ${type}`);
+    }
+  }
+
+  // 0c. the same player twice on one date: drop the line whose game doesn't involve his team
+  for (const y of await L.distinct('season')) {
+    const dups = await L.aggregate([{ $match: { season: y } }, { $group: { _id: { k: '$key', d: '$date' }, n: { $sum: 1 }, ids: { $push: { _id: '$_id', g: '$gameId', team: '$team' } } } }, { $match: { n: { $gt: 1 } } }]).toArray();
+    for (const x of dups) {
+      for (const l of x.ids) {
+        const g = await G.findOne({ _id: l.g }, { projection: { home: 1, away: 1 } });
+        console.log(`  dup ${x._id.k} ${x._id.d}: game ${l.g} ${g?.away}@${g?.home} listed team ${l.team}`);
+      }
+      const sizes = await Promise.all(x.ids.map(async l => [l, await L.countDocuments({ gameId: l.g })]));
+      sizes.sort((a, b) => b[1] - a[1]);
+      for (const [l] of sizes.slice(1)) await L.deleteOne({ _id: l._id });
     }
   }
 
