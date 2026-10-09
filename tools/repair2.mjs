@@ -1,0 +1,35 @@
+// Repair step 2: fill games stored without player lines (ESPN's main API had none) from ESPN's web endpoint,
+// and replace box scores whose player points don't add up to the final score when the web copy does.
+import { db, close } from '../lib/db.js';
+import { fetchWebBox, pool } from '../lib/espn.js';
+import { saveGame, rebuildPlayers, rebuildRecords } from '../lib/store.js';
+const d = await db(), G = d.collection('games'), L = d.collection('lines');
+const asGame = g => ({ id: g._id, home: g.home, away: g.away, hs: g.hs, as: g.as, type: g.type, seasonYear: g.season + 1 });
+const adds = (g, rows) => rows.filter(r => r.team === g.home).reduce((a, r) => a + r.pts, 0) === g.hs && rows.filter(r => r.team === g.away).reduce((a, r) => a + r.pts, 0) === g.as;
+try {
+  // 1. games with no player lines
+  const empty = await G.find({ boxed: false }).toArray();
+  let filled = 0, still = 0;
+  await pool(empty, 4, async g => {
+    try { const rows = await fetchWebBox(g._id); if (rows.length) { await saveGame(g.date, asGame(g), rows); filled++; } else still++; }
+    catch (e) { still++; }
+  });
+  console.log(`empty box scores: ${empty.length}; filled ${filled}; still empty ${still}`);
+
+  // 2. box scores whose player points don't match the final score
+  const bad = new Set();
+  for (const y of await G.distinct('season')) {
+    const r = await L.aggregate([{ $match: { season: y } }, { $group: { _id: { g: '$gameId', t: '$team' }, pts: { $sum: '$pts' } } },
+      { $lookup: { from: 'games', localField: '_id.g', foreignField: '_id', as: 'g' } }, { $unwind: '$g' },
+      { $match: { $expr: { $ne: ['$pts', { $cond: [{ $eq: ['$_id.t', '$g.home'] }, '$g.hs', '$g.as'] }] } } }]).toArray();
+    for (const x of r) bad.add(x._id.g);
+  }
+  let fixed = 0;
+  await pool([...bad], 4, async id => {
+    const g = await G.findOne({ _id: id });
+    const rows = await fetchWebBox(id).catch(() => []);
+    if (g && rows.length && adds(g, rows)) { await L.deleteMany({ gameId: id }); await saveGame(g.date, asGame(g), rows); fixed++; }
+  });
+  console.log(`box scores not matching the final score: ${bad.size}; replaced with a matching copy: ${fixed}`);
+  console.log('players', await rebuildPlayers(), '| notable', await rebuildRecords(true));
+} finally { await close(); }
