@@ -1,4 +1,4 @@
-name: Audit data
+name: Repair data
 
 on:
   workflow_dispatch:
@@ -9,14 +9,14 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci --omit=dev
-      - run: node tools/audit.mjs
+      - run: node tools/repair.mjs && node tools/audit.mjs
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - name: Push results to site-check branch

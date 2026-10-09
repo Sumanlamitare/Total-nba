@@ -24,10 +24,13 @@ try {
   ], { allowDiskUse: true }).toArray().catch(e => [{ err: e.message }]);
   say('\n[2] team-games where player points != final score:', mism[0].err || mism[0].n[0]?.n || 0); say('  by season', mism[0].byYear || []); for (const e of mism[0].ex || []) say('  ', e);
 
-  // 3. same player twice on one date
-  const dup = await L.aggregate([{ $group: { _id: { k: '$key', d: '$date' }, n: { $sum: 1 }, games: { $addToSet: '$gameId' }, name: { $first: '$name' } } }, { $match: { n: { $gt: 1 } } },
-    { $facet: { n: [{ $count: 'n' }], ex: [{ $limit: 8 }] } }], { allowDiskUse: true }).toArray().catch(e => [{ err: e.message }]);
-  say('\n[3] player twice on one date:', dup[0].err || dup[0].n[0]?.n || 0); for (const e of dup[0].ex || []) say('  ', e);
+  // 3. same player twice on one date (season by season: the free tier can't spill a big $group to disk)
+  let dups = 0; const dex = [];
+  for (const y of await L.distinct('season')) {
+    const r = await L.aggregate([{ $match: { season: y } }, { $group: { _id: { k: '$key', d: '$date' }, n: { $sum: 1 }, name: { $first: '$name' } } }, { $match: { n: { $gt: 1 } } }]).toArray();
+    dups += r.length; dex.push(...r.slice(0, 2));
+  }
+  say('\n[3] player twice on one date:', dups); for (const e of dex.slice(0, 8)) say('  ', e);
 
   // 4. season coverage
   const cov = await G.aggregate([{ $group: { _id: { s: '$season', t: '$type' }, games: { $sum: 1 }, boxed: { $sum: { $cond: ['$boxed', 1, 0] } } } }, { $sort: { '_id.s': 1, '_id.t': 1 } }]).toArray();
