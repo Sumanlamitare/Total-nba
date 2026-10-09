@@ -22,7 +22,7 @@ export default function SearchSheet({ onPick }) {
   }, [q]);
   const yr = s => (s ? s.slice(0, 4) : '');
   return (
-    <div className="sheet ssheet" onClick={e => e.stopPropagation()} role="dialog" aria-label="Search players">
+    <div className="ssheet" onClick={e => e.stopPropagation()} role="dialog" aria-label="Search players">
       <label className="sbox"><Search /><input ref={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Search any player since 1993…" aria-label="Player name"
         onKeyDown={e => { if (e.key !== 'Escape') e.stopPropagation(); if (e.key === 'Enter' && res?.[0]) onPick(res[0].key); }} /></label>
       <div className="slist sr">

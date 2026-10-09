@@ -11,8 +11,8 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
   };
 }
-const C = { bg: '#050507', ink: '#f2ede4', dim: 'rgba(242,237,228,.62)', faint: 'rgba(242,237,228,.18)', gold: '#e3c48c', gold2: '#b8975c' };
-const SERIF = 'Georgia, "Times New Roman", serif', SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const C = { bg: '#07080B', ink: '#F4F5F7', dim: 'rgba(244,245,247,.62)', faint: 'rgba(244,245,247,.18)', gold: '#FF6B1A', gold2: '#FFB020' };
+const SERIF = 'Anton, Impact, "Arial Narrow", sans-serif', SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
 const loadImg = src => new Promise(res => {
   if (!src) return res(null);
@@ -60,7 +60,7 @@ function avatar(ctx, img, name, cx, cy, r, highlight) {
   }
   ctx.restore();
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.lineWidth = highlight ? 3 : 2; ctx.strokeStyle = highlight ? C.gold : 'rgba(227,196,140,.35)'; ctx.stroke();
+  ctx.lineWidth = highlight ? 3 : 2; ctx.strokeStyle = highlight ? C.gold : 'rgba(255,107,26,.35)'; ctx.stroke();
 }
 
 /**
@@ -73,11 +73,12 @@ export async function drawGraphic(g) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const imgs = await Promise.all(g.rows.map(r => loadImg(r.img)));
+  await document.fonts?.load('40px Anton').catch(() => {}); // the app's display face, if it has loaded
 
   // background: court darkness, gold light from the top, subtle diagonal texture, vignette
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
   let grad = ctx.createRadialGradient(W * .5, -H * .1, 0, W * .5, -H * .1, H * .95);
-  grad.addColorStop(0, 'rgba(227,196,140,.20)'); grad.addColorStop(1, 'rgba(227,196,140,0)');
+  grad.addColorStop(0, 'rgba(255,107,26,.20)'); grad.addColorStop(1, 'rgba(255,107,26,0)');
   ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
   ctx.save(); ctx.strokeStyle = 'rgba(242,237,228,.025)'; ctx.lineWidth = 1;
   for (let x = -H; x < W; x += 18) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
@@ -86,7 +87,7 @@ export async function drawGraphic(g) {
   grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,.55)');
   ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
   // card border
-  ctx.strokeStyle = 'rgba(227,196,140,.22)'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255,107,26,.22)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect(28, 28, W - 56, H - 56, 40); ctx.stroke();
 
   ctx.textBaseline = 'alphabetic';
@@ -111,7 +112,7 @@ export async function drawGraphic(g) {
   spaced(ctx, sub, PAD, 366, 3);
   // divider
   grad = ctx.createLinearGradient(PAD, 0, W - PAD, 0);
-  grad.addColorStop(0, C.gold); grad.addColorStop(1, 'rgba(227,196,140,0)');
+  grad.addColorStop(0, C.gold); grad.addColorStop(1, 'rgba(255,107,26,0)');
   ctx.fillStyle = grad; ctx.fillRect(PAD, 398, W - PAD * 2, 2);
 
   // rows
@@ -121,7 +122,7 @@ export async function drawGraphic(g) {
     const y = top + i * rowH, cy = y + rowH / 2;
     if (i === 0) {
       const hl = ctx.createLinearGradient(PAD - 16, 0, W - PAD + 16, 0);
-      hl.addColorStop(0, 'rgba(227,196,140,.16)'); hl.addColorStop(1, 'rgba(227,196,140,.02)');
+      hl.addColorStop(0, 'rgba(255,107,26,.16)'); hl.addColorStop(1, 'rgba(255,107,26,.02)');
       ctx.fillStyle = hl; ctx.beginPath(); ctx.roundRect(PAD - 16, y + 4, W - PAD * 2 + 32, rowH - 8, 18); ctx.fill();
     } else if (i % 2 === 0) {
       ctx.fillStyle = 'rgba(255,255,255,.025)'; ctx.beginPath(); ctx.roundRect(PAD - 16, y + 4, W - PAD * 2 + 32, rowH - 8, 18); ctx.fill();

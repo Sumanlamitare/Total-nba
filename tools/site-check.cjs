@@ -29,6 +29,8 @@ const CHECK=(scope)=>{
   for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j];
     if(a.e.contains(b.e)||b.e.contains(a.e))continue;
     if(a.e.closest('.frame')&&b.e.closest('.frame'))continue;
+    // the pinned header and the tab bar sit over scrolled content on purpose
+    if(!!a.e.closest('.tabbar,.sticky')!==!!b.e.closest('.tabbar,.sticky'))continue;
     const ix=Math.min(a.r.r,b.r.r)-Math.max(a.r.l,b.r.l),iy=Math.min(a.r.b,b.r.b)-Math.max(a.r.t,b.r.t);
     if(ix>1&&iy>1)out.push('OVERLAP '+name(a.e)+' x '+name(b.e)+` (${ix|0}x${iy|0})`)}
   for(const e of L){if(e.matches('img,svg,input,.dot'))continue;const s=getComputedStyle(e);
@@ -61,23 +63,28 @@ const CHECK=(scope)=>{
     try {
       await p.goto(BASE + '/'); await p.waitForTimeout(7000);
       const res = {};
+      const tab = async m => { const t = p.locator(`.tabbar button:has-text("${m}")`); if (await t.isVisible()) await t.click(); else await p.click(`.seg button:has-text("${m}")`); };
       for (const mode of ['DAY', 'SEASON', 'WEEK']) {
-        await p.click(`.tg button:text-is("${mode}")`); await p.waitForTimeout(4000);
+        await tab(mode); await p.waitForTimeout(4000);
         res[mode] = await p.evaluate(CHECK, '#app');
         await p.screenshot({ path: `${OUT}/${w}-${mode}.png` });
       }
-      await p.click('.tg button:text-is("SEASON")'); await p.waitForTimeout(3000);
-      await p.click('.cg'); await p.waitForSelector('.gview img', { timeout: 60000 }); await p.waitForTimeout(1200);
-      res.graphic = await p.evaluate(CHECK, '#ov');
+      await tab('SEASON'); await p.waitForTimeout(3000);
+      res.seasonRows = [String(await p.locator('.board .row').count()) + ' rows rendered of ' + (await p.textContent('.headline p'))];
+      await p.click('.acts .icon.hot'); await p.waitForSelector('.gview img', { timeout: 60000 }); await p.waitForTimeout(1200);
+      res.graphic = await p.evaluate(CHECK, '.scrim');
       await p.screenshot({ path: `${OUT}/${w}-graphic.png` });
       if (w === 1440) { const [dl] = await Promise.all([p.waitForEvent('download'), p.click('.gactions .btn >> nth=0')]); await dl.saveAs(`${OUT}/graphic.png`); }
       // player page from the first card, then player search
       await p.keyboard.press('Escape'); await p.waitForTimeout(800);
-      await p.click('.slide .nm >> nth=0'); await p.waitForSelector('.psheet .pp-hd', { timeout: 60000 }); await p.waitForTimeout(1500);
-      res.player = await p.evaluate(CHECK, '#ov');
+      await p.click('.board .row >> nth=0'); await p.waitForSelector('.card-body', { timeout: 20000 }); await p.waitForTimeout(1500);
+      res.card = await p.evaluate(CHECK, '.scrim');
+      await p.screenshot({ path: `${OUT}/${w}-card.png` });
+      await p.click('.card-acts .btn.ghost >> nth=0'); await p.waitForSelector('.psheet .pp-hd', { timeout: 60000 }); await p.waitForTimeout(1500);
+      res.player = await p.evaluate(CHECK, '.scrim');
       await p.screenshot({ path: `${OUT}/${w}-player.png` });
       await p.keyboard.press('Escape'); await p.waitForTimeout(800);
-      await p.click('.srch'); await p.waitForTimeout(500); await p.keyboard.type('lebron'); await p.waitForTimeout(4000);
+      await p.click('.acts .icon >> nth=0'); await p.waitForTimeout(700); await p.keyboard.type('lebron'); await p.waitForTimeout(4000);
       res.searchHits = [String(await p.locator('.sr-row').count())];
       await p.screenshot({ path: `${OUT}/${w}-search.png` });
       await p.keyboard.press('Escape'); await p.waitForTimeout(600);

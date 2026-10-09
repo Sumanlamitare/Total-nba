@@ -64,3 +64,7 @@ export function totalBadges(r, i, statKey) {
   if (r.gp && r.min / r.gp >= 37) out.push('WORKHORSE');
   return out;
 }
+
+// Small headshot from ESPN's image resizer (the full PNG is 1040px wide; dozens of those exhaust a phone)
+export const face = (id, w = 160) => (/^\d+$/.test(id || '')
+  ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=${w}&h=${Math.round(w * 0.727)}&scale=crop` : '');

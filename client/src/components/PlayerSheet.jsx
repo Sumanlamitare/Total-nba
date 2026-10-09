@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
 import { getPlayer } from '../api.js';
-import { STATS, SHORT, LONG, LABEL, fmtStat, photo, initials, shortDate, seasonName } from '../util.js';
+import { STATS, SHORT, LONG, LABEL, fmtStat, shortDate, seasonName } from '../util.js';
+import { Avatar } from './ui.jsx';
 
 const FIELDS = Object.values(STATS);
 const md = s => { const [, m, d] = s.split('-'); return `${+m}/${+d}`; };
 
-function Photo({ id, name }) {
-  const [ok, setOk] = useState(true);
-  return <div className="pp-photo">{id && ok ? <img src={photo(id)} alt={name} onError={() => setOk(false)} /> : <span>{initials(name)}</span>}</div>;
-}
 
 // A player's page: career total and high, season-by-season bars, last 10 games, best games ever.
 // Every season, game and high jumps to that view in the app.
@@ -18,8 +15,8 @@ export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason }) {
   const [f, setF] = useState(STATS[stat] || 'pts');
   useEffect(() => { getPlayer(pkey).then(setP).catch(e => setErr(e.message)); }, [pkey]);
 
-  if (err) return <div className="sheet psheet" onClick={e => e.stopPropagation()}><p className="pp-err">Couldn’t load this player ({err})</p></div>;
-  if (!p) return <div className="sheet psheet" onClick={e => e.stopPropagation()}><div className="gl"><div className="ball" />LOADING PLAYER</div></div>;
+  if (err) return <div className="psheet" onClick={e => e.stopPropagation()}><p className="pp-err">Couldn’t load this player ({err})</p></div>;
+  if (!p) return <div className="psheet" onClick={e => e.stopPropagation()}><div className="gl"><div className="ball" />LOADING PLAYER</div></div>;
 
   const seasons = p.seasons.filter(s => s.gp > 0);
   const max = Math.max(1, ...seasons.map(s => s[f] || 0));
@@ -29,9 +26,9 @@ export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason }) {
   const span = `${seasonName(seasons[0]?.season || '')}${seasons.length > 1 ? ' → ' + seasonName(seasons.at(-1).season) : ''}`;
 
   return (
-    <div className="sheet psheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={`${p.name} player page`}>
+    <div className="psheet" onClick={e => e.stopPropagation()} role="dialog" aria-label={`${p.name} player page`}>
       <div className="pp-hd">
-        <Photo id={p.espnId} name={p.name} />
+        <Avatar id={p.espnId} name={p.name} team={p.team} size="l" w={300} />
         <div className="pp-id">
           <small>PLAYER FILE</small>
           <h2>{p.name}</h2>

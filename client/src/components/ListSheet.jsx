@@ -8,7 +8,7 @@ export default function ListSheet({ title, items, current, onPick, className = '
     if (el) el.scrollIntoView({ block: 'center' });
   }, [current]);
   return (
-    <div className={'sheet lsheet ' + className} onClick={e => e.stopPropagation()}>
+    <div className={'lsheet ' + className} onClick={e => e.stopPropagation()}>
       {title && <h3>{title}</h3>}
       <div className="slist" ref={list} role="listbox">
         {items.map((it, i) => (

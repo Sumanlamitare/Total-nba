@@ -53,7 +53,7 @@ export default function Calendar({ date, has, onPick }) {
   }
 
   return (
-    <div className="sheet cal" onClick={e => e.stopPropagation()}>
+    <div className="cal" onClick={e => e.stopPropagation()}>
       <div className="hd">
         <button className="ib" aria-label="Previous month" onClick={nav(-1)} disabled={mode !== 'days'}>‹</button>
         <div className="my">

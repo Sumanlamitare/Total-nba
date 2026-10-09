@@ -7,9 +7,6 @@ const OUT = 'webkit-check'; fs.mkdirSync(OUT, { recursive: true });
 const VARIANTS = {
   baseline: '',
   noEffects: '*,*:before,*:after{animation:none!important;transition:none!important;mix-blend-mode:normal!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}',
-  noBlend: '.holo{display:none!important}',
-  noBackdrop: '*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}',
-  noAnim: '*,*:before,*:after{animation:none!important}',
 };
 const log = [];
 const say = s => { console.log(s); log.push(s); };
@@ -27,10 +24,10 @@ const say = s => { console.log(s); log.push(s); };
         await p.goto(BASE + '/', { timeout: 60000 }); await p.waitForTimeout(7000);
         if (css) await p.addStyleTag({ content: css });
         const t0 = Date.now();
-        await p.click(`.tg button:text-is("${tab}")`, { timeout: 15000 });
+        await p.click(`.tabbar button:has-text("${tab}")`, { timeout: 15000 });
         for (let i = 0; i < 12 && !crashed; i++) await p.waitForTimeout(1000);
-        const st = crashed ? null : await p.evaluate(() => ({ cards: document.querySelectorAll('#panel>*').length, full: document.querySelectorAll('.slide:not(.ghost)').length,
-          first: document.querySelector('.slide:not(.ghost) .nm')?.textContent, label: document.querySelector('.per .lbl')?.textContent })).catch(e => 'eval failed ' + e.message);
+        const st = crashed ? null : await p.evaluate(() => ({ rows: document.querySelectorAll('.board .row').length, podium: [...document.querySelectorAll('.pod .pn')].map(e => e.textContent),
+          label: document.querySelector('.plabel span')?.textContent, imgs: document.querySelectorAll('img').length })).catch(e => 'eval failed ' + e.message);
         if (!crashed) await p.screenshot({ path: `${OUT}/${name}-${tab}.png` }).catch(() => {});
         say(`${name} ${tab}: ${crashed ? 'CRASHED after ' + (Date.now() - t0) + 'ms' : 'ok ' + JSON.stringify(st)} ${ev.join(' | ')}`);
       } catch (e) { say(`${name} ${tab}: FAILED ${e.message.split('\n')[0]} ${crashed ? 'CRASHED' : ''} ${ev.join(' | ')}`); }

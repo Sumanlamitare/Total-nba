@@ -33,7 +33,7 @@ export default function GraphicModal({ ctx, meta, onClose }) {
   const context = state.data ? state.data.title : '';
 
   return (
-    <div className="sheet gsheet" onClick={e => e.stopPropagation()} role="dialog" aria-label="Top 10 graphic">
+    <div className="gsheet" onClick={e => e.stopPropagation()} role="dialog" aria-label="Top 10 graphic">
       <div className="ghd">
         <div>
           <h3>TOP 10 GRAPHIC</h3>
