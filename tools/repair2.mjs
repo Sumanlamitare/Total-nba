@@ -7,6 +7,16 @@ const d = await db(), G = d.collection('games'), L = d.collection('lines');
 const asGame = g => ({ id: g._id, home: g.home, away: g.away, hs: g.hs, as: g.as, type: g.type, seasonYear: g.season + 1 });
 const adds = (g, rows) => rows.filter(r => r.team === g.home).reduce((a, r) => a + r.pts, 0) === g.hs && rows.filter(r => r.team === g.away).reduce((a, r) => a + r.pts, 0) === g.as;
 try {
+  // 0. the same game stored twice under two ids: keep the copy with more player lines
+  const twins = await G.aggregate([{ $group: { _id: { d: '$date', h: '$home', a: '$away' }, ids: { $push: '$_id' }, n: { $sum: 1 } } }, { $match: { n: { $gt: 1 } } }]).toArray();
+  let dropped = 0;
+  for (const t of twins) {
+    const counts = await Promise.all(t.ids.map(async id => [id, await L.countDocuments({ gameId: id })]));
+    counts.sort((a, b) => b[1] - a[1]);
+    for (const [id] of counts.slice(1)) { await L.deleteMany({ gameId: id }); await G.deleteOne({ _id: id }); dropped++; }
+  }
+  console.log(`duplicate games: ${twins.length} pairs; removed ${dropped} copies`);
+
   // 1. games with no player lines
   const empty = await G.find({ boxed: false }).toArray();
   let filled = 0, still = 0;
