@@ -55,6 +55,13 @@ const CHECK=(scope)=>{
       report.push(`API ${p} ${r.status}${extra}\n${t.slice(0, 600)}\n`); }
     catch (e) { report.push(`API ${p} ERROR ${e.message}`); }
   }
+  // server-rendered pages: what a search engine sees
+  for (const p of ['/games/2026-03-01', '/season/2025-26/rebounds', '/records/points', '/player/lebron-james-1966', '/pro', '/sitemap.xml', '/ads.txt', '/robots.txt']) {
+    try { const r = await fetch(BASE + p); const t = await r.text();
+      const title = (t.match(/<title>([^<]*)<\/title>/) || [])[1], desc = (t.match(/name="description" content="([^"]*)"/) || [])[1];
+      report.push(`PAGE ${p} ${r.status} ${r.headers.get('content-type')}\n  title: ${title}\n  desc: ${desc}\n  ssr: ${(t.match(/<main class="ssr">([\s\S]{0,300})/) || [])[1] || t.slice(0, 200)}\n`); }
+    catch (e) { report.push(`PAGE ${p} ERROR ${e.message}`); }
+  }
   const b = await chromium.launch();
   for (const [w, h] of VIEWS) {
     const ctx = await b.newContext({ viewport: { width: w, height: h }, acceptDownloads: true });
