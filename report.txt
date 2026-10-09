@@ -1,0 +1,134 @@
+lines 835418 games 42004
+
+[1] lines where PTS != 2*2PM + 3*3PM + FTM: 0
+  by season []
+
+[2] team-games where player points != final score: 114
+  by season [{"_id":1994,"n":34},{"_id":1996,"n":2},{"_id":2001,"n":8},{"_id":2002,"n":7},{"_id":2005,"n":4},{"_id":2006,"n":4},{"_id":2007,"n":5},{"_id":2008,"n":3},{"_id":2009,"n":3},{"_id":2010,"n":5},{"_id":2011,"n":3},{"_id":2012,"n":1},{"_id":2014,"n":1},{"_id":2015,"n":1},{"_id":2018,"n":23},{"_id":2019,"n":2},{"_id":2020,"n":1},{"_id":2025,"n":7}]
+   {"_id":{"g":"401070804","t":"Suns"},"pts":117,"n":12,"date":"2018-11-02","season":2018,"team":"Suns","score":98}
+   {"_id":{"g":"230312010","t":"Rockets"},"pts":118,"n":9,"date":"2003-03-12","season":2002,"team":"Rockets","score":119}
+   {"_id":{"g":"290116009","t":"Hawks"},"pts":112,"n":10,"date":"2009-01-16","season":2008,"team":"Hawks","score":114}
+   {"_id":{"g":"221206021","t":"Pacers"},"pts":96,"n":11,"date":"2002-12-06","season":2002,"team":"Pacers","score":92}
+   {"_id":{"g":"401070761","t":"Suns"},"pts":107,"n":14,"date":"2018-10-27","season":2018,"team":"Suns","score":96}
+   {"_id":{"g":"280126029","t":"Clippers"},"pts":118,"n":9,"date":"2008-01-26","season":2007,"team":"Clippers","score":120}
+   {"_id":{"g":"150222025","t":"Timberwolves"},"pts":95,"n":9,"date":"1995-02-22","season":1994,"team":"Timberwolves","score":104}
+   {"_id":{"g":"401070818","t":"Suns"},"pts":115,"n":11,"date":"2018-11-04","season":2018,"team":"Suns","score":102}
+   {"_id":{"g":"221116015","t":"Bucks"},"pts":104,"n":12,"date":"2002-11-16","season":2002,"team":"Bucks","score":102}
+   {"_id":{"g":"271229015","t":"Nets"},"pts":94,"n":9,"date":"2007-12-29","season":2007,"team":"Nets","score":97}
+
+[3] player twice on one date: 8
+   {"_id":{"k":"510","d":"2007-12-19"},"n":2,"name":"Shawn Marion"}
+   {"_id":{"k":"4401416","d":"2020-03-01"},"n":2,"name":"Juan Toscano-Anderson"}
+   {"_id":{"k":"3059319","d":"2020-03-01"},"n":2,"name":"Andrew Wiggins"}
+
+[4] games per season/type (games, boxed):
+   1990 Playoffs 68 0
+   1991 Playoffs 73 0
+   1991 Regular Season 82 0
+   1992 Playoffs 76 0
+   1992 Regular Season 82 0
+   1993 Playoffs 77 77
+   1993 Regular Season 1107 1102
+   1994 Playoffs 74 72
+   1994 Regular Season 1107 1107
+   1995 Playoffs 68 67
+   1995 Regular Season 1189 1184
+   1996 Playoffs 74 67
+   1996 Regular Season 1189 1183
+   1997 Playoffs 71 70
+   1997 Regular Season 1190 1185
+   1998 Playoffs 67 66
+   1998 Regular Season 725 725
+   1999 Playoffs 79 75
+   1999 Regular Season 1166 1162
+   2000 Playoffs 61 61
+   2000 Regular Season 1189 1189
+   2001 Playoffs 71 71
+   2001 Regular Season 1189 1189
+   2002 Playoffs 88 88
+   2002 Regular Season 1189 1189
+   2003 Playoffs 82 82
+   2003 Regular Season 1189 1189
+   2004 Playoffs 84 84
+   2004 Regular Season 1230 1230
+   2005 Playoffs 89 89
+   2005 Regular Season 1230 1230
+   2006 Playoffs 79 79
+   2006 Regular Season 1230 1230
+   2007 Playoffs 86 86
+   2007 Regular Season 1230 1230
+   2008 Playoffs 85 85
+   2008 Regular Season 1230 1230
+   2009 Playoffs 82 82
+   2009 Regular Season 1230 1230
+   2010 Playoffs 81 81
+   2010 Regular Season 1230 1230
+   2011 Playoffs 84 84
+   2011 Regular Season 990 990
+   2012 Playoffs 85 73
+   2012 Regular Season 1229 1063
+   2013 Playoffs 89 84
+   2013 Regular Season 1230 1067
+   2014 Playoffs 81 65
+   2014 Regular Season 1230 1068
+   2015 Playoffs 86 86
+   2015 Regular Season 1230 1069
+   2016 Playoffs 79 74
+   2016 Regular Season 1230 1067
+   2017 Playoffs 82 73
+   2017 Regular Season 1230 1067
+   2018 Playoffs 82 82
+   2018 Regular Season 1230 1230
+   2019 PlayIn 1 1
+   2019 Playoffs 83 83
+   2019 Regular Season 1059 1059
+   2020 PlayIn 6 0
+   2020 Playoffs 85 85
+   2020 Regular Season 1080 1080
+   2021 PlayIn 6 6
+   2021 Playoffs 87 87
+   2021 Regular Season 1230 1230
+   2022 PlayIn 6 6
+   2022 Playoffs 84 84
+   2022 Regular Season 1230 1230
+   2023 Cup Final 1 1
+   2023 PlayIn 6 6
+   2023 Playoffs 82 82
+   2023 Regular Season 1230 1230
+   2024 Cup Final 1 1
+   2024 PlayIn 6 6
+   2024 Playoffs 84 84
+   2024 Regular Season 1230 1230
+   2025 Cup Final 1 1
+   2025 PlayIn 6 6
+   2025 Playoffs 85 85
+   2025 Regular Season 1230 1230
+  seasons docs 1990:complete 1991:complete 1992:complete 1993:complete 1994:complete 1995:complete 1996:complete 1997:complete 1998:complete 1999:complete 2000:complete 2001:complete 2002:complete 2003:complete 2004:complete 2005:complete 2006:complete 2007:complete 2008:complete 2009:complete 2010:complete 2011:complete 2012:complete 2013:complete 2014:complete 2015:complete 2016:complete 2017:complete 2018:complete 2019:complete 2020:complete 2021:complete 2022:complete 2023:complete 2024:complete 2025:complete
+
+[5] Stephen Curry 2015-16 pts: ours {"_id":null,"v":2203,"gp":74} real 2375 in 79
+
+[5] Kobe Bryant 2005-06 pts: ours {"_id":null,"v":2832,"gp":80} real 2832 in 80
+
+[5] Luka Doncic 2023-24 pts: ours {"_id":null,"v":2370,"gp":70} real 2370 in 70
+
+[5] Jayson Tatum 2022-23 pts: ours {"_id":null,"v":2225,"gp":74} real 2225 in 74
+
+[5] Domantas Sabonis 2023-24 reb: ours {"_id":null,"v":1120,"gp":82} real 1120 in 82
+
+[5] James Harden 2018-19 pts: ours {"_id":null,"v":2818,"gp":78} real 2818 in 78
+
+[5] Michael Jordan 1995-96 pts: ours {"_id":null,"v":2467,"gp":81} real 2491 in 82
+
+[5] LeBron by game type [{"_id":"Regular Season","pts":42463,"gp":1587},{"_id":"PlayIn","pts":53,"gp":2},{"_id":"Cup Final","pts":24,"gp":1},{"_id":"Playoffs","pts":8246,"gp":291}]
+
+[6] highest point games in DB
+   {"name":"Bam Adebayo","team":"Heat","opp":"Wizards","pts":83,"min":42,"gameId":"401810793","date":"2026-03-10"}
+   {"name":"Kobe Bryant","team":"Lakers","opp":"Raptors","pts":81,"min":42,"gameId":"260122013","date":"2006-01-22"}
+   {"name":"Luka Doncic","team":"Mavericks","opp":"Hawks","pts":73,"min":45,"gameId":"401585262","date":"2024-01-26"}
+   {"name":"Donovan Mitchell","team":"Cavaliers","opp":"Bulls","pts":71,"min":50,"gameId":"401468707","date":"2023-01-02"}
+   {"name":"David Robinson","team":"Spurs","opp":"Clippers","pts":71,"min":44,"gameId":"140424012","date":"1994-04-24"}
+   {"name":"Damian Lillard","team":"Trail Blazers","opp":"Rockets","pts":71,"min":39,"gameId":"401469072","date":"2023-02-26"}
+  ESPN now: Bam Adebayo labels MIN,PTS,FG,3PT,FT,REB,AST,TO,STL,BLK,OREB,DREB,PF,+/- stats 42,83,20-43,7-22,36-43,9,3,5,2,2,1,8,3,+20 PTS idx 1
+  ESPN header Miami Heat 150 / Washington Wizards 129
+  ESPN now: Kobe Bryant labels MIN,PTS,FG,3PT,FT,REB,AST,TO,STL,BLK,OREB,DREB,PF,+/- stats 42,81,28-46,7-13,18-20,6,2,3,3,1,2,4,1,0 PTS idx 1
+  ESPN header Los Angeles Lakers 122 / Toronto Raptors 104
