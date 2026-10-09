@@ -1,0 +1,28 @@
+name: Probe ESPN for betting
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - run: node tools/probe-bet.mjs
+      - name: Push results to site-check branch
+        if: always()
+        run: |
+          cd probe
+          git init -q && git checkout -q -b probe-bet
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "probe"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" probe-bet:probe-bet
