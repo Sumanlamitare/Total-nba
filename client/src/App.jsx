@@ -13,9 +13,16 @@ import Book from './components/Book.jsx';
 import CardSheet from './components/CardSheet.jsx';
 import { Sheet, I } from './components/ui.jsx';
 import { StatChips, Podium, Board, Games, Stories, stories } from './components/Leaders.jsx';
+import Records from './components/Records.jsx';
+import Privacy from './components/Privacy.jsx';
+import Ad from './components/Ads.jsx';
+import { usePro, ProPage, ProLock, downloadCSV, CSV_COLS } from './components/Pro.jsx';
+import { parsePath, pathFor, playerPath, STAT_NAME } from '../../lib/routes.js';
 
-const MODES = ['day', 'week', 'season', 'book'];
-const TABS = [['day', 'DAY'], ['week', 'WEEK'], ['season', 'SEASON'], ['book', 'BOOK']];
+const MODES = ['day', 'week', 'season', 'records', 'pro', 'saved', 'privacy'];
+const TABS = [['day', 'DAY'], ['week', 'WEEK'], ['season', 'SEASON'], ['records', 'RECORDS'], ['pro', 'PRO']];
+const STATIC = m => ['records', 'pro', 'saved', 'privacy'].includes(m); // views without a period to load
+const TITLE = { records: 'All-time records', pro: 'TotalNBA Pro', saved: 'Saved cards', privacy: 'Privacy policy' };
 const BURST = { common: '#cfd3da', rare: '#4DA3FF', epic: '#B07CFF', legendary: '#FFC43D' };
 
 // Crash trace: if the tab dies mid-step, the next visit says which step (and the iOS version)
@@ -65,6 +72,9 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [burst, setBurst] = useState(null);
   const book = useBook();
+  const pro = usePro();
+  const fromPop = useRef(false);
+  const playerName = useRef('');
   const req = useRef(0);
   const [mini, setMini] = useState(false); // header folds its top row once you scroll
   useEffect(() => {
@@ -77,7 +87,7 @@ export default function App() {
   const go = (nx, d = 'up') => {
     setSt(nx); setDir(d); setGame(null);
     if (scrollY > 0) scrollTo({ top: 0 });
-    if (nx.mode === 'book') { setVer(x => x + 1); setLoading(false); return; }
+    if (STATIC(nx.mode)) { setVer(x => x + 1); setLoading(false); return; }
     setLoading(true); setErr('');
     const id = ++req.current;
     trace('loading ' + nx.mode.toUpperCase());
@@ -90,16 +100,55 @@ export default function App() {
     }).catch(e => { if (id === req.current) { setErr('Could not load data (' + e.message + ')'); setV(null); setLoading(false); } });
   };
 
-  // boot: newest stored game day
+  // a parsed address -> selection (newest game day when no date is given)
+  const fromRoute = (r, m) => {
+    const latest = m.dates.length ? parse(m.dates.at(-1)) : new Date();
+    const si = r.season ? Math.max(0, m.seasons.indexOf(r.season)) : 0;
+    return { mode: r.mode === 'player' ? 'day' : r.mode, stat: r.stat || 'POINTS', si, date: r.date ? parse(r.date) : latest };
+  };
+  // keep the address bar and tab title in step with what's on screen (back/forward works)
+  useEffect(() => {
+    if (!st || !meta.seasons) return;
+    const path = ov === 'player' && playerKey && playerName.current ? playerPath(playerName.current, playerKey)
+      : pathFor({ mode: st.mode, date: key(st.date), season: meta.seasons[st.si], stat: st.stat });
+    const home = location.pathname === '/' && st.mode === 'day' && key(st.date) === meta.dates.at(-1) && st.stat === 'POINTS';
+    if (!home && path !== location.pathname) {
+      if (fromPop.current) history.replaceState(null, '', path); else history.pushState(null, '', path);
+    }
+    fromPop.current = false;
+    const sn = STAT_NAME[st.stat];
+    document.title = (ov === 'player' && playerName.current ? `${playerName.current} stats`
+      : st.mode === 'day' ? `${sn} leaders · ${periodLabel({ ...st }, meta.seasons)}`
+        : st.mode === 'week' ? `${sn} · week of ${periodLabel({ ...st, week: true }, meta.seasons, true)}`
+          : st.mode === 'season' ? `${seasonName(meta.seasons[st.si])} ${sn} leaders`
+            : st.mode === 'records' ? `Most ${sn.toLowerCase()} in a game since 1993` : TITLE[st.mode]) + ' · TotalNBA';
+  }, [st, ov, playerKey]);
+  useEffect(() => {
+    const pop = () => {
+      const r = parsePath(location.pathname);
+      if (!r || !meta.dates) return;
+      fromPop.current = true;
+      if (r.mode === 'player') { setPlayerKey(r.player); setOv('player'); return; }
+      setOv(null);
+      go(fromRoute(r, meta), 'up');
+    };
+    addEventListener('popstate', pop);
+    return () => removeEventListener('popstate', pop);
+  });
+
+  // boot: the page in the address bar (newest game day for the home page)
   useEffect(() => {
     const t0 = Date.now();
     api.getMeta().catch(e => { setErr('Server unreachable (' + e.message + ')'); return { dates: [], seasons: [] }; }).then(m => {
       m.has = new Set(m.dates);
       setMeta(m);
-      const s = { mode: 'day', stat: 'POINTS', si: 0, date: m.dates.length ? parse(m.dates.at(-1)) : new Date() };
-      setSt(s);
-      api.fetchView(s, m).then(view => { setV(view); setVer(1); }).catch(e => setErr('Could not load data (' + e.message + ')'))
-        .finally(() => { setLoading(false); setTimeout(() => setBooted(true), Math.max(0, 2300 - (Date.now() - t0))); });
+      const r = parsePath(location.pathname) || { mode: 'day', stat: 'POINTS' };
+      const s = fromRoute(r, m);
+      if (r.mode === 'player') { setPlayerKey(r.player); setOv('player'); }
+      fromPop.current = true; setSt(s);
+      const done = () => { setLoading(false); setTimeout(() => setBooted(true), Math.max(0, 1600 - (Date.now() - t0))); };
+      if (STATIC(s.mode)) { setVer(1); done(); return; }
+      api.fetchView(s, m).then(view => { setV(view); setVer(1); }).catch(e => setErr('Could not load data (' + e.message + ')')).finally(done);
     });
   }, []);
 
@@ -138,7 +187,7 @@ export default function App() {
 
   const mode = m => { if (m === st.mode) { scrollTo({ top: 0, behavior: 'smooth' }); return; } go({ ...st, mode: m }, MODES.indexOf(m) > MODES.indexOf(st.mode) ? 'right' : 'left'); };
   const step = d => {
-    if (st.mode === 'book') return;
+    if (STATIC(st.mode)) return;
     if (st.mode === 'season') { const n = Math.min(meta.seasons.length - 1, Math.max(0, st.si - d)); if (n !== st.si) go({ ...st, si: n }, d > 0 ? 'right' : 'left'); return; }
     go({ ...st, date: addDays(st.date, (st.mode === 'week' ? 7 : 1) * d) }, d > 0 ? 'right' : 'left');
   };
@@ -146,7 +195,7 @@ export default function App() {
   const toDate = d => { setOv(null); go({ ...st, mode: 'day', date: parse(d) }, 'up'); scrollTo({ top: 0 }); };
   const toSeason = label => { const si = meta.seasons.indexOf(label); if (si < 0) return; setOv(null); go({ ...st, mode: 'season', si }, 'up'); scrollTo({ top: 0 }); };
   const open = (c, rank) => { setSel({ c, rank }); setOv('card'); };
-  const openPlayer = c => { if (!c.key) return; setPlayerKey(c.key); setOv('player'); };
+  const openPlayer = c => { if (!c.key) return; playerName.current = c.n || c.name || ''; setPlayerKey(c.key); setOv('player'); };
   const pickGame = g => { setGame(g); setOv(null); };
   const collect = (c, e) => {
     const snap = { k: c.k, n: c.n, key: c.key, espnId: c.espnId, team: c.team, img: c.img, v: c.v, f: c.f, stat: c.stat, kind: c.kind,
@@ -171,7 +220,9 @@ export default function App() {
     const c = api.cardsFor(v, s.stat || st.stat).find(x => x.key === s.line.key);
     if (c) setTimeout(() => open(c, api.cardsFor(v, s.stat || st.stat).indexOf(c)), 60);
   };
-  const isBook = st.mode === 'book';
+  const isBook = STATIC(st.mode);
+  const toPro = () => { setOv(null); go({ ...st, mode: 'pro' }, 'up'); };
+  const exportCSV = () => downloadCSV(`totalnba-${st.mode}-${STAT_NAME[st.stat]}-${st.mode === 'season' ? meta.seasons[st.si] : key(st.date)}`, CSV_COLS, cards.map(c => c.line));
   const label = periodLabel({ ...st, season: st.mode === 'season', week: st.mode === 'week' }, meta.seasons, true);
   const empty = st.mode === 'season' ? 'No season data yet' : st.mode === 'week' ? 'No games this week' : 'No games on this day';
   const gameName = game && v?.games?.find(g => g._id === game);
@@ -188,12 +239,13 @@ export default function App() {
               <i />
               {TABS.map(([m, t]) => (
                 <button key={m} role="tab" aria-selected={st.mode === m} className={st.mode === m ? 'a' : ''} onClick={() => mode(m)}>
-                  {t}{m === 'book' && book.cards.length ? <sup>{book.cards.length}</sup> : null}
+                  {t}
                 </button>
               ))}
             </nav>
             <div className="acts">
               <button className="icon" aria-label="Search players (/)" onClick={() => setOv('search')}>{I.search}</button>
+              <button className={'icon' + (st.mode === 'saved' ? ' on' : '')} aria-label={`Saved cards (${book.cards.length})`} onClick={() => mode('saved')}>{I.book}{book.cards.length ? <sup className="cnt">{book.cards.length}</sup> : null}</button>
               {!isBook && <button className="icon hot" aria-label={`Create Top 10 graphic for ${LONG[st.stat]}`} onClick={() => { setGraphic({ id: Date.now(), ctx: { ...st } }); setOv('graphic'); }}>{I.image}</button>}
             </div>
           </header>
@@ -213,7 +265,10 @@ export default function App() {
         </div>
 
         <main key={ver + (isBook ? '-b' : '')} className={'view from-' + dir}>
-          {isBook ? <Book book={book} onOpen={openFromBook} />
+          {st.mode === 'records' ? <Records stat={st.stat} onStat={setStat} onDate={toDate} onPlayer={openPlayer} pro={pro} onPro={toPro} />
+            : st.mode === 'pro' ? <ProPage pro={pro} />
+              : st.mode === 'privacy' ? <Privacy />
+                : isBook ? <Book book={book} onOpen={openFromBook} />
             : loading ? <Skeleton />
               : (
                 <>
@@ -226,25 +281,39 @@ export default function App() {
                       {st.mode === 'season' ? ' · regular-season totals' : st.mode === 'week' ? ' · weekly totals' : ''}
                       {v?.extra?.loaded ? ` · through ${v.extra.loaded}` : ''}
                       {game && <button className="clear" onClick={() => setGame(null)}>ALL GAMES ✕</button>}
+                      {cards.length > 0 && <button className="clear csvb" onClick={pro.pro ? exportCSV : toPro}>{pro.pro ? 'CSV ↓' : 'CSV · PRO'}</button>}
                     </p>
                   </div>
                   {cards.length ? (
                     <>
                       <Podium key={st.stat + game} cards={cards.slice(0, 3)} stat={st.stat} onOpen={open} />
                       {tales.length > 0 && <Stories items={tales} onStory={story} />}
+                      <Ad pro={pro.pro} className="in-feed" />
                       <Board cards={cards} stat={st.stat} onOpen={open} flipKey={ver + '|' + game} book={book} />
                     </>
                   ) : <div className="empty"><span className="ball big" /><b>{empty}</b><p>Try the arrows or pick another date.</p></div>}
-                  <footer className="foot">{err || lastCrash || `Data: ESPN${v?.pulled ? ' · just pulled live' : ''} · press / to search`}</footer>
+                  {cards.length > 20 && <Ad pro={pro.pro} />}
+                  {err || lastCrash ? <p className="foot">{err || lastCrash}</p> : null}
                 </>
               )}
           {err && !loading && !isBook && !v && <div className="empty"><b>{err}</b></div>}
         </main>
 
+        <footer className="site-foot">
+          <div className="sf-brand">TOTAL<b>NBA</b><small>Every NBA player, every night, since 1993–94.</small></div>
+          <nav>
+            <a href="/records" onClick={e => { e.preventDefault(); mode('records'); }}>All-time records</a>
+            <a href="/pro" onClick={e => { e.preventDefault(); mode('pro'); }}>TotalNBA Pro</a>
+            <a href="/saved" onClick={e => { e.preventDefault(); mode('saved'); }}>Saved cards</a>
+            <a href="/privacy" onClick={e => { e.preventDefault(); mode('privacy'); }}>Privacy</a>
+          </nav>
+          <small>Box scores from ESPN’s public NBA data{v?.pulled ? ' · just pulled live' : ''}. Not affiliated with the NBA or ESPN.</small>
+        </footer>
+
         <nav className="tabbar" role="tablist">
           {TABS.map(([m, t]) => (
             <button key={m} role="tab" aria-selected={st.mode === m} className={st.mode === m ? 'a' : ''} onClick={() => mode(m)}>
-              <span className="ti">{I[m]}{m === 'book' && book.cards.length ? <sup>{book.cards.length}</sup> : null}</span>
+              <span className="ti">{I[m]}</span>
               <small>{t}</small>
             </button>
           ))}
@@ -257,10 +326,10 @@ export default function App() {
           onGame={st.mode === 'day' ? pickGame : null} />}
       </Sheet>
       <Sheet open={ov === 'player' && !!playerKey} onClose={() => setOv(null)} className="s-player" label="Player page">
-        {playerKey && <PlayerSheet key={playerKey} pkey={playerKey} stat={st.stat === 'FANTASY' ? 'POINTS' : st.stat} onClose={() => setOv(null)} onDate={toDate} onSeason={toSeason} />}
+        {playerKey && <PlayerSheet key={playerKey} pkey={playerKey} stat={st.stat === 'FANTASY' ? 'POINTS' : st.stat} onClose={() => setOv(null)} onDate={toDate} onSeason={toSeason} pro={pro} onPro={toPro} />}
       </Sheet>
       <Sheet open={ov === 'search'} onClose={() => setOv(null)} className="s-search" label="Search players">
-        <SearchSheet onPick={k => { setPlayerKey(k); setOv('player'); }} />
+        <SearchSheet onPick={(k, name) => { playerName.current = name || ''; setPlayerKey(k); setOv('player'); }} />
       </Sheet>
       <Sheet open={ov === 'cal'} onClose={() => setOv(null)} className="s-small" label="Pick a date">
         <Calendar key={key(st.date)} date={st.date} has={meta.has} onPick={d => { setOv(null); if (key(d) !== key(st.date)) go({ ...st, date: d }, d > st.date ? 'right' : 'left'); }} />

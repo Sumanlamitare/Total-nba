@@ -24,12 +24,12 @@ export default function SearchSheet({ onPick }) {
   return (
     <div className="ssheet" onClick={e => e.stopPropagation()} role="dialog" aria-label="Search players">
       <label className="sbox"><Search /><input ref={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Search any player since 1993…" aria-label="Player name"
-        onKeyDown={e => { if (e.key !== 'Escape') e.stopPropagation(); if (e.key === 'Enter' && res?.[0]) onPick(res[0].key); }} /></label>
+        onKeyDown={e => { if (e.key !== 'Escape') e.stopPropagation(); if (e.key === 'Enter' && res?.[0]) onPick(res[0].key, res[0].name); }} /></label>
       <div className="slist sr">
         {res === null && <p className="sr-hint">Try “Kobe”, “Curry” or “Wemban”.</p>}
         {res && !res.length && <p className="sr-hint">No players found.</p>}
         {res?.map((p, i) => (
-          <button key={p.key} className="li sr-row" style={{ '--i': i }} onClick={() => onPick(p.key)}>
+          <button key={p.key} className="li sr-row" style={{ '--i': i }} onClick={() => onPick(p.key, p.name)}>
             <Face id={p.espnId} name={p.name} />
             <span className="li-main">{p.name}<small>{p.team} · {yr(p.first)}–{yr(p.last)}</small></span>
             <span className="li-sub">{p.gp.toLocaleString()} GP</span>

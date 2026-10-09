@@ -3,7 +3,7 @@
 // database nears the free Atlas size limit;
 // after that each run only touches days that aren't complete yet (today and recent days).
 import { db, close } from '../lib/db.js';
-import { backfill, ensureDay, etToday, seasonOf, rebuildPlayers } from '../lib/store.js';
+import { backfill, ensureDay, etToday, seasonOf, rebuildPlayers, rebuildRecords } from '../lib/store.js';
 
 const from = +(process.env.HISTORY_FROM || '1990').slice(0, 4);
 const iso = t => new Date(t).toISOString().slice(0, 10);
@@ -38,6 +38,9 @@ try {
   await backfill(Array.from({ length: now - from + 1 }, (_, i) => now - i));
   // player search + player pages: index by player and refresh the players collection
   console.log(`players: ${await rebuildPlayers()} in the search index`);
+  // all-time records and the 40-point / triple-double clubs (once a day)
+  const notable = await rebuildRecords(process.env.REBUILD_RECORDS === '1');
+  console.log(notable === null ? 'records: fresh, skipped' : `records: rebuilt, ${notable} notable games`);
   console.log('done');
 } catch (e) {
   console.error(e); process.exitCode = 1;

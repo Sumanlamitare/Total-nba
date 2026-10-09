@@ -77,7 +77,9 @@ const P = props => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 export const I = {
   day: <P><rect x="3" y="4" width="18" height="17" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /><circle cx="12" cy="15" r="1.6" fill="currentColor" /></P>,
   week: <P><rect x="3" y="4" width="18" height="17" rx="3" /><path d="M3 9h18M8 2v4M16 2v4M7 14h10M7 17.5h6" /></P>,
-  season: <P><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" /></P>,
+  season: <P><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></P>,
+  records: <P><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" /></P>,
+  pro: <P><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5z" /></P>,
   book: <P><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" /></P>,
   search: <P strokeWidth={2.2}><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></P>,
   image: <P><rect x="3" y="3" width="18" height="18" rx="4" /><path d="M7 15l3-3 3 3 4-5" /></P>,

@@ -2,6 +2,41 @@ import { useEffect, useState } from 'react';
 import { getPlayer } from '../api.js';
 import { STATS, SHORT, LONG, LABEL, fmtStat, shortDate, seasonName } from '../util.js';
 import { Avatar } from './ui.jsx';
+import { ProLock, downloadCSV } from './Pro.jsx';
+import Ad from './Ads.jsx';
+
+const SPLIT_COLS = ['gp', 'min', 'pts', 'reb', 'ast', 'tpm', 'stl', 'blk', 'fan'];
+const PREVIEW = ['Last 5', 'Last 10', 'Last 20', 'Home', 'Away', 'Wins', 'Losses'];
+
+// Pro: splits for the latest season (totals), with every opponent
+function Splits({ pkey, name, pro, onPro, f }) {
+  const [sp, setSp] = useState(null);
+  const [opp, setOpp] = useState(false);
+  useEffect(() => { if (pro.pro) fetch(`/api/player?key=${encodeURIComponent(pkey)}&splits=1`).then(r => r.json()).then(setSp).catch(() => setSp({ rows: [] })); }, [pkey, pro.pro]);
+  const cols = SPLIT_COLS.includes(f) ? SPLIT_COLS : [...SPLIT_COLS.slice(0, 2), f, ...SPLIT_COLS.slice(2)];
+  const head = <tr><th />{cols.map(c => <th key={c} className={c === f ? 'on' : ''}>{SHORT[c]}</th>)}</tr>;
+  const row = r => <tr key={r.label}><th>{r.label}</th>{cols.map(c => <td key={c} className={c === f ? 'on' : ''}>{fmtStat(r[c] ?? 0, c)}</td>)}</tr>;
+  if (!pro.pro) return (
+    <section className="pp-sec">
+      <h4>SPLITS <small className="pro-tag">PRO</small></h4>
+      <div className="splits locked"><table><thead>{head}</thead><tbody>{PREVIEW.map(l => <tr key={l}><th>{l}</th>{cols.map(c => <td key={c}>••</td>)}</tr>)}</tbody></table></div>
+      <ProLock title="See every split" sub="Last 5/10/20, home vs away, wins vs losses, vs every opponent" onPro={onPro} />
+    </section>
+  );
+  return (
+    <section className="pp-sec">
+      <h4>SPLITS <small>{sp?.season || ''} · TOTALS</small></h4>
+      {!sp ? <div className="gl"><span className="ball" /></div> : (
+        <>
+          <div className="splits"><table><thead>{head}</thead><tbody>{sp.rows.map(row)}</tbody></table></div>
+          <button className="csv" onClick={() => setOpp(!opp)}>{opp ? 'HIDE' : 'SHOW'} OPPONENTS ({sp.opponents?.length || 0})</button>
+          {opp && <div className="splits"><table><thead>{head}</thead><tbody>{sp.opponents.map(r => row({ ...r, label: 'vs ' + r.label }))}</tbody></table></div>}
+          <button className="csv" onClick={() => downloadCSV(`${name}-splits-${sp.season}`, [['Split', 'label'], ...SPLIT_COLS.map(c => [SHORT[c], c])], [...sp.rows, ...sp.opponents.map(r => ({ ...r, label: 'vs ' + r.label }))])}>DOWNLOAD CSV</button>
+        </>
+      )}
+    </section>
+  );
+}
 
 const FIELDS = Object.values(STATS);
 const md = s => { const [, m, d] = s.split('-'); return `${+m}/${+d}`; };
@@ -9,7 +44,7 @@ const md = s => { const [, m, d] = s.split('-'); return `${+m}/${+d}`; };
 
 // A player's page: career total and high, season-by-season bars, last 10 games, best games ever.
 // Every season, game and high jumps to that view in the app.
-export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason }) {
+export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason, pro, onPro }) {
   const [p, setP] = useState(null);
   const [err, setErr] = useState('');
   const [f, setF] = useState(STATS[stat] || 'pts');
@@ -69,6 +104,9 @@ export default function PlayerSheet({ pkey, stat, onClose, onDate, onSeason }) {
           })}
         </div>
       </section>
+
+      <Splits pkey={pkey} name={p.name} pro={pro} onPro={onPro} f={f} />
+      <Ad pro={pro.pro} />
 
       <section className="pp-sec">
         <h4>LAST {p.recent.length} GAMES <small>{SHORT[f]} PER GAME</small></h4>

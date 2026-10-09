@@ -10,7 +10,9 @@ http.createServer(async (req, res) => {
   try {
     const { default: fn } = await import(`../api/${m[1]}.js`);
     req.query = Object.fromEntries(url.searchParams);
+    if (req.method === 'POST') { let b = ''; for await (const c of req) b += c; try { req.body = JSON.parse(b || '{}'); } catch { req.body = {}; } }
     res.status = code => { res.statusCode = code; return res; };
+    res.send = body => res.end(body);
     res.json = body => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(body)); };
     await fn(req, res);
   } catch (e) { res.statusCode = 404; res.end(JSON.stringify({ error: e.message })); }
