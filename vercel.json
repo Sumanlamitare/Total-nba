@@ -2,14 +2,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 60 } },
-  "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/page?t=sitemap" },
-    { "source": "/ads.txt", "destination": "/api/page?t=ads" },
-    { "source": "/games/:a/:b?", "destination": "/api/page?t=games&a=:a&b=:b" },
-    { "source": "/week/:a/:b?", "destination": "/api/page?t=week&a=:a&b=:b" },
-    { "source": "/season/:a/:b?", "destination": "/api/page?t=season&a=:a&b=:b" },
-    { "source": "/records/:a?", "destination": "/api/page?t=records&a=:a" },
-    { "source": "/player/:a", "destination": "/api/page?t=player&a=:a" },
-    { "source": "/(pro|privacy|saved)", "destination": "/api/page?t=$1" }
-  ]
+  "rewrites": [{ "source": "/((?!api/|assets/).*)", "destination": "/index.html" }]
 }

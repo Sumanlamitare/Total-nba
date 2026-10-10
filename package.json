@@ -1,17 +1,16 @@
 {
-  "name": "totalnba",
+  "name": "edge",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Personal NBA leaderboard (MERN): React app, Vercel API functions, MongoDB, Big Balls Data API",
+  "description": "Personal NBA + NFL betting analysis on ESPN free data: projections, probabilities vs the line, EV",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
-    "ingest": "node scripts/ingest.mjs",
-    "probe:bbs": "node tools/probe-bbs.js"
+    "test": "node lib/math.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
