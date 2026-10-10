@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { getSlate } from './api.js';
+import { tier } from './Game.jsx';
 
 const addDays = (d, n) => new Date(Date.parse(d) + n * 864e5).toISOString().slice(0, 10);
 const dayLabel = d => new Date(d + 'T12:00:00Z').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' });
 const time = d => new Date(d).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-const pct = x => (x * 100).toFixed(1) + '%';
 
 export default function Slate({ sport, date, go }) {
   const [data, setData] = useState(null), [err, setErr] = useState(null);
@@ -40,10 +40,10 @@ export default function Slate({ sport, date, go }) {
             {g.picks?.n > 0 && (
               <div className="minipicks">
                 <span className="tag">{g.picks.n} pick{g.picks.n > 1 ? 's' : ''}</span>
-                {g.picks.list.slice(0, 3).map((p, i) => <span key={i} className="mp">{p.label} <em className="pos">EV {pct(p.ev)}</em></span>)}
+                {g.picks.list.slice(0, 3).map((p, i) => <span key={i} className="mp">{p.label} <em className={'tier ' + tier(p.edge).toLowerCase()}>{tier(p.edge)}</em></span>)}
               </div>
             )}
-            {!g.picks && g.status.state === 'pre' && <div className="hint">Open to analyse</div>}
+            {!g.picks && g.status.state === 'pre' && <div className="hint">Tap to see picks</div>}
           </button>
         ))}
       </div>

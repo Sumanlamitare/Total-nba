@@ -128,3 +128,26 @@ p.small { font-size: 12px; margin: 10px 0 0; }
   .hits { grid-template-columns: repeat(2, 1fr); }
   .gteam b { font-size: 20px; }
 }
+
+/* plain-language pick cards */
+.ptop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.psub { color: var(--ink2); font-size: 14px; }
+.why { margin: 8px 0 0; font-size: 14px; color: var(--ink); }
+.pn b { color: var(--ink); }
+.tier { font-style: normal; }
+.tag.tier.strong { background: rgba(61, 220, 132, .2); color: var(--pos); }
+.tag.tier.good { background: rgba(61, 220, 132, .1); color: var(--pos); }
+.tag.tier.lean { background: var(--panel2); color: var(--ink2); }
+em.tier.strong, em.tier.good { color: var(--pos); } em.tier.lean { color: var(--ink2); }
+.math { margin-top: 10px; font-size: 13px; color: var(--ink2); }
+.math summary { cursor: pointer; color: var(--muted); }
+.math dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; }
+.math dt { color: var(--muted); } .math dd { margin: 0; }
+.verdict { margin: 6px 0 0; font-size: 14px; font-weight: 600; }
+.glines { background: var(--panel); border-radius: var(--r); padding: 4px 12px; }
+.gl { display: grid; grid-template-columns: 64px 1fr 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.gl:last-child { border-bottom: 0; }
+.gl.head { font-size: 11px; text-transform: uppercase; color: var(--muted); padding: 8px 0 4px; }
+.gl > span:first-child { color: var(--ink2); }
+.frow.inj { grid-template-columns: 1fr auto auto; }
+.nums small { color: var(--muted); }

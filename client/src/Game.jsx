@@ -1,88 +1,69 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getGame } from './api.js';
 
-const pct = (x, d = 1) => (x == null ? '—' : (x * 100).toFixed(d) + '%');
+const pct = (x, d = 0) => (x == null ? '—' : (x * 100).toFixed(d) + '%');
 const sgn = (x, d = 1) => (x == null ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(d));
 const odds = a => (a == null ? '—' : a > 0 ? '+' + a : String(a));
 const cls = x => (x > 0 ? 'pos' : x < 0 ? 'neg' : '');
 const when = d => new Date(d).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-const short = d => new Date(d + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: '2-digit', timeZone: 'UTC' });
+const short = d => new Date(d + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+
+// how strong a qualifying pick is, by how far our chance beats the odds
+export const tier = edge => (edge >= 0.08 ? 'Strong' : edge >= 0.05 ? 'Good' : 'Lean');
 
 const STAT_ABBR = {
   minutes: 'MIN', points: 'PTS', rebounds: 'REB', assists: 'AST', threes: '3PM', steals: 'STL', blocks: 'BLK', turnovers: 'TOV',
-  completions: 'CMP', passingAttempts: 'ATT', passingYards: 'PYD', passingTouchdowns: 'PTD', rushingAttempts: 'CAR', rushingYards: 'RYD',
-  receptions: 'REC', receivingTargets: 'TGT', receivingYards: 'RECYD', receivingTouchdowns: 'RECTD', rushingTouchdowns: 'RTD',
+  completions: 'CMP', passingAttempts: 'ATT', passingYards: 'PASS YDS', passingTouchdowns: 'PASS TD', rushingAttempts: 'CAR', rushingYards: 'RUSH YDS',
+  receptions: 'REC', receivingTargets: 'TGT', receivingYards: 'REC YDS', receivingTouchdowns: 'REC TD', rushingTouchdowns: 'RUSH TD',
 };
+
+// "Over" hits are games above the line; "Under" hits are games below it
+const sideHits = (h, side) => (h?.n ? { k: side === 'Under' ? h.n - h.over : h.over, n: h.n } : null);
+const won = (v, p) => (p.side === 'Under' ? v < p.line : v > p.line);
+
+function propReason(p) {
+  const h = sideHits(p.context.hit.l5, p.side), parts = [];
+  if (p.market === 'Anytime TD') parts.push(`We expect about ${p.proj.mu} touchdowns.`);
+  else parts.push(`We expect about ${p.proj.mu} — the line is ${p.line}.`);
+  if (h) parts.push(`${p.side === 'Yes' ? 'Scored' : `Went ${p.side.toLowerCase()}`} in ${h.k} of his last ${h.n}.`);
+  if (p.context.lastVsOpp) parts.push(`Had ${p.context.lastVsOpp.value} last time vs ${p.opp}.`);
+  return parts.join(' ');
+}
+
+function gameReason(s, g) {
+  const L = g.lines, fav = L.projMargin >= 0 ? g.home.abbr : g.away.abbr, by = Math.abs(L.projMargin);
+  if (s.market === 'Total') return `We expect about ${L.projTotal} total points — the line is ${L.lines.total}.`;
+  return `We have ${fav} winning by about ${by}.`;
+}
 
 export default function Game({ sport, id, go }) {
   const [g, setG] = useState(null), [err, setErr] = useState(null);
   useEffect(() => { getGame(sport, id).then(setG, e => setErr(e.message)); }, [sport, id]);
   if (err) return <div className="msg bad">Couldn't analyse this game: {err}</div>;
-  if (!g) return <div className="msg">Analysing — pulling lines, team form and every player's game log…</div>;
+  if (!g) return <div className="msg">Analysing — pulling lines, team form and every player's games…</div>;
 
   const L = g.lines?.lines;
-  const gamePicks = (g.lines?.sides || []).filter(s => s.qualifies).map(s => ({ ...s, label: `${s.market}: ${s.pick}`, kind: 'game' }));
-  const propPicks = g.props.filter(p => p.pick).map(p => ({ ...p, label: `${p.player} ${p.side} ${p.line} ${p.market}`, kind: 'prop' }));
-  const picks = [...gamePicks, ...propPicks].sort((a, b) => b.ev - a.ev);
+  const picks = [
+    ...(g.lines?.sides || []).filter(s => s.qualifies).map(s => ({ ...s, title: s.market === 'Moneyline' ? `${s.pick} to win` : s.pick, sub: s.market, reason: gameReason(s, g) })),
+    ...g.props.filter(p => p.pick).map(p => ({ ...p, title: p.player, sub: `${p.side === 'Yes' ? 'Anytime TD' : `${p.side} ${p.line} ${p.market}`}`, reason: propReason(p) })),
+  ].sort((a, b) => b.edge - a.edge);
 
   return (
     <section className="game">
-      <button className="back" onClick={() => go(`/${sport}`)}>‹ Slate</button>
+      <button className="back" onClick={() => go(`/${sport}`)}>‹ All games</button>
       <header className="ghead">
-        <Team t={g.away} r={g.ratings.away} b2b={g.b2b.away} />
-        <div className="at">
-          <span>@</span>
-          <small>{g.status.state === 'pre' ? when(g.date) : g.status.detail}</small>
-        </div>
-        <Team t={g.home} r={g.ratings.home} b2b={g.b2b.home} />
+        <Team t={g.away} b2b={g.b2b.away} />
+        <div className="at"><span>@</span><small>{g.status.state === 'pre' ? when(g.date) : g.status.detail}</small></div>
+        <Team t={g.home} b2b={g.b2b.home} />
       </header>
 
-      {L && (
-        <div className="linebar">
-          <div><small>Spread</small><b>{g.home.abbr} {L.spread > 0 ? '+' : ''}{L.spread}</b></div>
-          <div><small>Total</small><b>{L.total ?? '—'}</b></div>
-          <div><small>Moneyline</small><b>{g.away.abbr} {odds(L.mlAway)} · {g.home.abbr} {odds(L.mlHome)}</b></div>
-          <div><small>Model</small><b>{g.home.abbr} {g.lines.projMargin > 0 ? 'by ' + g.lines.projMargin : g.away.abbr + ' by ' + -g.lines.projMargin} · {g.lines.projTotal}</b></div>
-        </div>
-      )}
-      {L && <p className="src">Lines from {L.provider}. {g.predictor?.home ? `ESPN predictor: ${g.home.abbr} ${g.predictor.home.toFixed(0)}%.` : ''}</p>}
+      <h2>Our picks</h2>
+      {!picks.length && <div className="msg small">No picks for this game. Most games don't have a good bet — that's normal, and passing is a win.</div>}
+      <div className="picks">{picks.map((p, i) => <PickCard key={i} p={p} />)}</div>
 
-      <h2>Best bets</h2>
-      {!picks.length && <div className="msg small">Nothing clears the bar for this game. That's the normal result — most games have no edge.</div>}
-      <div className="picks">
-        {picks.map((p, i) => (
-          <div key={i} className="pick">
-            <div className="pl">{p.label}</div>
-            <div className="pn">
-              <span>{odds(p.price)}</span>
-              <span>Win {pct(p.p)}</span>
-              <span className={cls(p.edge)}>Edge {sgn(p.edge)}</span>
-              <span className={cls(p.ev)}>EV {sgn(p.ev)}%</span>
-              <span className="stake">Stake {pct(p.stake, 1)}</span>
-            </div>
-            {p.flags?.length > 0 && <div className="flags">{p.flags.map(f => <span key={f}>{f}</span>)}</div>}
-          </div>
-        ))}
-      </div>
+      {g.lines?.sides?.length > 0 && <GameLines g={g} L={L} />}
 
-      {g.lines?.sides?.length > 0 && <>
-        <h2>Game lines</h2>
-        <div className="tablewrap">
-          <table className="t">
-            <thead><tr><th>Bet</th><th>Price</th><th>Model</th><th>Market</th><th>Blend</th><th>Edge</th><th>EV</th></tr></thead>
-            <tbody>
-              {g.lines.sides.map((s, i) => (
-                <tr key={i} className={s.qualifies ? 'q' : ''}>
-                  <td>{s.market === 'Moneyline' ? s.pick + ' ML' : s.pick}</td><td>{odds(s.price)}</td><td>{pct(s.pModel)}</td><td>{pct(s.pMarket)}</td>
-                  <td>{pct(s.p)}</td><td className={cls(s.edge)}>{sgn(s.edge)}</td><td className={cls(s.ev)}>{sgn(s.ev)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </>}
-
-      <h2>Team form</h2>
+      <h2>Recent form</h2>
       <div className="form">
         {[g.away, g.home].map(t => {
           const f = g.lastFive.find(x => x.teamId === t.id || x.abbr === t.abbr);
@@ -97,9 +78,9 @@ export default function Game({ sport, id, go }) {
           );
         })}
         <div className="fbox">
-          <h3>Last {g.h2h.meetings.length} meetings <span>{g.h2h.team} {g.h2h.record}</span></h3>
+          <h3>Head to head <span>{g.h2h.team} {g.h2h.record}</span></h3>
           {g.h2h.meetings.map((m, i) => (
-            <div key={i} className="frow"><span className={'wl ' + m.result}>{m.result}</span><span>{g.home.abbr} {m.home ? 'vs' : '@'} {g.away.abbr}</span><span>{m.score}</span><small>{short(m.date)}{m.post ? ' · playoffs' : ''}</small></div>
+            <div key={i} className="frow"><span className={'wl ' + m.result}>{m.result}</span><span>{g.home.abbr} {m.home ? 'vs' : '@'} {g.away.abbr}</span><span>{m.score}</span><small>{short(m.date)}</small></div>
           ))}
           {!g.h2h.meetings.length && <small className="muted">No meetings in the last four seasons.</small>}
         </div>
@@ -111,7 +92,7 @@ export default function Game({ sport, id, go }) {
           {g.injuries.filter(t => t.list.length).map(t => (
             <div key={t.abbr} className="fbox">
               <h3>{t.abbr}</h3>
-              {t.list.map((x, i) => <div key={i} className="frow"><span>{x.name}</span><small>{x.pos}</small><span className={/out/i.test(x.status) ? 'neg' : 'warn'}>{x.status}</span></div>)}
+              {t.list.map((x, i) => <div key={i} className="frow inj"><span>{x.name}</span><small>{x.pos}</small><span className={/out/i.test(x.status) ? 'neg' : 'warn'}>{x.status}</span></div>)}
             </div>
           ))}
         </div>
@@ -122,103 +103,149 @@ export default function Game({ sport, id, go }) {
   );
 }
 
-function Team({ t, r, b2b }) {
+function Team({ t, b2b }) {
   return (
     <div className="gteam">
       {t.logo && <img src={t.logo} alt="" width="52" height="52" />}
       <b>{t.abbr}</b>
       <small>{t.record}</small>
-      <small className="muted" title="Points for / against per game, padded with last season">{r.pf}–{r.pa}</small>
-      {b2b && <span className="tag warn">back-to-back</span>}
+      {b2b && <span className="tag warn">2nd night in a row</span>}
     </div>
+  );
+}
+
+function PickCard({ p }) {
+  return (
+    <div className="pick">
+      <div className="ptop">
+        <div><div className="pl">{p.title}</div><div className="psub">{p.sub}</div></div>
+        <span className={'tag tier ' + tier(p.edge).toLowerCase()}>{tier(p.edge)}</span>
+      </div>
+      <p className="why">{p.reason}</p>
+      <div className="pn">
+        <span>Our chance <b>{pct(p.p)}</b></span>
+        <span>Bet <b>{pct(p.stake, 1)}</b> of bankroll</span>
+      </div>
+      {p.flags?.length > 0 && <div className="flags">{p.flags.map(f => <span key={f}>{f}</span>)}</div>}
+      <TheMath p={p} />
+    </div>
+  );
+}
+
+// the numbers behind a pick, closed by default
+function TheMath({ p }) {
+  return (
+    <details className="math">
+      <summary>Show the math</summary>
+      <dl>
+        <dt>Odds</dt><dd>{odds(p.price)} (needs {pct(1 / (p.price > 0 ? 1 + p.price / 100 : 1 + 100 / -p.price))} to break even)</dd>
+        <dt>Our stats model</dt><dd>{pct(p.pModel, 1)}</dd>
+        <dt>Sportsbook (no vig)</dt><dd>{pct(p.pMarket, 1)}</dd>
+        <dt>Combined chance</dt><dd>{pct(p.p, 1)}</dd>
+        <dt>Edge</dt><dd className={cls(p.edge)}>{sgn(p.edge)} pts</dd>
+        <dt>Expected return</dt><dd className={cls(p.ev)}>{sgn(p.ev)}¢ per $1</dd>
+      </dl>
+    </details>
+  );
+}
+
+function GameLines({ g, L }) {
+  const best = m => g.lines.sides.filter(s => s.market === m).sort((a, b) => b.edge - a.edge)[0];
+  const fav = g.lines.projMargin >= 0 ? g.home.abbr : g.away.abbr;
+  const mlHome = g.lines.sides.find(s => s.market === 'Moneyline' && s.pick === g.home.abbr);
+  const rows = [
+    ['Spread', best('Spread'), L.spread != null && `${g.home.abbr} ${L.spread > 0 ? '+' : ''}${L.spread}`, `${fav} by ${Math.abs(g.lines.projMargin)}`],
+    ['Total', best('Total'), L.total != null && `${L.total} pts`, `${g.lines.projTotal} pts`],
+    ['Winner', best('Moneyline'), mlHome && `${g.home.abbr} ${pct(mlHome.pMarket)}`, mlHome && `${g.home.abbr} ${pct(mlHome.pModel)}`],
+  ].filter(r => r[1]);
+  return (
+    <>
+      <h2>Game bets</h2>
+      <div className="glines">
+        <div className="gl head"><span /><span>Book</span><span>Us</span><span /></div>
+        {rows.map(([name, s, book, us]) => (
+          <div key={name} className="gl">
+            <span>{name}</span><span>{book || '—'}</span><span>{us}</span>
+            {s.qualifies ? <span className="tag pos">Bet {s.market === 'Moneyline' ? s.pick : s.pick}</span> : <span className="tag">Pass</span>}
+          </div>
+        ))}
+      </div>
+      <p className="src">Lines from {L.provider}. "Pass" means our number isn't far enough from the book's to bet.</p>
+    </>
   );
 }
 
 function Props({ g }) {
   const markets = useMemo(() => [...new Set(g.props.map(p => p.market))], [g]);
   const [m, setM] = useState('All'), [open, setOpen] = useState(null), [onlyQ, setOnlyQ] = useState(false);
-  const list = g.props.filter(p => (m === 'All' || p.market === m) && (!onlyQ || p.qualifies));
-  if (!g.props.length) return (<><h2>Player props</h2><div className="msg small">The sportsbook hasn't posted player props for this game yet{g.sport === 'nba' ? ' (NBA props appear in the regular season, usually the day before)' : ''}.</div></>);
+  const list = g.props.filter(p => (m === 'All' || p.market === m) && (!onlyQ || p.pick));
+  if (!g.props.length) return (<><h2>Player props</h2><div className="msg small">No player props posted for this game yet{g.sport === 'nba' ? ' (NBA props start with the regular season, usually the day before each game)' : ''}.</div></>);
   return (
     <>
       <h2>Player props <small>{g.props.length}</small></h2>
       <div className="chips">
+        <button className={onlyQ ? 'a' : ''} onClick={() => setOnlyQ(!onlyQ)}>Picks only</button>
         {['All', ...markets].map(x => <button key={x} className={m === x ? 'a' : ''} onClick={() => setM(x)}>{x}</button>)}
-        <button className={onlyQ ? 'a' : ''} onClick={() => setOnlyQ(!onlyQ)}>Qualifying only</button>
       </div>
       <div className="props">
-        {list.map(p => (
-          <div key={p.key} className={'prop' + (p.pick ? ' isPick' : '') + (open === p.key ? ' open' : '')}>
-            <button className="prow" onClick={() => setOpen(open === p.key ? null : p.key)} aria-expanded={open === p.key}>
-              <span className="who"><b>{p.player}</b><small>{p.team} {p.pos}</small></span>
-              <span className="what">{p.market}<small>{p.side} {p.line}</small></span>
-              <span className="nums">
-                <span>proj <b>{p.proj.mu}</b></span>
-                <span className={cls(p.ev)}>EV {sgn(p.ev)}%</span>
-              </span>
-              {p.pick ? <span className="tag pos">PICK</span> : p.flags.length ? <span className="tag warn">!</span> : <span className="tag ghost" />}
-            </button>
-            {open === p.key && <PropDetail p={p} sport={g.sport} />}
-          </div>
-        ))}
+        {list.map(p => {
+          const h = sideHits(p.context.hit.l5, p.side);
+          return (
+            <div key={p.key} className={'prop' + (p.pick ? ' isPick' : '') + (open === p.key ? ' open' : '')}>
+              <button className="prow" onClick={() => setOpen(open === p.key ? null : p.key)} aria-expanded={open === p.key}>
+                <span className="who"><b>{p.player}</b><small>{p.team} · {p.side === 'Yes' ? 'Anytime TD' : `${p.side} ${p.line} ${p.market}`}</small></span>
+                <span className="nums"><span>We expect <b>{p.proj.mu}</b></span>{h && <small>{h.k}/{h.n} last {h.n}</small>}</span>
+                {p.pick ? <span className={'tag tier ' + tier(p.edge).toLowerCase()}>{tier(p.edge)}</span> : <span className="tag">—</span>}
+              </button>
+              {open === p.key && <PropDetail p={p} />}
+            </div>
+          );
+        })}
       </div>
     </>
   );
 }
 
-// hit rates are shown for the side being bet (Under -> games that stayed under the line)
-function Hit({ label, h, side }) {
-  if (!h?.n) return <div className="hit"><small>{label}</small><b>—</b></div>;
-  const under = side === 'Under', k = under ? h.n - h.over : h.over;
-  const [lo, hi] = under ? [1 - h.hi, 1 - h.lo] : [h.lo, h.hi];
-  return (
-    <div className="hit" title={`95% range ${pct(lo, 0)}–${pct(hi, 0)}`}>
-      <small>{label}</small><b>{k}/{h.n}</b><span>{pct(k / h.n, 0)} {under ? 'under' : 'over'}</span>
-    </div>
-  );
-}
-
-function PropDetail({ p, sport }) {
-  const c = p.context;
+function PropDetail({ p }) {
+  const c = p.context, word = p.side === 'Under' ? 'under' : p.side === 'Yes' ? 'scored' : 'over';
+  const hits = [['Last 5', c.hit.l5], ['Last 10', c.hit.l10], ['This season', c.hit.season], ['vs ' + p.opp, c.hit.vsOpp]];
+  const cols = statCols(c.last5);
   return (
     <div className="pdetail">
-      <div className="pgrid">
-        <div><small>Projection</small><b>{p.proj.mu}{p.proj.sd ? ` ± ${p.proj.sd}` : ''}</b>{p.proj.minutes && <span>{p.proj.minutes} min</span>}</div>
-        <div><small>Over {p.line}</small><b>{pct(p.proj.pOver)}</b>{p.proj.push > 0 && <span>push {pct(p.proj.push)}</span>}</div>
-        <div><small>Model / market</small><b>{pct(p.pModel)} / {pct(p.pMarket)}</b><span>{p.side} at {odds(p.price)}</span></div>
-        <div><small>Blended</small><b>{pct(p.p)}</b><span className={cls(p.edge)}>edge {sgn(p.edge)}</span></div>
-        <div><small>Stake</small><b>{p.qualifies ? pct(p.stake) : '—'}</b><span>{p.qualifies ? 'quarter Kelly' : 'does not qualify'}</span></div>
-        {p.moved !== 0 && <div><small>Line move</small><b>{p.open} → {p.line}</b><span className={p.moved > 0 ? 'pos' : 'neg'}>{p.moved > 0 ? '+' : ''}{p.moved}</span></div>}
-      </div>
+      <p className="why">{propReason(p)}</p>
+      {p.pick
+        ? <p className="verdict pos">Pick: {p.side === 'Yes' ? 'Anytime TD' : `${p.side} ${p.line}`} · our chance {pct(p.p)} · bet {pct(p.stake, 1)} of bankroll</p>
+        : <p className="verdict muted">Not a pick — {p.flags.length ? 'see the warning below' : 'our number isn\'t far enough from the line'}.</p>}
 
-      <h4>{p.side === 'Under' ? 'Under' : 'Over'} {p.line} hit rate</h4>
+      <h4>How often he's {word === 'scored' ? 'scored' : `gone ${word} ${p.line}`}</h4>
       <div className="hits">
-        {[['Last 5', c.hit.l5], ['Last 10', c.hit.l10], ['Season', c.hit.season], ['vs ' + p.opp, c.hit.vsOpp]].map(([l, h]) => <Hit key={l} label={l} h={h} side={p.side} />)}
+        {hits.map(([l, h]) => { const s = sideHits(h, p.side); return <div key={l} className="hit"><small>{l}</small><b>{s ? `${s.k} of ${s.n}` : '—'}</b></div>; })}
       </div>
 
       <h4>Last 5 games</h4>
       <div className="tablewrap">
         <table className="t small">
-          <thead><tr><th>Date</th><th>Opp</th><th>{p.market}</th>{statCols(c.last5).map(k => <th key={k}>{STAT_ABBR[k] || k}</th>)}</tr></thead>
+          <thead><tr><th>Date</th><th>Opp</th><th>{p.market}</th>{cols.map(k => <th key={k}>{STAT_ABBR[k] || k}</th>)}</tr></thead>
           <tbody>
             {c.last5.map((r, i) => (
               <tr key={i}>
-                <td>{short(r.date)}</td><td>{r.home ? 'vs' : '@'} {r.opp} <small className={r.result === 'W' ? 'pos' : 'neg'}>{r.result}</small></td>
-                <td className={r.value > p.line ? 'pos' : r.value < p.line ? 'neg' : ''}><b>{r.value}</b></td>
-                {statCols(c.last5).map(k => <td key={k}>{r.line[k] ?? 0}</td>)}
+                <td>{short(r.date)}</td><td>{r.home ? 'vs' : '@'} {r.opp}</td>
+                <td className={won(r.value, p) ? 'pos' : 'neg'}><b>{r.value}</b></td>
+                {cols.map(k => <td key={k}>{r.line[k] ?? 0}</td>)}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <p className="muted small">Green = would have won this bet, red = would have lost.</p>
 
       <h4>Last game vs {p.opp}</h4>
       {c.lastVsOpp
-        ? <p className="lvo"><b className={c.lastVsOpp.value > p.line ? 'pos' : 'neg'}>{c.lastVsOpp.value}</b> {p.market} on {short(c.lastVsOpp.date)} ({c.lastVsOpp.result} {c.lastVsOpp.score})</p>
-        : <p className="muted">No game against {p.opp} in the last two seasons.</p>}
+        ? <p className="lvo"><b className={won(c.lastVsOpp.value, p) ? 'pos' : 'neg'}>{c.lastVsOpp.value}</b> on {short(c.lastVsOpp.date)} ({c.lastVsOpp.result} {c.lastVsOpp.score})</p>
+        : <p className="muted">Hasn't played {p.opp} in the last two seasons.</p>}
 
       {p.flags.length > 0 && <div className="flags">{p.flags.map(f => <span key={f}>{f}</span>)}</div>}
-      {sport === 'nfl' && <p className="muted small">Weather and depth-chart news aren't in the model yet — check them before betting.</p>}
+      <TheMath p={p} />
     </div>
   );
 }
@@ -226,5 +253,5 @@ function PropDetail({ p, sport }) {
 function statCols(rows) {
   const seen = new Set();
   for (const r of rows) for (const k of Object.keys(r.line)) seen.add(k);
-  return Object.keys(STAT_ABBR).filter(k => seen.has(k)).slice(0, 7);
+  return Object.keys(STAT_ABBR).filter(k => seen.has(k)).slice(0, 6);
 }
