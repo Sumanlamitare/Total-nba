@@ -1,0 +1,310 @@
+{
+ "count": 1000,
+ "pageCount": 2,
+ "types": {
+  "Total Passing Yards (incl. overtime)": 4,
+  "Total Pass Completions (incl. overtime)": 4,
+  "Total Passing Touchdowns (incl. overtime)": 4,
+  "Total Carries (incl. overtime)": 10,
+  "Total Rushing Yards (incl. overtime)": 11,
+  "Total Receiving Yards (incl. overtime)": 22,
+  "Total Receptions (incl. overtime)": 22,
+  "Total Passing Interceptions (incl. overtime)": 4,
+  "Total Passing Attempts (incl. overtime)": 4,
+  "Longest Passing Completion (incl. overtime)": 4,
+  "Total Passing Plus Rushing Yards (incl. overtime)": 2,
+  "Longest Reception (incl. overtime)": 20,
+  "Total Rushing Plus Receiving Yards (incl. overtime)": 4,
+  "Longest Rush (incl. overtime)": 10,
+  "Total Kicking Points (incl. overtime)": 4,
+  "Total Extra Points Made (incl. overtime)": 4,
+  "Total Field Goals Made (incl. overtime)": 4,
+  "First Touchdown Scorer": 31,
+  "Last Touchdown Scorer": 31,
+  "Anytime Touchdown Scorer": 30,
+  "Player to score 2 or more touchdowns": 30,
+  "Player to score 3 or more touchdowns": 22,
+  "1st Half Touchdown Scorer": 30,
+  "1st Quarter Touchdown Scorer": 30,
+  "1st Half Total": 2,
+  "1st Half Moneyline": 2,
+  "1st Half Spread": 2,
+  "1st Quarter Total": 2,
+  "1st Quarter Moneyline": 2,
+  "1st Quarter Spread": 2,
+  "2nd Quarter Total": 2,
+  "2nd Quarter Moneyline": 2,
+  "2nd Quarter Spread": 2,
+  "3rd Quarter Total": 2,
+  "3rd Quarter Moneyline": 2,
+  "3rd Quarter Spread": 2,
+  "4th Quarter Total": 2,
+  "4th Quarter Moneyline": 2,
+  "4th Quarter Spread": 2,
+  "Team Total Points": 82,
+  "Team 1st Half Total Points": 4,
+  "Team Total Touchdowns": 4,
+  "Will There Be Overtime?": 2,
+  "First Team Touchdown Scorer": 32,
+  "1st Half Total Passing Yards": 4,
+  "1st Half Total Receiving Yards": 15,
+  "1st Half Total Rushing Yards": 8,
+  "1st Quarter Total Passing Yards": 4,
+  "1st Quarter Total Receiving Yards": 18,
+  "1st Quarter Total Rushing Yards": 8,
+  "Passing Yards Milestones": 45,
+  "Receiving Yards Milestones": 123,
+  "Rushing Yards Milestones": 88,
+  "Rushing + Receiving Yards Milestones": 32,
+  "Passing Touchdown Milestones": 8,
+  "Interceptions Thrown Milestones": 6,
+  "Passing Attempts Milestones": 23,
+  "Rushing Attempts Milestones": 32,
+  "Receptions Milestones": 76,
+  "Kicking Points Milestones": 9,
+  "Field Goals Made Milestones": 6
+ },
+ "firstGroups": [
+  [
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "8",
+     "name": "Total Passing Yards (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T03:25Z",
+    "current": {
+     "target": {
+      "value": 185.5,
+      "displayValue": "185.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 194.5,
+      "displayValue": "194.5"
+     }
+    }
+   },
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "8",
+     "name": "Total Passing Yards (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T03:25Z",
+    "current": {
+     "target": {
+      "value": 185.5,
+      "displayValue": "185.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 194.5,
+      "displayValue": "194.5"
+     }
+    }
+   }
+  ],
+  [
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4360310?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "8",
+     "name": "Total Passing Yards (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T00:21Z",
+    "current": {
+     "target": {
+      "value": 227.5,
+      "displayValue": "227.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 228.5,
+      "displayValue": "228.5"
+     }
+    }
+   },
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4360310?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "8",
+     "name": "Total Passing Yards (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T00:21Z",
+    "current": {
+     "target": {
+      "value": 227.5,
+      "displayValue": "227.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 228.5,
+      "displayValue": "228.5"
+     }
+    }
+   }
+  ],
+  [
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "9",
+     "name": "Total Pass Completions (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-08T00:29Z",
+    "current": {
+     "target": {
+      "value": 18.5,
+      "displayValue": "18.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 19.5,
+      "displayValue": "19.5"
+     }
+    }
+   },
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "9",
+     "name": "Total Pass Completions (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-08T00:29Z",
+    "current": {
+     "target": {
+      "value": 18.5,
+      "displayValue": "18.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 19.5,
+      "displayValue": "19.5"
+     }
+    }
+   }
+  ],
+  [
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4360310?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "9",
+     "name": "Total Pass Completions (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T03:25Z",
+    "current": {
+     "target": {
+      "value": 20.5,
+      "displayValue": "20.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 19.5,
+      "displayValue": "19.5"
+     }
+    }
+   },
+   {
+    "competition": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/401872981/competitions/401872981?lang=en&region=us"
+    },
+    "athlete": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4360310?lang=en&region=us"
+    },
+    "provider": {
+     "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/casinos/100?lang=en&region=us"
+    },
+    "type": {
+     "id": "9",
+     "name": "Total Pass Completions (incl. overtime)"
+    },
+    "lastUpdated": "2026-10-10T03:25Z",
+    "current": {
+     "target": {
+      "value": 20.5,
+      "displayValue": "20.5"
+     }
+    },
+    "open": {
+     "target": {
+      "value": 19.5,
+      "displayValue": "19.5"
+     }
+    }
+   }
+  ]
+ ],
+ "keysOfItem": [
+  "competition",
+  "athlete",
+  "provider",
+  "type",
+  "lastUpdated",
+  "current",
+  "open"
+ ]
+}

@@ -1,0 +1,278 @@
+{
+ "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715?lang=en&region=us",
+ "id": "4040715",
+ "uid": "s:20~l:28~a:4040715",
+ "guid": "caceb80c-6350-a107-9fcf-7c7bd1b4edd8",
+ "type": "football",
+ "alternateIds": {
+  "sdr": "4040715"
+ },
+ "firstName": "Jalen",
+ "lastName": "Hurts",
+ "fullName": "Jalen Hurts",
+ "displayName": "Jalen Hurts",
+ "shortName": "J. Hurts",
+ "weight": 223,
+ "displayWeight": "223 lbs",
+ "height": 73,
+ "displayHeight": "6' 1\"",
+ "age": 28,
+ "dateOfBirth": "1998-08-07T07:00Z",
+ "debutYear": 2020,
+ "links": [
+  {
+   "language": "en-US",
+   "rel": [
+    "playercard",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/_/id/4040715/jalen-hurts",
+   "text": "Player Card",
+   "shortText": "Player Card",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "stats",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/stats/_/id/4040715/jalen-hurts",
+   "text": "Stats",
+   "shortText": "Stats",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "stats",
+    "sportscenter",
+    "app",
+    "athlete"
+   ],
+   "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~a:4040715&section=stats",
+   "text": "Stats",
+   "shortText": "Stats",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "splits",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/splits/_/id/4040715/jalen-hurts",
+   "text": "Splits",
+   "shortText": "Splits",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "gamelog",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/gamelog/_/id/4040715/jalen-hurts",
+   "text": "Game Log",
+   "shortText": "Game Log",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "gamelog",
+    "sportscenter",
+    "app",
+    "athlete"
+   ],
+   "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~a:4040715&section=gamelog",
+   "text": "Game Log",
+   "shortText": "Game Log",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "news",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/news/_/id/4040715/jalen-hurts",
+   "text": "News",
+   "shortText": "News",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "news",
+    "sportscenter",
+    "app",
+    "athlete"
+   ],
+   "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~a:4040715&section=news",
+   "text": "News",
+   "shortText": "News",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "bio",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/bio/_/id/4040715/jalen-hurts",
+   "text": "Bio",
+   "shortText": "Bio",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "bio",
+    "sportscenter",
+    "app",
+    "athlete"
+   ],
+   "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~a:4040715&section=bio",
+   "text": "Bio",
+   "shortText": "Bio",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "overview",
+    "desktop",
+    "athlete"
+   ],
+   "href": "https://www.espn.com/nfl/player/_/id/4040715/jalen-hurts",
+   "text": "Overview",
+   "shortText": "Overview",
+   "isExternal": false,
+   "isPremium": false
+  },
+  {
+   "language": "en-US",
+   "rel": [
+    "overview",
+    "sportscenter",
+    "app",
+    "athlete"
+   ],
+   "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~a:4040715",
+   "text": "Overview",
+   "shortText": "Overview",
+   "isExternal": false,
+   "isPremium": false
+  }
+ ],
+ "birthPlace": {
+  "city": "Houston",
+  "state": "TX",
+  "country": "USA"
+ },
+ "college": {
+  "$ref": "http://sports.core.api.espn.com/v2/colleges/201?lang=en&region=us"
+ },
+ "slug": "jalen-hurts",
+ "headshot": {
+  "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+  "alt": "Jalen Hurts"
+ },
+ "jersey": "1",
+ "hand": {
+  "type": "LEFT",
+  "abbreviation": "L",
+  "displayValue": "Left"
+ },
+ "position": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/positions/8?lang=en&region=us",
+  "id": "8",
+  "name": "Quarterback",
+  "displayName": "Quarterback",
+  "abbreviation": "QB",
+  "leaf": true,
+  "parent": {
+   "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/positions/70?lang=en&region=us"
+  }
+ },
+ "injuries": [],
+ "linked": true,
+ "team": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/teams/21?lang=en&region=us"
+ },
+ "teams": [
+  {
+   "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/teams/21?lang=en&region=us"
+  }
+ ],
+ "statistics": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/types/2/athletes/4040715/statistics?lang=en&region=us"
+ },
+ "projections": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/types/2/athletes/4040715/projections?lang=en&region=us"
+ },
+ "notes": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715/notes?lang=en&region=us"
+ },
+ "contracts": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4040715/contracts?lang=en&region=us"
+ },
+ "experience": {
+  "years": 7
+ },
+ "collegeAthlete": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/college-football/athletes/4040715?lang=en&region=us"
+ },
+ "active": true,
+ "contract": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4040715/contracts/2026?lang=en&region=us",
+  "optionType": 0,
+  "salary": 51500000,
+  "bonus": 0,
+  "salaryRemaining": 103000000,
+  "yearsRemaining": 3,
+  "signedThrough": 2029,
+  "season": {
+   "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026?lang=en&region=us"
+  },
+  "team": {
+   "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/teams/21?lang=en&region=us"
+  },
+  "active": true
+ },
+ "eventLog": {
+  "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/athletes/4040715/eventlog?lang=en&region=us"
+ },
+ "draft": {
+  "displayText": "Year: 2020 Round: 2 Pick: 53",
+  "round": 2,
+  "year": 2020,
+  "selection": 53,
+  "team": {
+   "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2020/teams/21?lang=en&region=us"
+  }
+ },
+ "status": {
+  "id": "1",
+  "name": "Active",
+  "type": "active",
+  "abbreviation": "Active"
+ }
+}

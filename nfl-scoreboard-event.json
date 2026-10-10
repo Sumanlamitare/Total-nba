@@ -1,0 +1,1069 @@
+{
+ "id": "401872981",
+ "uid": "s:20~l:28~e:401872981",
+ "date": "2026-10-11T13:30Z",
+ "name": "Philadelphia Eagles at Jacksonville Jaguars",
+ "shortName": "PHI VS JAX",
+ "season": {
+  "year": 2026,
+  "type": 2,
+  "slug": "regular-season"
+ },
+ "week": {
+  "number": 5
+ },
+ "competitions": [
+  {
+   "id": "401872981",
+   "uid": "s:20~l:28~e:401872981~c:401872981",
+   "date": "2026-10-11T13:30Z",
+   "attendance": 0,
+   "type": {
+    "id": "1",
+    "abbreviation": "STD"
+   },
+   "timeValid": true,
+   "neutralSite": true,
+   "conferenceCompetition": false,
+   "playByPlayAvailable": false,
+   "recent": false,
+   "venue": {
+    "id": "5534",
+    "fullName": "Tottenham Hotspur Stadium",
+    "address": {
+     "city": "London",
+     "country": "England"
+    },
+    "indoor": false
+   },
+   "competitors": [
+    {
+     "id": "30",
+     "uid": "s:20~l:28~t:30",
+     "type": "team",
+     "order": 0,
+     "homeAway": "home",
+     "team": {
+      "id": "30",
+      "uid": "s:20~l:28~t:30",
+      "location": "Jacksonville",
+      "name": "Jaguars",
+      "abbreviation": "JAX",
+      "displayName": "Jacksonville Jaguars",
+      "shortDisplayName": "Jaguars",
+      "color": "007487",
+      "alternateColor": "d7a22a",
+      "isActive": true,
+      "venue": {
+       "id": "3712"
+      },
+      "links": [
+       {
+        "rel": [
+         "clubhouse",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/_/name/jax/jacksonville-jaguars",
+        "text": "Clubhouse",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "roster",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/roster/_/name/jax/jacksonville-jaguars",
+        "text": "Roster",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "roster",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:30&section=roster",
+        "text": "Roster",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "stats",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/stats/_/name/jax/jacksonville-jaguars",
+        "text": "Statistics",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "stats",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:30&section=stats",
+        "text": "Statistics",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "schedule",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/jax",
+        "text": "Schedule",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "schedule",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:30&section=scores",
+        "text": "Schedule",
+        "isExternal": false,
+        "isPremium": false
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/jax.png",
+      "logoDark": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/jax.png"
+     },
+     "score": "0",
+     "curatedRank": {
+      "current": 99
+     },
+     "statistics": [],
+     "records": [
+      {
+       "name": "overall",
+       "abbreviation": "Any",
+       "type": "total",
+       "summary": "3-1"
+      },
+      {
+       "name": "Home",
+       "type": "home",
+       "summary": "2-0"
+      },
+      {
+       "name": "Road",
+       "type": "road",
+       "summary": "1-1"
+      }
+     ],
+     "leaders": [
+      {
+       "name": "passingLeader",
+       "displayName": "Passing Leader",
+       "shortDisplayName": "PASS",
+       "abbreviation": "PYDS",
+       "leaders": [
+        {
+         "displayValue": "72/104, 843 YDS, 8 TD, 2 INT",
+         "value": 843,
+         "athlete": {
+          "id": "4360310",
+          "fullName": "Trevor Lawrence",
+          "displayName": "Trevor Lawrence",
+          "shortName": "T. Lawrence",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4360310/trevor-lawrence"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+          "jersey": "16",
+          "position": {
+           "abbreviation": "QB"
+          },
+          "team": {
+           "id": "30"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "30"
+         }
+        }
+       ]
+      },
+      {
+       "name": "rushingLeader",
+       "displayName": "Rushing Leader",
+       "shortDisplayName": "RUSH",
+       "abbreviation": "RYDS",
+       "leaders": [
+        {
+         "displayValue": "60 CAR, 277 YDS, 2 TD",
+         "value": 277,
+         "athlete": {
+          "id": "4882093",
+          "fullName": "Bhayshul Tuten",
+          "displayName": "Bhayshul Tuten",
+          "shortName": "B. Tuten",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4882093/bhayshul-tuten"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+          "jersey": "33",
+          "position": {
+           "abbreviation": "RB"
+          },
+          "team": {
+           "id": "30"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "30"
+         }
+        }
+       ]
+      },
+      {
+       "name": "receivingLeader",
+       "displayName": "Receiving Leader",
+       "shortDisplayName": "REC",
+       "abbreviation": "RECYDS",
+       "leaders": [
+        {
+         "displayValue": "16 REC, 228 YDS, 2 TD",
+         "value": 228,
+         "athlete": {
+          "id": "4432620",
+          "fullName": "Parker Washington",
+          "displayName": "Parker Washington",
+          "shortName": "P. Washington",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4432620/parker-washington"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
+          "jersey": "11",
+          "position": {
+           "abbreviation": "WR"
+          },
+          "team": {
+           "id": "30"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "30"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "21",
+     "uid": "s:20~l:28~t:21",
+     "type": "team",
+     "order": 1,
+     "homeAway": "away",
+     "team": {
+      "id": "21",
+      "uid": "s:20~l:28~t:21",
+      "location": "Philadelphia",
+      "name": "Eagles",
+      "abbreviation": "PHI",
+      "displayName": "Philadelphia Eagles",
+      "shortDisplayName": "Eagles",
+      "color": "06424d",
+      "alternateColor": "000000",
+      "isActive": true,
+      "venue": {
+       "id": "3806"
+      },
+      "links": [
+       {
+        "rel": [
+         "clubhouse",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/_/name/phi/philadelphia-eagles",
+        "text": "Clubhouse",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "roster",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/roster/_/name/phi/philadelphia-eagles",
+        "text": "Roster",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "roster",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:21&section=roster",
+        "text": "Roster",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "stats",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/stats/_/name/phi/philadelphia-eagles",
+        "text": "Statistics",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "stats",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:21&section=stats",
+        "text": "Statistics",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "schedule",
+         "desktop",
+         "team"
+        ],
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/phi",
+        "text": "Schedule",
+        "isExternal": false,
+        "isPremium": false
+       },
+       {
+        "rel": [
+         "schedule",
+         "sportscenter",
+         "app",
+         "team"
+        ],
+        "href": "sportscenter://x-callback-url/showClubhouse?uid=s:20~l:28~t:21&section=scores",
+        "text": "Schedule",
+        "isExternal": false,
+        "isPremium": false
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png",
+      "logoDark": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/phi.png"
+     },
+     "score": "0",
+     "curatedRank": {
+      "current": 99
+     },
+     "statistics": [],
+     "records": [
+      {
+       "name": "overall",
+       "abbreviation": "Any",
+       "type": "total",
+       "summary": "2-2"
+      },
+      {
+       "name": "Home",
+       "type": "home",
+       "summary": "1-1"
+      },
+      {
+       "name": "Road",
+       "type": "road",
+       "summary": "1-1"
+      }
+     ],
+     "leaders": [
+      {
+       "name": "passingLeader",
+       "displayName": "Passing Leader",
+       "shortDisplayName": "PASS",
+       "abbreviation": "PYDS",
+       "leaders": [
+        {
+         "displayValue": "68/114, 713 YDS, 7 TD, 3 INT",
+         "value": 713,
+         "athlete": {
+          "id": "4040715",
+          "fullName": "Jalen Hurts",
+          "displayName": "Jalen Hurts",
+          "shortName": "J. Hurts",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4040715/jalen-hurts"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+          "jersey": "1",
+          "position": {
+           "abbreviation": "QB"
+          },
+          "team": {
+           "id": "21"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "21"
+         }
+        }
+       ]
+      },
+      {
+       "name": "rushingLeader",
+       "displayName": "Rushing Leader",
+       "shortDisplayName": "RUSH",
+       "abbreviation": "RYDS",
+       "leaders": [
+        {
+         "displayValue": "21 CAR, 105 YDS, 1 TD",
+         "value": 105,
+         "athlete": {
+          "id": "4040715",
+          "fullName": "Jalen Hurts",
+          "displayName": "Jalen Hurts",
+          "shortName": "J. Hurts",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4040715/jalen-hurts"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+          "jersey": "1",
+          "position": {
+           "abbreviation": "QB"
+          },
+          "team": {
+           "id": "21"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "21"
+         }
+        }
+       ]
+      },
+      {
+       "name": "receivingLeader",
+       "displayName": "Receiving Leader",
+       "shortDisplayName": "REC",
+       "abbreviation": "RECYDS",
+       "leaders": [
+        {
+         "displayValue": "12 REC, 197 YDS, 1 TD",
+         "value": 197,
+         "athlete": {
+          "id": "4428850",
+          "fullName": "Dontayvion Wicks",
+          "displayName": "Dontayvion Wicks",
+          "shortName": "D. Wicks",
+          "links": [
+           {
+            "rel": [
+             "playercard",
+             "desktop",
+             "athlete"
+            ],
+            "href": "https://www.espn.com/nfl/player/_/id/4428850/dontayvion-wicks"
+           }
+          ],
+          "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4428850.png",
+          "jersey": "13",
+          "position": {
+           "abbreviation": "WR"
+          },
+          "team": {
+           "id": "21"
+          },
+          "active": true
+         },
+         "team": {
+          "id": "21"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "notes": [
+    {
+     "type": "event",
+     "headline": "NFL London Games"
+    }
+   ],
+   "status": {
+    "clock": 0,
+    "displayClock": "0:00",
+    "period": 0,
+    "type": {
+     "id": "1",
+     "name": "STATUS_SCHEDULED",
+     "state": "pre",
+     "completed": false,
+     "description": "Scheduled",
+     "detail": "Sun, October 11th at 9:30 AM EDT",
+     "shortDetail": "10/11 - 9:30 AM EDT"
+    },
+    "isTBDFlex": false
+   },
+   "broadcasts": [
+    {
+     "market": "national",
+     "names": [
+      "NFL Net"
+     ]
+    }
+   ],
+   "leaders": [
+    {
+     "name": "passingYards",
+     "displayName": "Passing Leader",
+     "shortDisplayName": "PASS",
+     "abbreviation": "PYDS",
+     "leaders": [
+      {
+       "displayValue": "843 YDS, 8 TD, 2 INT",
+       "value": 843,
+       "athlete": {
+        "id": "4360310",
+        "fullName": "Trevor Lawrence",
+        "displayName": "Trevor Lawrence",
+        "shortName": "T. Lawrence",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4360310/trevor-lawrence"
+         }
+        ],
+        "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+        "jersey": "16",
+        "position": {
+         "abbreviation": "QB"
+        },
+        "team": {
+         "id": "30"
+        },
+        "active": true
+       },
+       "team": {
+        "id": "30"
+       }
+      }
+     ]
+    },
+    {
+     "name": "rushingYards",
+     "displayName": "Rushing Leader",
+     "shortDisplayName": "RUSH",
+     "abbreviation": "RYDS",
+     "leaders": [
+      {
+       "displayValue": "60 CAR, 277 YDS, 2 TD",
+       "value": 277,
+       "athlete": {
+        "id": "4882093",
+        "fullName": "Bhayshul Tuten",
+        "displayName": "Bhayshul Tuten",
+        "shortName": "B. Tuten",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4882093/bhayshul-tuten"
+         }
+        ],
+        "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+        "jersey": "33",
+        "position": {
+         "abbreviation": "RB"
+        },
+        "team": {
+         "id": "30"
+        },
+        "active": true
+       },
+       "team": {
+        "id": "30"
+       }
+      }
+     ]
+    },
+    {
+     "name": "receivingYards",
+     "displayName": "Receiving Leader",
+     "shortDisplayName": "REC",
+     "abbreviation": "RECYDS",
+     "leaders": [
+      {
+       "displayValue": "16 REC, 228 YDS, 2 TD",
+       "value": 228,
+       "athlete": {
+        "id": "4432620",
+        "fullName": "Parker Washington",
+        "displayName": "Parker Washington",
+        "shortName": "P. Washington",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4432620/parker-washington"
+         }
+        ],
+        "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
+        "jersey": "11",
+        "position": {
+         "abbreviation": "WR"
+        },
+        "team": {
+         "id": "30"
+        },
+        "active": true
+       },
+       "team": {
+        "id": "30"
+       }
+      }
+     ]
+    }
+   ],
+   "format": {
+    "regulation": {
+     "periods": 4
+    },
+    "overtime": {
+     "periods": 1
+    }
+   },
+   "tickets": [
+    {
+     "summary": "Tickets as low as $283",
+     "numberAvailable": 984,
+     "links": [
+      {
+       "href": "https://www.vividseats.com/jacksonville-jaguars-tickets-tottenham-hotspur-stadium-10-11-2026--sports-nfl-football/production/7027971?wsUser=717"
+      },
+      {
+       "href": "https://www.vividseats.com/tottenham-hotspur-new-stadium-tickets/venue/18936?wsUser=717"
+      }
+     ]
+    }
+   ],
+   "startDate": "2026-10-11T13:30Z",
+   "broadcast": "NFL Net",
+   "geoBroadcasts": [
+    {
+     "type": {
+      "id": "1",
+      "shortName": "TV"
+     },
+     "market": {
+      "id": "1",
+      "type": "National"
+     },
+     "media": {
+      "shortName": "NFL Net",
+      "logo": "https://a.espncdn.com/guid/8281947e-bd6c-3a8a-9b1d-6fc957d1709a/logos/default.png",
+      "darkLogo": "https://a.espncdn.com/guid/8281947e-bd6c-3a8a-9b1d-6fc957d1709a/logos/default-dark.png"
+     },
+     "lang": "en",
+     "region": "us"
+    }
+   ],
+   "odds": [
+    {
+     "provider": {
+      "id": "100",
+      "name": "DraftKings",
+      "priority": 1,
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/betting/Draftkings_Light.svg",
+        "rel": [
+         "light"
+        ]
+       },
+       {
+        "href": "https://a.espncdn.com/i/betting/Draftkings_Dark.svg",
+        "rel": [
+         "dark"
+        ]
+       }
+      ],
+      "displayName": "DraftKings"
+     },
+     "details": "JAX -7.5",
+     "overUnder": 41.5,
+     "spread": -7.5,
+     "awayTeamOdds": {
+      "favorite": false,
+      "underdog": true,
+      "team": {
+       "id": "21",
+       "uid": "s:20~l:28~t:21",
+       "abbreviation": "PHI",
+       "name": "Eagles",
+       "displayName": "Philadelphia Eagles",
+       "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png"
+      },
+      "favoriteAtOpen": true
+     },
+     "homeTeamOdds": {
+      "favorite": true,
+      "underdog": false,
+      "team": {
+       "id": "30",
+       "uid": "s:20~l:28~t:30",
+       "abbreviation": "JAX",
+       "name": "Jaguars",
+       "displayName": "Jacksonville Jaguars",
+       "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/jax.png"
+      },
+      "favoriteAtOpen": false
+     },
+     "moneyline": {
+      "displayName": "Moneyline",
+      "shortDisplayName": "ML",
+      "home": {
+       "close": {
+        "odds": "-395",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "home",
+          "desktop",
+          "bets",
+          "draftkings"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_1",
+         "text": "Home Bet",
+         "shortText": "Home Bet",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "home",
+           "betType": "straight"
+          }
+         }
+        }
+       },
+       "open": {
+        "odds": "+110"
+       }
+      },
+      "away": {
+       "close": {
+        "odds": "+310",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "away",
+          "desktop",
+          "bets",
+          "draftkings"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_3",
+         "text": "Away Bet",
+         "shortText": "Away Bet",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "away",
+           "betType": "straight"
+          }
+         }
+        }
+       },
+       "open": {
+        "odds": "-130"
+       }
+      }
+     },
+     "pointSpread": {
+      "displayName": "Spread",
+      "shortDisplayName": "Spread",
+      "home": {
+       "close": {
+        "line": "-7.5",
+        "odds": "-108",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "homeSpread",
+          "desktop",
+          "bets"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697N750_1",
+         "text": "Home Point Spread",
+         "shortText": "Home Point Spread",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "none",
+           "betType": "straight",
+           "betDetails": "Spread:JAX-7.5"
+          }
+         }
+        }
+       },
+       "open": {
+        "line": "+2.5",
+        "odds": "-115"
+       }
+      },
+      "away": {
+       "close": {
+        "line": "+7.5",
+        "odds": "-112",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "awaySpread",
+          "desktop",
+          "bets"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697P750_3",
+         "text": "Away Point Spread",
+         "shortText": "Away Point Spread",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "none",
+           "betType": "straight",
+           "betDetails": "Spread:PHI+7.5"
+          }
+         }
+        }
+       },
+       "open": {
+        "line": "-2.5",
+        "odds": "-105"
+       }
+      }
+     },
+     "total": {
+      "displayName": "Total",
+      "shortDisplayName": "Total",
+      "over": {
+       "close": {
+        "line": "o41.5",
+        "odds": "-112",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "over",
+          "desktop",
+          "bets"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697O4150_1",
+         "text": "Over Odds",
+         "shortText": "Over Odds",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "over",
+           "betType": "straight",
+           "betDetails": "Over:41.5"
+          }
+         }
+        }
+       },
+       "open": {
+        "line": "o44.5",
+        "odds": "-102"
+       }
+      },
+      "under": {
+       "close": {
+        "line": "u41.5",
+        "odds": "-108",
+        "link": {
+         "language": "en-US",
+         "rel": [
+          "under",
+          "desktop",
+          "bets"
+         ],
+         "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697U4150_3",
+         "text": "Under Odds",
+         "shortText": "Under Odds",
+         "isExternal": true,
+         "isPremium": false,
+         "tracking": {
+          "campaign": "betting-integrations",
+          "tags": {
+           "league": "nfl",
+           "sport": "football",
+           "gameId": 401872981,
+           "betSide": "under",
+           "betType": "straight",
+           "betDetails": "Under:41.5"
+          }
+         }
+        }
+       },
+       "open": {
+        "line": "u44.5",
+        "odds": "-118"
+       }
+      }
+     },
+     "link": {
+      "language": "en-US",
+      "rel": [
+       "game",
+       "desktop",
+       "bets"
+      ],
+      "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254",
+      "text": "See More Odds",
+      "shortText": "Game",
+      "isExternal": true,
+      "isPremium": false,
+      "tracking": {
+       "campaign": "betting-integrations",
+       "tags": {
+        "league": "nfl",
+        "sport": "football",
+        "gameId": 401872981,
+        "betSide": "none",
+        "betType": "straight"
+       }
+      }
+     },
+     "header": {
+      "logo": {
+       "dark": "https://a.espncdn.com/i/espnbet/dark/espn-bet-square-off.svg",
+       "light": "https://a.espncdn.com/i/espnbet/espn-bet-square-off.svg",
+       "exclusivesLogoDark": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg",
+       "exclusivesLogoLight": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg"
+      },
+      "text": "Game Odds"
+     },
+     "footer": {
+      "disclaimer": "GAMBLING PROBLEM? CALL 1-800-GAMBLER or 1-800-MY-RESET, (800) 327-5050 or visit gamblinghelplinema.org (MA). Call 877-8-HOPENY/text HOPENY (467369) (NY). Call 888-789-7777/visit ccpg.org (CT), or visit www.mdgamblinghelp.org (MD), 1-800-981-0023 (PR). 21+ and present in most states. (18+ DC/KY/NH/PR/WY). Void in ONT. Eligibility restrictions apply. Terms: draftkings.com/sportsbook. On behalf of Boot Hill Casino (KS). Pass-thru of per wager tax may apply in IL."
+     }
+    }
+   ],
+   "highlights": []
+  }
+ ],
+ "links": [
+  {
+   "language": "en-US",
+   "rel": [
+    "summary",
+    "desktop",
+    "event"
+   ],
+   "href": "https://www.espn.com/nfl/game/_/gameId/401872981/eagles-jaguars",
+   "text": "Gamecast",
+   "shortText": "Gamecast",
+   "isExternal": false,
+   "isPremium": false
+  }
+ ],
+ "status": {
+  "clock": 0,
+  "displayClock": "0:00",
+  "period": 0,
+  "type": {
+   "id": "1",
+   "name": "STATUS_SCHEDULED",
+   "state": "pre",
+   "completed": false,
+   "description": "Scheduled",
+   "detail": "Sun, October 11th at 9:30 AM EDT",
+   "shortDetail": "10/11 - 9:30 AM EDT"
+  }
+ }
+}

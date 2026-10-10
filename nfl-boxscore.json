@@ -1,0 +1,1623 @@
+{
+ "players": [
+  {
+   "team": "IND",
+   "statistics": [
+    {
+     "name": "passing",
+     "labels": [
+      "C/ATT",
+      "YDS",
+      "AVG",
+      "TD",
+      "INT",
+      "SACKS",
+      "QBR",
+      "RTG"
+     ],
+     "keys": [
+      "completions/passingAttempts",
+      "passingYards",
+      "yardsPerPassAttempt",
+      "passingTouchdowns",
+      "interceptions",
+      "sacks-sackYardsLost",
+      "adjQBR",
+      "QBRating"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "3917792",
+        "uid": "s:20~l:28~a:3917792",
+        "guid": "5ad1bcc2-57bc-bb72-bcd0-0cdd0d945444",
+        "firstName": "Daniel",
+        "lastName": "Jones",
+        "displayName": "Daniel Jones",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3917792/daniel-jones",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3917792.png",
+         "alt": "Daniel Jones"
+        },
+        "jersey": "17"
+       },
+       "stats": [
+        "19/34",
+        "143",
+        "4.2",
+        "0",
+        "1",
+        "2-14",
+        "20.6",
+        "53.9"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "rushing",
+     "labels": [
+      "CAR",
+      "YDS",
+      "AVG",
+      "TD",
+      "LONG"
+     ],
+     "keys": [
+      "rushingAttempts",
+      "rushingYards",
+      "yardsPerRushAttempt",
+      "rushingTouchdowns",
+      "longRushing"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4242335",
+        "uid": "s:20~l:28~a:4242335",
+        "guid": "ddd8786c-fd5a-4e55-ccc8-6ddf6f1ede33",
+        "firstName": "Jonathan",
+        "lastName": "Taylor",
+        "displayName": "Jonathan Taylor",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4242335/jonathan-taylor",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4242335.png",
+         "alt": "Jonathan Taylor"
+        },
+        "jersey": "28"
+       },
+       "stats": [
+        "20",
+        "95",
+        "4.8",
+        "2",
+        "12"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "4686468",
+        "uid": "s:20~l:28~a:4686468",
+        "guid": "a045bb26-6f50-3f65-aa23-5ca7d3db91fe",
+        "firstName": "Seth",
+        "lastName": "McGowan",
+        "displayName": "Seth McGowan",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4686468/seth-mcgowan",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4686468.png",
+         "alt": "Seth McGowan"
+        },
+        "jersey": "20"
+       },
+       "stats": [
+        "6",
+        "31",
+        "5.2",
+        "0",
+        "11"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "receiving",
+     "labels": [
+      "REC",
+      "YDS",
+      "AVG",
+      "TD",
+      "LONG",
+      "TGTS"
+     ],
+     "keys": [
+      "receptions",
+      "receivingYards",
+      "yardsPerReception",
+      "receivingTouchdowns",
+      "longReception",
+      "receivingTargets"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "3051889",
+        "uid": "s:20~l:28~a:3051889",
+        "guid": "778bd937-b286-8098-a8f2-1e1818ccb67e",
+        "firstName": "Laquon",
+        "lastName": "Treadwell",
+        "displayName": "Laquon Treadwell",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3051889/laquon-treadwell",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3051889.png",
+         "alt": "Laquon Treadwell"
+        },
+        "jersey": "13"
+       },
+       "stats": [
+        "5",
+        "42",
+        "8.4",
+        "0",
+        "13",
+        "6"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "4431459",
+        "uid": "s:20~l:28~a:4431459",
+        "guid": "0f413f35-0856-304f-8a14-953ee7532190",
+        "firstName": "Tyler",
+        "lastName": "Warren",
+        "displayName": "Tyler Warren",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4431459/tyler-warren",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4431459.png",
+         "alt": "Tyler Warren"
+        },
+        "jersey": "84"
+       },
+       "stats": [
+        "5",
+        "41",
+        "8.2",
+        "0",
+        "13",
+        "5"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "fumbles",
+     "labels": [
+      "FUM",
+      "LOST",
+      "REC"
+     ],
+     "keys": [
+      "fumbles",
+      "fumblesLost",
+      "fumblesRecovered"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "3917792",
+        "uid": "s:20~l:28~a:3917792",
+        "guid": "5ad1bcc2-57bc-bb72-bcd0-0cdd0d945444",
+        "firstName": "Daniel",
+        "lastName": "Jones",
+        "displayName": "Daniel Jones",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3917792/daniel-jones",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3917792.png",
+         "alt": "Daniel Jones"
+        },
+        "jersey": "17"
+       },
+       "stats": [
+        "1",
+        "1",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "defensive",
+     "labels": [
+      "TOT",
+      "SOLO",
+      "SACKS",
+      "TFL",
+      "PD",
+      "QB HTS",
+      "TD"
+     ],
+     "keys": [
+      "totalTackles",
+      "soloTackles",
+      "sacks",
+      "tacklesForLoss",
+      "passesDefended",
+      "QBHits",
+      "defensiveTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4682909",
+        "uid": "s:20~l:28~a:4682909",
+        "guid": "32eaaa3b-0c76-364f-9c2b-ef49304ebf3c",
+        "firstName": "Justin",
+        "lastName": "Walley",
+        "displayName": "Justin Walley",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4682909/justin-walley",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4682909.png",
+         "alt": "Justin Walley"
+        },
+        "jersey": "27"
+       },
+       "stats": [
+        "8",
+        "5",
+        "1",
+        "1",
+        "0",
+        "1",
+        "0"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "3917142",
+        "uid": "s:20~l:28~a:3917142",
+        "guid": "da511a8d-f00d-05c8-abc8-40549c4ad0bd",
+        "firstName": "Akeem",
+        "lastName": "Davis-Gaither",
+        "displayName": "Akeem Davis-Gaither",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3917142/akeem-davis-gaither",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3917142.png",
+         "alt": "Akeem Davis-Gaither"
+        },
+        "jersey": "51"
+       },
+       "stats": [
+        "8",
+        "5",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "interceptions",
+     "labels": [
+      "INT",
+      "YDS",
+      "TD"
+     ],
+     "keys": [
+      "interceptions",
+      "interceptionYards",
+      "interceptionTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4601021",
+        "uid": "s:20~l:28~a:4601021",
+        "guid": "6605c873-92dc-3b38-9e88-25a482d38031",
+        "firstName": "Jaylon",
+        "lastName": "Carlies",
+        "displayName": "Jaylon Carlies",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4601021/jaylon-carlies",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4601021.png",
+         "alt": "Jaylon Carlies"
+        },
+        "jersey": "57"
+       },
+       "stats": [
+        "1",
+        "7",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "kickReturns",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "LONG",
+      "TD"
+     ],
+     "keys": [
+      "kickReturns",
+      "kickReturnYards",
+      "yardsPerKickReturn",
+      "longKickReturn",
+      "kickReturnTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4686468",
+        "uid": "s:20~l:28~a:4686468",
+        "guid": "a045bb26-6f50-3f65-aa23-5ca7d3db91fe",
+        "firstName": "Seth",
+        "lastName": "McGowan",
+        "displayName": "Seth McGowan",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4686468/seth-mcgowan",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4686468.png",
+         "alt": "Seth McGowan"
+        },
+        "jersey": "20"
+       },
+       "stats": [
+        "4",
+        "102",
+        "25.5",
+        "29",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "puntReturns",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "LONG",
+      "TD"
+     ],
+     "keys": [
+      "puntReturns",
+      "puntReturnYards",
+      "yardsPerPuntReturn",
+      "longPuntReturn",
+      "puntReturnTouchdowns"
+     ],
+     "athletes": []
+    },
+    {
+     "name": "kicking",
+     "labels": [
+      "FG",
+      "PCT",
+      "LONG",
+      "XP",
+      "PTS"
+     ],
+     "keys": [
+      "fieldGoalsMade/fieldGoalAttempts",
+      "fieldGoalPct",
+      "longFieldGoalMade",
+      "extraPointsMade/extraPointAttempts",
+      "totalKickingPoints"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4571557",
+        "uid": "s:20~l:28~a:4571557",
+        "guid": "bd38713e-d779-d178-0745-9f0873baadc6",
+        "firstName": "Spencer",
+        "lastName": "Shrader",
+        "displayName": "Spencer Shrader",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4571557/spencer-shrader",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4571557.png",
+         "alt": "Spencer Shrader"
+        },
+        "jersey": "3"
+       },
+       "stats": [
+        "3/3",
+        "100.0",
+        "52",
+        "3/3",
+        "12"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "punting",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "TB",
+      "In 20",
+      "LONG"
+     ],
+     "keys": [
+      "punts",
+      "puntYards",
+      "grossAvgPuntYards",
+      "touchbacks",
+      "puntsInside20",
+      "longPunt"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "3914922",
+        "uid": "s:20~l:28~a:3914922",
+        "guid": "67b2a3dc-b3a7-5735-aef5-89c12ee94cd2",
+        "firstName": "Rigoberto",
+        "lastName": "Sanchez",
+        "displayName": "Rigoberto Sanchez",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3914922/rigoberto-sanchez",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3914922.png",
+         "alt": "Rigoberto Sanchez"
+        },
+        "jersey": "8"
+       },
+       "stats": [
+        "4",
+        "213",
+        "53.3",
+        "0",
+        "3",
+        "59"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "team": "WSH",
+   "statistics": [
+    {
+     "name": "passing",
+     "labels": [
+      "C/ATT",
+      "YDS",
+      "AVG",
+      "TD",
+      "INT",
+      "SACKS",
+      "QBR",
+      "RTG"
+     ],
+     "keys": [
+      "completions/passingAttempts",
+      "passingYards",
+      "yardsPerPassAttempt",
+      "passingTouchdowns",
+      "interceptions",
+      "sacks-sackYardsLost",
+      "adjQBR",
+      "QBRating"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4432722",
+        "uid": "s:20~l:28~a:4432722",
+        "guid": "594a650f-b992-3e6a-b143-275ca583a5b4",
+        "firstName": "Athan",
+        "lastName": "Kaliakmanis",
+        "displayName": "Athan Kaliakmanis",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4432722/athan-kaliakmanis",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4432722.png",
+         "alt": "Athan Kaliakmanis"
+        },
+        "jersey": "16"
+       },
+       "stats": [
+        "15/33",
+        "186",
+        "5.6",
+        "1",
+        "1",
+        "1-9",
+        "20.6",
+        "60.9"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "2576980",
+        "uid": "s:20~l:28~a:2576980",
+        "guid": "33be1f4a-d812-75b9-7b7c-5319d2a7113a",
+        "firstName": "Marcus",
+        "lastName": "Mariota",
+        "displayName": "Marcus Mariota",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/2576980/marcus-mariota",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/2576980.png",
+         "alt": "Marcus Mariota"
+        },
+        "jersey": "8"
+       },
+       "stats": [
+        "3/4",
+        "46",
+        "11.5",
+        "0",
+        "0",
+        "1-6",
+        "88.2",
+        "112.5"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "rushing",
+     "labels": [
+      "CAR",
+      "YDS",
+      "AVG",
+      "TD",
+      "LONG"
+     ],
+     "keys": [
+      "rushingAttempts",
+      "rushingYards",
+      "yardsPerRushAttempt",
+      "rushingTouchdowns",
+      "longRushing"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "2576980",
+        "uid": "s:20~l:28~a:2576980",
+        "guid": "33be1f4a-d812-75b9-7b7c-5319d2a7113a",
+        "firstName": "Marcus",
+        "lastName": "Mariota",
+        "displayName": "Marcus Mariota",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/2576980/marcus-mariota",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/2576980.png",
+         "alt": "Marcus Mariota"
+        },
+        "jersey": "8"
+       },
+       "stats": [
+        "1",
+        "35",
+        "35.0",
+        "0",
+        "35"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "3068267",
+        "uid": "s:20~l:28~a:3068267",
+        "guid": "5a100261-ef63-1420-6cf7-539b6ac1725d",
+        "firstName": "Austin",
+        "lastName": "Ekeler",
+        "displayName": "Austin Ekeler",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3068267/austin-ekeler",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3068267.png",
+         "alt": "Austin Ekeler"
+        },
+        "jersey": "30"
+       },
+       "stats": [
+        "4",
+        "29",
+        "7.3",
+        "0",
+        "10"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "receiving",
+     "labels": [
+      "REC",
+      "YDS",
+      "AVG",
+      "TD",
+      "LONG",
+      "TGTS"
+     ],
+     "keys": [
+      "receptions",
+      "receivingYards",
+      "yardsPerReception",
+      "receivingTouchdowns",
+      "longReception",
+      "receivingTargets"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4361577",
+        "uid": "s:20~l:28~a:4361577",
+        "guid": "2c787d57-fd60-9e8b-1e7f-d8aecc7a4cbb",
+        "firstName": "Dyami",
+        "lastName": "Brown",
+        "displayName": "Dyami Brown",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4361577/dyami-brown",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4361577.png",
+         "alt": "Dyami Brown"
+        },
+        "jersey": "6"
+       },
+       "stats": [
+        "3",
+        "65",
+        "21.7",
+        "0",
+        "48",
+        "4"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "4567156",
+        "uid": "s:20~l:28~a:4567156",
+        "guid": "25b3cf86-4062-aad3-da05-b3f2fdb48736",
+        "firstName": "Treylon",
+        "lastName": "Burks",
+        "displayName": "Treylon Burks",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4567156/treylon-burks",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4567156.png",
+         "alt": "Treylon Burks"
+        },
+        "jersey": "13"
+       },
+       "stats": [
+        "1",
+        "47",
+        "47.0",
+        "1",
+        "47",
+        "3"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "fumbles",
+     "labels": [
+      "FUM",
+      "LOST",
+      "REC"
+     ],
+     "keys": [
+      "fumbles",
+      "fumblesLost",
+      "fumblesRecovered"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4361422",
+        "uid": "s:20~l:28~a:4361422",
+        "guid": "3abbb66c-4907-9b5f-08cd-19b5d7914c6e",
+        "firstName": "Odafe",
+        "lastName": "Oweh",
+        "displayName": "Odafe Oweh",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4361422/odafe-oweh",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4361422.png",
+         "alt": "Odafe Oweh"
+        },
+        "jersey": "98"
+       },
+       "stats": [
+        "0",
+        "0",
+        "1"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "defensive",
+     "labels": [
+      "TOT",
+      "SOLO",
+      "SACKS",
+      "TFL",
+      "PD",
+      "QB HTS",
+      "TD"
+     ],
+     "keys": [
+      "totalTackles",
+      "soloTackles",
+      "sacks",
+      "tacklesForLoss",
+      "passesDefended",
+      "QBHits",
+      "defensiveTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4239694",
+        "uid": "s:20~l:28~a:4239694",
+        "guid": "fcc68f0d-751c-c464-180b-643b74c68fa7",
+        "firstName": "Amik",
+        "lastName": "Robertson",
+        "displayName": "Amik Robertson",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4239694/amik-robertson",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4239694.png",
+         "alt": "Amik Robertson"
+        },
+        "jersey": "2"
+       },
+       "stats": [
+        "9",
+        "7",
+        "0",
+        "0",
+        "1",
+        "0",
+        "0"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "3125248",
+        "uid": "s:20~l:28~a:3125248",
+        "guid": "62ae71c3-2163-8d84-2595-500df2d3e4e9",
+        "firstName": "Jeremy",
+        "lastName": "Reaves",
+        "displayName": "Jeremy Reaves",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3125248/jeremy-reaves",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3125248.png",
+         "alt": "Jeremy Reaves"
+        },
+        "jersey": "39"
+       },
+       "stats": [
+        "8",
+        "4",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "interceptions",
+     "labels": [
+      "INT",
+      "YDS",
+      "TD"
+     ],
+     "keys": [
+      "interceptions",
+      "interceptionYards",
+      "interceptionTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "3943270",
+        "uid": "s:20~l:28~a:3943270",
+        "guid": "a4c346e6-7f33-bc35-33be-4bfc3a353890",
+        "firstName": "Rasul",
+        "lastName": "Douglas",
+        "displayName": "Rasul Douglas",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/3943270/rasul-douglas",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/3943270.png",
+         "alt": "Rasul Douglas"
+        },
+        "jersey": "29"
+       },
+       "stats": [
+        "1",
+        "3",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "kickReturns",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "LONG",
+      "TD"
+     ],
+     "keys": [
+      "kickReturns",
+      "kickReturnYards",
+      "yardsPerKickReturn",
+      "longKickReturn",
+      "kickReturnTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4361577",
+        "uid": "s:20~l:28~a:4361577",
+        "guid": "2c787d57-fd60-9e8b-1e7f-d8aecc7a4cbb",
+        "firstName": "Dyami",
+        "lastName": "Brown",
+        "displayName": "Dyami Brown",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4361577/dyami-brown",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4361577.png",
+         "alt": "Dyami Brown"
+        },
+        "jersey": "6"
+       },
+       "stats": [
+        "3",
+        "82",
+        "27.3",
+        "37",
+        "0"
+       ]
+      },
+      {
+       "athlete": {
+        "id": "4602667",
+        "uid": "s:20~l:28~a:4602667",
+        "guid": "0a26ddb9-e353-3dfb-9db7-9478a487cd3e",
+        "firstName": "Jaylin",
+        "lastName": "Lane",
+        "displayName": "Jaylin Lane",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4602667/jaylin-lane",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4602667.png",
+         "alt": "Jaylin Lane"
+        },
+        "jersey": "83"
+       },
+       "stats": [
+        "3",
+        "80",
+        "26.7",
+        "27",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "puntReturns",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "LONG",
+      "TD"
+     ],
+     "keys": [
+      "puntReturns",
+      "puntReturnYards",
+      "yardsPerPuntReturn",
+      "longPuntReturn",
+      "puntReturnTouchdowns"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "4602667",
+        "uid": "s:20~l:28~a:4602667",
+        "guid": "0a26ddb9-e353-3dfb-9db7-9478a487cd3e",
+        "firstName": "Jaylin",
+        "lastName": "Lane",
+        "displayName": "Jaylin Lane",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/4602667/jaylin-lane",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4602667.png",
+         "alt": "Jaylin Lane"
+        },
+        "jersey": "83"
+       },
+       "stats": [
+        "2",
+        "17",
+        "8.5",
+        "9",
+        "0"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "kicking",
+     "labels": [
+      "FG",
+      "PCT",
+      "LONG",
+      "XP",
+      "PTS"
+     ],
+     "keys": [
+      "fieldGoalsMade/fieldGoalAttempts",
+      "fieldGoalPct",
+      "longFieldGoalMade",
+      "extraPointsMade/extraPointAttempts",
+      "totalKickingPoints"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "5081335",
+        "uid": "s:20~l:28~a:5081335",
+        "guid": "7ef250e0-f67b-3125-8b83-10482d3ce325",
+        "firstName": "Drew",
+        "lastName": "Stevens",
+        "displayName": "Drew Stevens",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/5081335/drew-stevens",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/5081335.png",
+         "alt": "Drew Stevens"
+        },
+        "jersey": "19"
+       },
+       "stats": [
+        "2/2",
+        "100.0",
+        "31",
+        "1/1",
+        "7"
+       ]
+      }
+     ]
+    },
+    {
+     "name": "punting",
+     "labels": [
+      "NO",
+      "YDS",
+      "AVG",
+      "TB",
+      "In 20",
+      "LONG"
+     ],
+     "keys": [
+      "punts",
+      "puntYards",
+      "grossAvgPuntYards",
+      "touchbacks",
+      "puntsInside20",
+      "longPunt"
+     ],
+     "athletes": [
+      {
+       "athlete": {
+        "id": "16166",
+        "uid": "s:20~l:28~a:16166",
+        "guid": "a360d20b-5edc-4103-c34e-f3af6a1535f7",
+        "firstName": "Tress",
+        "lastName": "Way",
+        "displayName": "Tress Way",
+        "links": [
+         {
+          "rel": [
+           "playercard",
+           "desktop",
+           "athlete"
+          ],
+          "href": "https://www.espn.com/nfl/player/_/id/16166/tress-way",
+          "text": "Player Card"
+         }
+        ],
+        "headshot": {
+         "href": "https://a.espncdn.com/i/headshots/nfl/players/full/16166.png",
+         "alt": "Tress Way"
+        },
+        "jersey": "10"
+       },
+       "stats": [
+        "5",
+        "189",
+        "37.8",
+        "0",
+        "3",
+        "49"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "teams": [
+  {
+   "team": "IND",
+   "statistics": [
+    {
+     "name": "firstDowns",
+     "displayValue": "17",
+     "value": 17,
+     "label": "1st Downs"
+    },
+    {
+     "name": "firstDownsPassing",
+     "displayValue": "6",
+     "value": 6,
+     "label": "Passing 1st downs"
+    },
+    {
+     "name": "firstDownsRushing",
+     "displayValue": "10",
+     "value": 10,
+     "label": "Rushing 1st downs"
+    },
+    {
+     "name": "firstDownsPenalty",
+     "displayValue": "1",
+     "value": 1,
+     "label": "1st downs from penalties"
+    },
+    {
+     "name": "thirdDownEff",
+     "displayValue": "5-16",
+     "value": 0.3125,
+     "label": "3rd down efficiency"
+    },
+    {
+     "name": "fourthDownEff",
+     "displayValue": "1-1",
+     "value": 1,
+     "label": "4th down efficiency"
+    },
+    {
+     "name": "totalOffensivePlays",
+     "displayValue": "66",
+     "value": 66,
+     "label": "Total Plays"
+    },
+    {
+     "name": "totalYards",
+     "displayValue": "257",
+     "value": "-",
+     "label": "Total Yards"
+    },
+    {
+     "name": "yardsPerPlay",
+     "displayValue": "3.9",
+     "value": 3.8939393939,
+     "label": "Yards per Play"
+    },
+    {
+     "name": "totalDrives",
+     "displayValue": "13",
+     "value": 13,
+     "label": "Total Drives"
+    },
+    {
+     "name": "netPassingYards",
+     "displayValue": "129",
+     "value": 129,
+     "label": "Passing"
+    },
+    {
+     "name": "completionAttempts",
+     "displayValue": "19/34",
+     "value": "-",
+     "label": "Comp/Att"
+    },
+    {
+     "name": "yardsPerPass",
+     "displayValue": "3.6",
+     "value": 3.5833333333333335,
+     "label": "Yards per pass"
+    },
+    {
+     "name": "interceptions",
+     "displayValue": "1",
+     "value": 1,
+     "label": "Interceptions thrown"
+    },
+    {
+     "name": "sacksYardsLost",
+     "displayValue": "2-14",
+     "value": "-",
+     "label": "Sacks-Yards Lost"
+    },
+    {
+     "name": "rushingYards",
+     "displayValue": "128",
+     "value": 128,
+     "label": "Rushing"
+    },
+    {
+     "name": "rushingAttempts",
+     "displayValue": "30",
+     "value": 30,
+     "label": "Rushing Attempts"
+    },
+    {
+     "name": "yardsPerRushAttempt",
+     "displayValue": "4.3",
+     "value": 4.267,
+     "label": "Yards per rush"
+    },
+    {
+     "name": "redZoneAttempts",
+     "displayValue": "3-3",
+     "value": 1,
+     "label": "Red Zone (Made-Att)"
+    },
+    {
+     "name": "totalPenaltiesYards",
+     "displayValue": "1-5",
+     "value": "-",
+     "label": "Penalties"
+    },
+    {
+     "name": "turnovers",
+     "displayValue": "2",
+     "value": "-",
+     "label": "Turnovers"
+    },
+    {
+     "name": "fumblesLost",
+     "displayValue": "1",
+     "value": 1,
+     "label": "Fumbles lost"
+    },
+    {
+     "name": "interceptions",
+     "displayValue": "1",
+     "value": 1,
+     "label": "Interceptions thrown"
+    },
+    {
+     "name": "defensiveTouchdowns",
+     "displayValue": "0",
+     "value": 0,
+     "label": "Defensive / Special Teams TDs"
+    },
+    {
+     "name": "possessionTime",
+     "displayValue": "30:40",
+     "value": 1840,
+     "label": "Possession"
+    }
+   ]
+  },
+  {
+   "team": "WSH",
+   "statistics": [
+    {
+     "name": "firstDowns",
+     "displayValue": "12",
+     "value": 12,
+     "label": "1st Downs"
+    },
+    {
+     "name": "firstDownsPassing",
+     "displayValue": "7",
+     "value": 7,
+     "label": "Passing 1st downs"
+    },
+    {
+     "name": "firstDownsRushing",
+     "displayValue": "4",
+     "value": 4,
+     "label": "Rushing 1st downs"
+    },
+    {
+     "name": "firstDownsPenalty",
+     "displayValue": "1",
+     "value": 1,
+     "label": "1st downs from penalties"
+    },
+    {
+     "name": "thirdDownEff",
+     "displayValue": "2-15",
+     "value": 0.1333333333,
+     "label": "3rd down efficiency"
+    },
+    {
+     "name": "fourthDownEff",
+     "displayValue": "1-4",
+     "value": 0.25,
+     "label": "4th down efficiency"
+    },
+    {
+     "name": "totalOffensivePlays",
+     "displayValue": "61",
+     "value": 61,
+     "label": "Total Plays"
+    },
+    {
+     "name": "totalYards",
+     "displayValue": "317",
+     "value": "-",
+     "label": "Total Yards"
+    },
+    {
+     "name": "yardsPerPlay",
+     "displayValue": "5.2",
+     "value": 5.1967213115,
+     "label": "Yards per Play"
+    },
+    {
+     "name": "totalDrives",
+     "displayValue": "12",
+     "value": 12,
+     "label": "Total Drives"
+    },
+    {
+     "name": "netPassingYards",
+     "displayValue": "217",
+     "value": 217,
+     "label": "Passing"
+    },
+    {
+     "name": "completionAttempts",
+     "displayValue": "18/37",
+     "value": "-",
+     "label": "Comp/Att"
+    },
+    {
+     "name": "yardsPerPass",
+     "displayValue": "5.6",
+     "value": 5.564102564102564,
+     "label": "Yards per pass"
+    },
+    {
+     "name": "interceptions",
+     "displayValue": "1",
+     "value": 1,
+     "label": "Interceptions thrown"
+    },
+    {
+     "name": "sacksYardsLost",
+     "displayValue": "2-15",
+     "value": "-",
+     "label": "Sacks-Yards Lost"
+    },
+    {
+     "name": "rushingYards",
+     "displayValue": "100",
+     "value": 100,
+     "label": "Rushing"
+    },
+    {
+     "name": "rushingAttempts",
+     "displayValue": "22",
+     "value": 22,
+     "label": "Rushing Attempts"
+    },
+    {
+     "name": "yardsPerRushAttempt",
+     "displayValue": "4.5",
+     "value": 4.545,
+     "label": "Yards per rush"
+    },
+    {
+     "name": "redZoneAttempts",
+     "displayValue": "0-2",
+     "value": 0,
+     "label": "Red Zone (Made-Att)"
+    },
+    {
+     "name": "totalPenaltiesYards",
+     "displayValue": "10-84",
+     "value": "-",
+     "label": "Penalties"
+    },
+    {
+     "name": "turnovers",
+     "displayValue": "1",
+     "value": "-",
+     "label": "Turnovers"
+    },
+    {
+     "name": "fumblesLost",
+     "displayValue": "0",
+     "value": 0,
+     "label": "Fumbles lost"
+    },
+    {
+     "name": "interceptions",
+     "displayValue": "1",
+     "value": 1,
+     "label": "Interceptions thrown"
+    },
+    {
+     "name": "defensiveTouchdowns",
+     "displayValue": "0",
+     "value": 0,
+     "label": "Defensive / Special Teams TDs"
+    },
+    {
+     "name": "possessionTime",
+     "displayValue": "29:20",
+     "value": 1760,
+     "label": "Possession"
+    }
+   ]
+  }
+ ]
+}

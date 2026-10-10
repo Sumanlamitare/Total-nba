@@ -1,0 +1,2432 @@
+{
+ "lastFiveGames": [
+  {
+   "displayOrder": 2,
+   "team": {
+    "id": "28",
+    "uid": "s:40~l:46~t:28",
+    "displayName": "Toronto Raptors",
+    "abbreviation": "TOR",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/tor",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-21T22:35Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-22T15:28Z"
+     }
+    ]
+   },
+   "events": [
+    {
+     "id": "401869377",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401869377/cavaliers-raptors",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-04-26T17:00Z",
+     "score": "93-89",
+     "homeTeamId": "28",
+     "awayTeamId": "5",
+     "homeTeamScore": "93",
+     "awayTeamScore": "89",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "opponent": {
+      "id": "5",
+      "uid": "s:40~l:46~t:5",
+      "displayName": "Cleveland Cavaliers",
+      "abbreviation": "CLE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/cle/cleveland-cavaliers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/cle",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    },
+    {
+     "id": "401869380",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401869380/raptors-cavaliers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "@",
+     "gameDate": "2026-04-29T23:30Z",
+     "score": "125-120",
+     "homeTeamId": "5",
+     "awayTeamId": "28",
+     "homeTeamScore": "125",
+     "awayTeamScore": "120",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA",
+     "opponent": {
+      "id": "5",
+      "uid": "s:40~l:46~t:5",
+      "displayName": "Cleveland Cavaliers",
+      "abbreviation": "CLE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/cle/cleveland-cavaliers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/cle",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png"
+    },
+    {
+     "id": "401869381",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401869381/cavaliers-raptors",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-05-01T23:30Z",
+     "score": "112-110 OT",
+     "homeTeamId": "28",
+     "awayTeamId": "5",
+     "homeTeamScore": "112",
+     "awayTeamScore": "110",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA",
+     "opponent": {
+      "id": "5",
+      "uid": "s:40~l:46~t:5",
+      "displayName": "Cleveland Cavaliers",
+      "abbreviation": "CLE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/cle/cleveland-cavaliers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/cle",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png"
+    },
+    {
+     "id": "401869384",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401869384/raptors-cavaliers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "@",
+     "gameDate": "2026-05-03T23:30Z",
+     "score": "114-102",
+     "homeTeamId": "5",
+     "awayTeamId": "28",
+     "homeTeamScore": "114",
+     "awayTeamScore": "102",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "5",
+      "uid": "s:40~l:46~t:5",
+      "displayName": "Cleveland Cavaliers",
+      "abbreviation": "CLE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/cle/cleveland-cavaliers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/cle",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/cle.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    },
+    {
+     "id": "401902644",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401902644/heat-raptors",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-10-03T23:00Z",
+     "score": "129-105",
+     "homeTeamId": "28",
+     "awayTeamId": "14",
+     "homeTeamScore": "105",
+     "awayTeamScore": "129",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "14",
+      "uid": "s:40~l:46~t:14",
+      "displayName": "Miami Heat",
+      "abbreviation": "MIA",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/mia/miami-heat",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/mia",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/mia.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/mia.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/mia.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/mia.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/mia.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    }
+   ]
+  },
+  {
+   "displayOrder": 1,
+   "team": {
+    "id": "12",
+    "uid": "s:40~l:46~t:12",
+    "displayName": "LA Clippers",
+    "abbreviation": "LAC",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/lac/la-clippers",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/lac",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:13Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:14Z"
+     }
+    ]
+   },
+   "events": [
+    {
+     "id": "401811018",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401811018/thunder-clippers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-04-09T02:00Z",
+     "score": "128-110",
+     "homeTeamId": "12",
+     "awayTeamId": "25",
+     "homeTeamScore": "110",
+     "awayTeamScore": "128",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA",
+     "opponent": {
+      "id": "25",
+      "uid": "s:40~l:46~t:25",
+      "displayName": "Oklahoma City Thunder",
+      "abbreviation": "OKC",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/okc/oklahoma-city-thunder",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/okc",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/okc.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/okc.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/okc.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/okc.png"
+    },
+    {
+     "id": "401811038",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401811038/clippers-trail-blazers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "@",
+     "gameDate": "2026-04-11T02:00Z",
+     "score": "116-97",
+     "homeTeamId": "22",
+     "awayTeamId": "12",
+     "homeTeamScore": "116",
+     "awayTeamScore": "97",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "22",
+      "uid": "s:40~l:46~t:22",
+      "displayName": "Portland Trail Blazers",
+      "abbreviation": "POR",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/por/portland-trail-blazers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/por",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/por.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/por.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/por.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/por.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/por.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/por.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    },
+    {
+     "id": "401811054",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401811054/warriors-clippers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-04-13T00:30Z",
+     "score": "115-110",
+     "homeTeamId": "12",
+     "awayTeamId": "9",
+     "homeTeamScore": "115",
+     "awayTeamScore": "110",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "opponent": {
+      "id": "9",
+      "uid": "s:40~l:46~t:9",
+      "displayName": "Golden State Warriors",
+      "abbreviation": "GS",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/gs/golden-state-warriors",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/gs",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    },
+    {
+     "id": "401866756",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401866756/warriors-clippers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-04-16T02:00Z",
+     "score": "126-121",
+     "homeTeamId": "12",
+     "awayTeamId": "9",
+     "homeTeamScore": "121",
+     "awayTeamScore": "126",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "9",
+      "uid": "s:40~l:46~t:9",
+      "displayName": "Golden State Warriors",
+      "abbreviation": "GS",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/gs/golden-state-warriors",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/gs",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    },
+    {
+     "id": "401918010",
+     "links": [
+      {
+       "href": "https://www.espn.com/nba/game/_/gameId/401918010/warriors-clippers",
+       "text": "Gamecast"
+      }
+     ],
+     "atVs": "vs",
+     "gameDate": "2026-10-04T23:00Z",
+     "score": "104-101",
+     "homeTeamId": "12",
+     "awayTeamId": "9",
+     "homeTeamScore": "104",
+     "awayTeamScore": "101",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "opponent": {
+      "id": "9",
+      "uid": "s:40~l:46~t:9",
+      "displayName": "Golden State Warriors",
+      "abbreviation": "GS",
+      "links": [
+       {
+        "href": "https://www.espn.com/nba/team/_/name/gs/golden-state-warriors",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nba/team/schedule/_/name/gs",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T21:17Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:13Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T21:18Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/gs.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T21:14Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nba/500/gs.png",
+     "leagueName": "National Basketball Association",
+     "leagueAbbreviation": "NBA"
+    }
+   ]
+  }
+ ],
+ "injuries": [
+  {
+   "team": {
+    "id": "28",
+    "uid": "s:40~l:46~t:28",
+    "displayName": "Toronto Raptors",
+    "abbreviation": "TOR",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/tor",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-21T22:35Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-22T15:28Z"
+     }
+    ]
+   },
+   "injuries": [
+    {
+     "status": "Day-To-Day",
+     "date": "2026-10-09T23:32Z",
+     "athlete": {
+      "id": "6450",
+      "uid": "s:40~l:46~a:6450",
+      "guid": "87ff907c-c68c-a82d-1215-37e05d0c62ef",
+      "lastName": "Leonard",
+      "fullName": "Kawhi Leonard",
+      "displayName": "Kawhi Leonard",
+      "shortName": "K. Leonard",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nba/player/_/id/6450/kawhi-leonard",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nba/players/full/6450.png",
+       "alt": "Kawhi Leonard"
+      },
+      "jersey": "2",
+      "position": {
+       "name": "Forward",
+       "displayName": "Forward",
+       "abbreviation": "F"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/46049?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD",
+       "displayDescription": "GTD"
+      },
+      "type": "Not Injury Related",
+      "returnDate": "2026-10-13"
+     }
+    },
+    {
+     "status": "Day-To-Day",
+     "date": "2026-10-06T16:35Z",
+     "athlete": {
+      "id": "4431684",
+      "uid": "s:40~l:46~a:4431684",
+      "guid": "cdc17aeb-57f9-3448-86dc-9d2136fe26a9",
+      "lastName": "Jackson-Davis",
+      "fullName": "Trayce Jackson-Davis",
+      "displayName": "Trayce Jackson-Davis",
+      "shortName": "T. Jackson-Davis",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nba/player/_/id/4431684/trayce-jackson-davis",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nba/players/full/4431684.png",
+       "alt": "Trayce Jackson-Davis"
+      },
+      "jersey": "32",
+      "position": {
+       "name": "Forward",
+       "displayName": "Forward",
+       "abbreviation": "F"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/4431684?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD",
+       "displayDescription": "GTD"
+      },
+      "type": "Head",
+      "location": "Head",
+      "returnDate": "2026-10-10"
+     }
+    }
+   ]
+  },
+  {
+   "team": {
+    "id": "12",
+    "uid": "s:40~l:46~t:12",
+    "displayName": "LA Clippers",
+    "abbreviation": "LAC",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/lac/la-clippers",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/lac",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:13Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:14Z"
+     }
+    ]
+   },
+   "injuries": [
+    {
+     "status": "Day-To-Day",
+     "date": "2026-10-07T20:42Z",
+     "athlete": {
+      "id": "4702352",
+      "uid": "s:40~l:46~a:4702352",
+      "guid": "efb2ea71-9ac8-3507-a4e3-30537d8f350a",
+      "lastName": "Sanders",
+      "fullName": "Kobe Sanders",
+      "displayName": "Kobe Sanders",
+      "shortName": "K. Sanders",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nba/player/_/id/4702352/kobe-sanders",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nba/players/full/4702352.png",
+       "alt": "Kobe Sanders"
+      },
+      "jersey": "4",
+      "position": {
+       "name": "Guard",
+       "displayName": "Guard",
+       "abbreviation": "G"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/4702352?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD",
+       "displayDescription": "GTD"
+      },
+      "type": "Hip",
+      "location": "Torso",
+      "side": "Left",
+      "returnDate": "2026-10-10"
+     }
+    },
+    {
+     "status": "Day-To-Day",
+     "date": "2026-10-07T20:35Z",
+     "athlete": {
+      "id": "6580",
+      "uid": "s:40~l:46~a:6580",
+      "guid": "fb35d5ac-5dde-c5ee-98f3-c348c244c0ae",
+      "lastName": "Beal",
+      "fullName": "Bradley Beal",
+      "displayName": "Bradley Beal",
+      "shortName": "B. Beal",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nba/player/_/id/6580/bradley-beal",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nba/players/full/6580.png",
+       "alt": "Bradley Beal"
+      },
+      "jersey": "3",
+      "position": {
+       "name": "Guard",
+       "displayName": "Guard",
+       "abbreviation": "G"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/56792?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD",
+       "displayDescription": "GTD"
+      },
+      "type": "Knee",
+      "location": "Leg",
+      "detail": "Inflammation",
+      "side": "Not Specified",
+      "returnDate": "2026-10-10"
+     }
+    }
+   ]
+  }
+ ],
+ "pickcenter": [
+  {
+   "provider": {
+    "id": "100",
+    "name": "DraftKings",
+    "priority": 1,
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/betting/Draftkings_Light.svg",
+      "rel": [
+       "light"
+      ]
+     },
+     {
+      "href": "https://a.espncdn.com/i/betting/Draftkings_Dark.svg",
+      "rel": [
+       "dark"
+      ]
+     }
+    ]
+   },
+   "details": "TOR -4.5",
+   "overUnder": 220.5,
+   "spread": -4.5,
+   "overOdds": -110,
+   "underOdds": -110,
+   "awayTeamOdds": {
+    "favorite": false,
+    "underdog": true,
+    "moneyLine": 145,
+    "spreadOdds": -108,
+    "team": {
+     "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/nba/seasons/2027/teams/12?lang=en&region=us"
+    },
+    "teamId": "12",
+    "favoriteAtOpen": false
+   },
+   "homeTeamOdds": {
+    "favorite": true,
+    "underdog": false,
+    "moneyLine": -175,
+    "spreadOdds": -112,
+    "team": {
+     "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/nba/seasons/2027/teams/28?lang=en&region=us"
+    },
+    "teamId": "28",
+    "favoriteAtOpen": true
+   },
+   "links": [
+    {
+     "language": "en-US",
+     "rel": [
+      "home",
+      "desktop",
+      "bets",
+      "draftkings"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0ML86653402_1",
+     "text": "Home Bet",
+     "shortText": "Home Bet",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "home",
+       "betType": "straight"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "away",
+      "desktop",
+      "bets",
+      "draftkings"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0ML86653402_3",
+     "text": "Away Bet",
+     "shortText": "Away Bet",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "away",
+       "betType": "straight"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "homeSpread",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0HC86653402N450_1",
+     "text": "Home Point Spread",
+     "shortText": "Home Point Spread",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "none",
+       "betType": "straight",
+       "betDetails": "Spread:TOR-4.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "awaySpread",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0HC86653402P450_3",
+     "text": "Away Point Spread",
+     "shortText": "Away Point Spread",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "none",
+       "betType": "straight",
+       "betDetails": "Spread:LAC+4.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "over",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0OU86653402O22050_1",
+     "text": "Over Odds",
+     "shortText": "Over Odds",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "over",
+       "betType": "straight",
+       "betDetails": "Over:220.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "under",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0OU86653402U22050_3",
+     "text": "Under Odds",
+     "shortText": "Under Odds",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "under",
+       "betType": "straight",
+       "betDetails": "Under:220.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "game",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988",
+     "text": "See More Odds",
+     "shortText": "Game",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nba",
+       "sport": "basketball",
+       "gameId": 401902645,
+       "betSide": "none",
+       "betType": "straight"
+      }
+     }
+    }
+   ],
+   "moneyline": {
+    "displayName": "Moneyline",
+    "shortDisplayName": "ML",
+    "home": {
+     "close": {
+      "odds": "-175",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "home",
+        "desktop",
+        "bets",
+        "draftkings"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0ML86653402_1",
+       "text": "Home Bet",
+       "shortText": "Home Bet",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "home",
+         "betType": "straight"
+        }
+       }
+      }
+     },
+     "open": {
+      "odds": "-166"
+     }
+    },
+    "away": {
+     "close": {
+      "odds": "+145",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "away",
+        "desktop",
+        "bets",
+        "draftkings"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0ML86653402_3",
+       "text": "Away Bet",
+       "shortText": "Away Bet",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "away",
+         "betType": "straight"
+        }
+       }
+      }
+     },
+     "open": {
+      "odds": "+140"
+     }
+    }
+   },
+   "pointSpread": {
+    "displayName": "Spread",
+    "shortDisplayName": "Spread",
+    "home": {
+     "close": {
+      "line": "-4.5",
+      "odds": "-112",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "homeSpread",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0HC86653402N450_1",
+       "text": "Home Point Spread",
+       "shortText": "Home Point Spread",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "none",
+         "betType": "straight",
+         "betDetails": "Spread:TOR-4.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "-4.5",
+      "odds": "-108"
+     }
+    },
+    "away": {
+     "close": {
+      "line": "+4.5",
+      "odds": "-108",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "awaySpread",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0HC86653402P450_3",
+       "text": "Away Point Spread",
+       "shortText": "Away Point Spread",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "none",
+         "betType": "straight",
+         "betDetails": "Spread:LAC+4.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "+4.5",
+      "odds": "-112"
+     }
+    }
+   },
+   "total": {
+    "displayName": "Total",
+    "shortDisplayName": "Total",
+    "over": {
+     "close": {
+      "line": "o220.5",
+      "odds": "-110",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "over",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0OU86653402O22050_1",
+       "text": "Over Odds",
+       "shortText": "Over Odds",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "over",
+         "betType": "straight",
+         "betDetails": "Over:220.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "o220.5",
+      "odds": "-110"
+     }
+    },
+    "under": {
+     "close": {
+      "line": "u220.5",
+      "odds": "-110",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "under",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988%3Foutcomes%3D0OU86653402U22050_3",
+       "text": "Under Odds",
+       "shortText": "Under Odds",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nba",
+         "sport": "basketball",
+         "gameId": 401902645,
+         "betSide": "under",
+         "betType": "straight",
+         "betDetails": "Under:220.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "u220.5",
+      "odds": "-110"
+     }
+    }
+   },
+   "link": {
+    "language": "en-US",
+    "rel": [
+     "game",
+     "desktop",
+     "bets"
+    ],
+    "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34796988",
+    "text": "See More Odds",
+    "shortText": "Game",
+    "isExternal": true,
+    "isPremium": false,
+    "tracking": {
+     "campaign": "betting-integrations",
+     "tags": {
+      "league": "nba",
+      "sport": "basketball",
+      "gameId": 401902645,
+      "betSide": "none",
+      "betType": "straight"
+     }
+    }
+   },
+   "header": {
+    "logo": {
+     "dark": "https://a.espncdn.com/i/espnbet/dark/espn-bet-square-off.svg",
+     "light": "https://a.espncdn.com/i/espnbet/espn-bet-square-off.svg",
+     "exclusivesLogoDark": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg",
+     "exclusivesLogoLight": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg"
+    },
+    "text": "Game Odds"
+   },
+   "footer": {
+    "disclaimer": "GAMBLING PROBLEM? CALL 1-800-GAMBLER or 1-800-MY-RESET, (800) 327-5050 or visit gamblinghelplinema.org (MA). Call 877-8-HOPENY/text HOPENY (467369) (NY). Call 888-789-7777/visit ccpg.org (CT), or visit www.mdgamblinghelp.org (MD), 1-800-981-0023 (PR). 21+ and present in most states. (18+ DC/KY/NH/PR/WY). Void in ONT. Eligibility restrictions apply. Terms: draftkings.com/sportsbook. On behalf of Boot Hill Casino (KS). Pass-thru of per wager tax may apply in IL."
+   }
+  }
+ ],
+ "odds": [],
+ "againstTheSpread": [
+  {
+   "team": {
+    "id": "12",
+    "uid": "s:40~l:46~t:12",
+    "displayName": "LA Clippers",
+    "abbreviation": "LAC",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/lac/la-clippers",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/lac",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:13Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/lac.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T21:14Z"
+     }
+    ]
+   },
+   "records": []
+  },
+  {
+   "team": {
+    "id": "28",
+    "uid": "s:40~l:46~t:28",
+    "displayName": "Toronto Raptors",
+    "abbreviation": "TOR",
+    "links": [
+     {
+      "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nba/team/schedule/_/name/tor",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T21:17Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-21T22:35Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T21:18Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/tor.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2025-01-22T15:28Z"
+     }
+    ]
+   },
+   "records": []
+  }
+ ],
+ "seasonseries": [
+  {
+   "type": "season",
+   "title": "Regular Season Series",
+   "description": "Regular Season Series",
+   "summary": "Series starts 11/2",
+   "completed": false,
+   "totalCompetitions": 2,
+   "seriesLabel": "Regular Season",
+   "seriesScore": "0-0",
+   "shortSummary": "Season Matchup",
+   "events": [
+    {
+     "id": "401909920",
+     "uid": "s:40~l:46~e:401909920~c:401909920",
+     "date": "2026-11-03T03:00:00Z",
+     "timeValid": true,
+     "status": "pre",
+     "statusType": {
+      "id": "1",
+      "name": "STATUS_SCHEDULED",
+      "state": "pre",
+      "completed": false,
+      "description": "Scheduled",
+      "detail": "Mon, November 2nd at 10:00 PM EST",
+      "shortDetail": "11/2 - 10:00 PM EST"
+     },
+     "neutralSite": false,
+     "broadcasts": [],
+     "competitors": [
+      {
+       "homeAway": "home",
+       "team": {
+        "id": "12",
+        "uid": "s:40~l:46~t:12",
+        "displayName": "LA Clippers",
+        "abbreviation": "LAC",
+        "links": [
+         {
+          "href": "https://www.espn.com/nba/team/_/name/lac/la-clippers",
+          "text": "Clubhouse"
+         },
+         {
+          "href": "https://www.espn.com/nba/team/schedule/_/name/lac",
+          "text": "Schedule"
+         }
+        ],
+        "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "default"
+          ],
+          "lastUpdated": "2024-06-25T21:17Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "dark"
+          ],
+          "lastUpdated": "2024-06-25T21:13Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard"
+          ],
+          "lastUpdated": "2024-06-25T21:18Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard",
+           "dark"
+          ],
+          "lastUpdated": "2024-06-25T21:14Z"
+         }
+        ]
+       },
+       "score": "0"
+      },
+      {
+       "homeAway": "away",
+       "team": {
+        "id": "28",
+        "uid": "s:40~l:46~t:28",
+        "displayName": "Toronto Raptors",
+        "abbreviation": "TOR",
+        "links": [
+         {
+          "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors",
+          "text": "Clubhouse"
+         },
+         {
+          "href": "https://www.espn.com/nba/team/schedule/_/name/tor",
+          "text": "Schedule"
+         }
+        ],
+        "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "default"
+          ],
+          "lastUpdated": "2024-06-25T21:17Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "dark"
+          ],
+          "lastUpdated": "2025-01-21T22:35Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard"
+          ],
+          "lastUpdated": "2024-06-25T21:18Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard",
+           "dark"
+          ],
+          "lastUpdated": "2025-01-22T15:28Z"
+         }
+        ]
+       },
+       "score": "0"
+      }
+     ],
+     "links": [
+      {
+       "language": "en-US",
+       "rel": [
+        "summary",
+        "desktop",
+        "event"
+       ],
+       "href": "https://www.espn.com/nba/game/_/gameId/401909920/raptors-clippers",
+       "text": "Gamecast",
+       "shortText": "Summary",
+       "isExternal": false,
+       "isPremium": false
+      },
+      {
+       "language": "en-US",
+       "rel": [
+        "summary",
+        "sportscenter",
+        "app",
+        "event"
+       ],
+       "href": "sportscenter://x-callback-url/showGame?sportName=basketball&leagueAbbrev=nba&gameId=401909920",
+       "text": "Gamecast",
+       "shortText": "Summary",
+       "isExternal": false,
+       "isPremium": false
+      }
+     ]
+    },
+    {
+     "id": "401910237",
+     "uid": "s:40~l:46~e:401910237~c:401910237",
+     "date": "2027-01-02T00:30:00Z",
+     "timeValid": true,
+     "status": "pre",
+     "statusType": {
+      "id": "1",
+      "name": "STATUS_SCHEDULED",
+      "state": "pre",
+      "completed": false,
+      "description": "Scheduled",
+      "detail": "Fri, January 1st at 7:30 PM EST",
+      "shortDetail": "1/1 - 7:30 PM EST"
+     },
+     "neutralSite": false,
+     "broadcasts": [],
+     "competitors": [
+      {
+       "homeAway": "home",
+       "team": {
+        "id": "28",
+        "uid": "s:40~l:46~t:28",
+        "displayName": "Toronto Raptors",
+        "abbreviation": "TOR",
+        "links": [
+         {
+          "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors",
+          "text": "Clubhouse"
+         },
+         {
+          "href": "https://www.espn.com/nba/team/schedule/_/name/tor",
+          "text": "Schedule"
+         }
+        ],
+        "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "default"
+          ],
+          "lastUpdated": "2024-06-25T21:17Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "dark"
+          ],
+          "lastUpdated": "2025-01-21T22:35Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard"
+          ],
+          "lastUpdated": "2024-06-25T21:18Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/tor.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard",
+           "dark"
+          ],
+          "lastUpdated": "2025-01-22T15:28Z"
+         }
+        ]
+       },
+       "score": "0"
+      },
+      {
+       "homeAway": "away",
+       "team": {
+        "id": "12",
+        "uid": "s:40~l:46~t:12",
+        "displayName": "LA Clippers",
+        "abbreviation": "LAC",
+        "links": [
+         {
+          "href": "https://www.espn.com/nba/team/_/name/lac/la-clippers",
+          "text": "Clubhouse"
+         },
+         {
+          "href": "https://www.espn.com/nba/team/schedule/_/name/lac",
+          "text": "Schedule"
+         }
+        ],
+        "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "default"
+          ],
+          "lastUpdated": "2024-06-25T21:17Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "dark"
+          ],
+          "lastUpdated": "2024-06-25T21:13Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard"
+          ],
+          "lastUpdated": "2024-06-25T21:18Z"
+         },
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/lac.png",
+          "width": 500,
+          "height": 500,
+          "alt": "",
+          "rel": [
+           "full",
+           "scoreboard",
+           "dark"
+          ],
+          "lastUpdated": "2024-06-25T21:14Z"
+         }
+        ]
+       },
+       "score": "0"
+      }
+     ],
+     "links": [
+      {
+       "language": "en-US",
+       "rel": [
+        "summary",
+        "desktop",
+        "event"
+       ],
+       "href": "https://www.espn.com/nba/game/_/gameId/401910237/clippers-raptors",
+       "text": "Gamecast",
+       "shortText": "Summary",
+       "isExternal": false,
+       "isPremium": false
+      },
+      {
+       "language": "en-US",
+       "rel": [
+        "summary",
+        "sportscenter",
+        "app",
+        "event"
+       ],
+       "href": "sportscenter://x-callback-url/showGame?sportName=basketball&leagueAbbrev=nba&gameId=401910237",
+       "text": "Gamecast",
+       "shortText": "Summary",
+       "isExternal": false,
+       "isPremium": false
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "header": [
+  {
+   "id": "28",
+   "homeAway": "home",
+   "team": "TOR",
+   "record": [
+    {
+     "type": "total",
+     "summary": "0-1",
+     "displayValue": "0-1"
+    },
+    {
+     "type": "home",
+     "summary": "0-1",
+     "displayValue": "0-1"
+    },
+    {
+     "type": "vsconf",
+     "summary": "0-1",
+     "displayValue": "0-1"
+    }
+   ]
+  },
+  {
+   "id": "12",
+   "homeAway": "away",
+   "team": "LAC",
+   "record": [
+    {
+     "type": "total",
+     "summary": "1-0",
+     "displayValue": "1-0"
+    },
+    {
+     "type": "road",
+     "summary": "0-0",
+     "displayValue": "0-0"
+    },
+    {
+     "type": "vsconf",
+     "summary": "1-0",
+     "displayValue": "1-0"
+    }
+   ]
+  }
+ ]
+}

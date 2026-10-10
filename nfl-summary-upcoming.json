@@ -1,0 +1,2054 @@
+{
+ "lastFiveGames": [
+  {
+   "displayOrder": 2,
+   "team": {
+    "id": "30",
+    "uid": "s:20~l:28~t:30",
+    "displayName": "Jacksonville Jaguars",
+    "abbreviation": "JAX",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/jax/jacksonville-jaguars",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/jax",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     }
+    ]
+   },
+   "events": [
+    {
+     "id": "401873306",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401873306/buccaneers-jaguars",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 4,
+     "atVs": "vs",
+     "gameDate": "2026-08-28T23:30Z",
+     "score": "19-0",
+     "homeTeamId": "30",
+     "awayTeamId": "27",
+     "homeTeamScore": "19",
+     "awayTeamScore": "0",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "27",
+      "uid": "s:20~l:28~t:27",
+      "displayName": "Tampa Bay Buccaneers",
+      "abbreviation": "TB",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/tb/tampa-bay-buccaneers",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/tb",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:57Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/tb.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:57Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/tb.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:57Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/tb.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:57Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png"
+    },
+    {
+     "id": "401872922",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872922/browns-jaguars",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 1,
+     "atVs": "vs",
+     "gameDate": "2026-09-13T17:00Z",
+     "score": "34-10",
+     "homeTeamId": "30",
+     "awayTeamId": "5",
+     "homeTeamScore": "34",
+     "awayTeamScore": "10",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "5",
+      "uid": "s:20~l:28~t:5",
+      "displayName": "Cleveland Browns",
+      "abbreviation": "CLE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/cle/cleveland-browns",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/cle",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:47Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:47Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:47Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/cle.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:47Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png"
+    },
+    {
+     "id": "401872940",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872940/jaguars-broncos",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 2,
+     "atVs": "@",
+     "gameDate": "2026-09-20T20:05Z",
+     "score": "20-13",
+     "homeTeamId": "7",
+     "awayTeamId": "30",
+     "homeTeamScore": "20",
+     "awayTeamScore": "13",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "7",
+      "uid": "s:20~l:28~t:7",
+      "displayName": "Denver Broncos",
+      "abbreviation": "DEN",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/den/denver-broncos",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/den",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:48Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/den.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:59Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/den.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:48Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/den.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:59Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL"
+    },
+    {
+     "id": "401872957",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872957/patriots-jaguars",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 3,
+     "atVs": "vs",
+     "gameDate": "2026-09-27T17:00Z",
+     "score": "35-6",
+     "homeTeamId": "30",
+     "awayTeamId": "17",
+     "homeTeamScore": "35",
+     "awayTeamScore": "6",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "17",
+      "uid": "s:20~l:28~t:17",
+      "displayName": "New England Patriots",
+      "abbreviation": "NE",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/ne/new-england-patriots",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/ne",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:54Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/ne.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:54Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/ne.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:54Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ne.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:54Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png"
+    },
+    {
+     "id": "401872969",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872969/jaguars-bengals",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 4,
+     "atVs": "@",
+     "gameDate": "2026-10-04T17:00Z",
+     "score": "22-17",
+     "homeTeamId": "4",
+     "awayTeamId": "30",
+     "homeTeamScore": "17",
+     "awayTeamScore": "22",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "opponent": {
+      "id": "4",
+      "uid": "s:20~l:28~t:4",
+      "displayName": "Cincinnati Bengals",
+      "abbreviation": "CIN",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/cin/cincinnati-bengals",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/cin",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL"
+    }
+   ]
+  },
+  {
+   "displayOrder": 1,
+   "team": {
+    "id": "21",
+    "uid": "s:20~l:28~t:21",
+    "displayName": "Philadelphia Eagles",
+    "abbreviation": "PHI",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/phi/philadelphia-eagles",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/phi",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:55Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     }
+    ]
+   },
+   "events": [
+    {
+     "id": "401873301",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401873301/bengals-eagles",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 4,
+     "atVs": "vs",
+     "gameDate": "2026-08-29T00:00Z",
+     "score": "30-13",
+     "homeTeamId": "21",
+     "awayTeamId": "4",
+     "homeTeamScore": "13",
+     "awayTeamScore": "30",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "opponent": {
+      "id": "4",
+      "uid": "s:20~l:28~t:4",
+      "displayName": "Cincinnati Bengals",
+      "abbreviation": "CIN",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/cin/cincinnati-bengals",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/cin",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/cin.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL"
+    },
+    {
+     "id": "401872929",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872929/commanders-eagles",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 1,
+     "atVs": "vs",
+     "gameDate": "2026-09-13T20:25Z",
+     "score": "24-22",
+     "homeTeamId": "21",
+     "awayTeamId": "28",
+     "homeTeamScore": "24",
+     "awayTeamScore": "22",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "opponent": {
+      "id": "28",
+      "uid": "s:20~l:28~t:28",
+      "displayName": "Washington Commanders",
+      "abbreviation": "WSH",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/wsh/washington-commanders",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/wsh",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:58Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/wsh.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:58Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/wsh.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:58Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/wsh.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:58Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL"
+    },
+    {
+     "id": "401872939",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872939/eagles-titans",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 2,
+     "atVs": "@",
+     "gameDate": "2026-09-20T17:00Z",
+     "score": "24-20",
+     "homeTeamId": "10",
+     "awayTeamId": "21",
+     "homeTeamScore": "20",
+     "awayTeamScore": "24",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "W",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "10",
+      "uid": "s:20~l:28~t:10",
+      "displayName": "Tennessee Titans",
+      "abbreviation": "TEN",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/ten/tennessee-titans",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/ten",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2026-03-20T19:56Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/ten.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2026-03-20T19:56Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/ten.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2026-03-20T19:56Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ten.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2026-03-20T19:56Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png"
+    },
+    {
+     "id": "401872963",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872963/eagles-bears",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 3,
+     "atVs": "@",
+     "gameDate": "2026-09-29T00:15Z",
+     "score": "27-7",
+     "homeTeamId": "3",
+     "awayTeamId": "21",
+     "homeTeamScore": "27",
+     "awayTeamScore": "7",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "3",
+      "uid": "s:20~l:28~t:3",
+      "displayName": "Chicago Bears",
+      "abbreviation": "CHI",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/chi/chicago-bears",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/chi",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/chi.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/chi.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/chi.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2024-06-25T18:46Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png"
+    },
+    {
+     "id": "401872970",
+     "links": [
+      {
+       "href": "https://www.espn.com/nfl/game/_/gameId/401872970/rams-eagles",
+       "text": "Gamecast"
+      }
+     ],
+     "week": 4,
+     "atVs": "vs",
+     "gameDate": "2026-10-04T17:00Z",
+     "score": "24-20",
+     "homeTeamId": "21",
+     "awayTeamId": "14",
+     "homeTeamScore": "20",
+     "awayTeamScore": "24",
+     "homeAggregateScore": "0",
+     "awayAggregateScore": "0",
+     "homeShootoutScore": "0",
+     "awayShootoutScore": "0",
+     "gameResult": "L",
+     "leagueName": "National Football League",
+     "leagueAbbreviation": "NFL",
+     "opponent": {
+      "id": "14",
+      "uid": "s:20~l:28~t:14",
+      "displayName": "Los Angeles Rams",
+      "abbreviation": "LAR",
+      "links": [
+       {
+        "href": "https://www.espn.com/nfl/team/_/name/lar/los-angeles-rams",
+        "text": "Clubhouse"
+       },
+       {
+        "href": "https://www.espn.com/nfl/team/schedule/_/name/lar",
+        "text": "Schedule"
+       }
+      ],
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+      "logos": [
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "default"
+        ],
+        "lastUpdated": "2026-04-24T14:36Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/lar.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "dark"
+        ],
+        "lastUpdated": "2026-04-24T14:27Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/lar.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard"
+        ],
+        "lastUpdated": "2026-04-24T14:36Z"
+       },
+       {
+        "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/lar.png",
+        "width": 500,
+        "height": 500,
+        "alt": "",
+        "rel": [
+         "full",
+         "scoreboard",
+         "dark"
+        ],
+        "lastUpdated": "2026-04-24T14:27Z"
+       }
+      ]
+     },
+     "opponentLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png"
+    }
+   ]
+  }
+ ],
+ "injuries": [
+  {
+   "team": {
+    "id": "30",
+    "uid": "s:20~l:28~t:30",
+    "displayName": "Jacksonville Jaguars",
+    "abbreviation": "JAX",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/jax/jacksonville-jaguars",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/jax",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     }
+    ]
+   },
+   "injuries": [
+    {
+     "status": "Doubtful",
+     "date": "2026-10-10T00:02Z",
+     "athlete": {
+      "id": "2970716",
+      "uid": "s:20~l:28~a:2970716",
+      "guid": "c6cb4633-7945-434b-7d56-2e79dad0267b",
+      "lastName": "Murray",
+      "fullName": "Eric Murray",
+      "displayName": "Eric Murray",
+      "shortName": "E. Murray",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nfl/player/_/id/2970716/eric-murray",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nfl/players/full/2970716.png",
+       "alt": "Eric Murray"
+      },
+      "jersey": "29",
+      "position": {
+       "name": "Safety",
+       "displayName": "Safety",
+       "abbreviation": "S"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/college-football/athletes/530737?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "3",
+      "name": "INJURY_STATUS_DOUBTFUL",
+      "description": "doubtful",
+      "abbreviation": "D"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "DOUBTFUL",
+       "abbreviation": "DOUBTFUL",
+       "displayDescription": "Doubtful"
+      },
+      "type": "Concussion",
+      "location": "Head",
+      "detail": "Concussion",
+      "side": "Not Specified",
+      "returnDate": "2026-10-11"
+     }
+    },
+    {
+     "status": "Injured Reserve",
+     "date": "2026-10-08T00:32Z",
+     "athlete": {
+      "id": "4257580",
+      "uid": "s:20~l:28~a:4257580",
+      "guid": "a80568db-d55a-7558-9e19-ea0a8769545b",
+      "lastName": "Braswell",
+      "fullName": "Christian Braswell",
+      "displayName": "Christian Braswell",
+      "shortName": "C. Braswell",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nfl/player/_/id/4257580/christian-braswell",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4257580.png",
+       "alt": "Christian Braswell"
+      },
+      "jersey": "21",
+      "position": {
+       "name": "Cornerback",
+       "displayName": "Cornerback",
+       "abbreviation": "CB"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/college-football/athletes/4257580?lang=en&region=us"
+      },
+      "status": {
+       "id": "13",
+       "name": "Day-To-Day",
+       "type": "day-to-day",
+       "abbreviation": "Day-To-Day"
+      }
+     },
+     "type": {
+      "id": "5",
+      "name": "INJURY_STATUS_IR",
+      "description": "Injured Reserve",
+      "abbreviation": "IR"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "IR",
+       "abbreviation": "IR",
+       "displayDescription": "IR"
+      },
+      "type": "Knee",
+      "location": "Leg",
+      "detail": "Not Specified",
+      "side": "Not Specified",
+      "returnDate": "2026-11-15"
+     }
+    }
+   ]
+  },
+  {
+   "team": {
+    "id": "21",
+    "uid": "s:20~l:28~t:21",
+    "displayName": "Philadelphia Eagles",
+    "abbreviation": "PHI",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/phi/philadelphia-eagles",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/phi",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:55Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     }
+    ]
+   },
+   "injuries": [
+    {
+     "status": "Out",
+     "date": "2026-10-10T00:53Z",
+     "athlete": {
+      "id": "4241372",
+      "uid": "s:20~l:28~a:4241372",
+      "guid": "e69daeb0-d5d8-fa4b-6561-c2a6e2587612",
+      "lastName": "Brown",
+      "fullName": "Hollywood Brown",
+      "displayName": "Hollywood Brown",
+      "shortName": "H. Brown",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nfl/player/_/id/4241372/hollywood-brown",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4241372.png",
+       "alt": "Hollywood Brown"
+      },
+      "jersey": "0",
+      "position": {
+       "name": "Wide Receiver",
+       "displayName": "Wide Receiver",
+       "abbreviation": "WR"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/college-football/athletes/4241372?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "4",
+      "name": "INJURY_STATUS_OUT",
+      "description": "out",
+      "abbreviation": "O"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "OUT",
+       "abbreviation": "OUT",
+       "displayDescription": "Out"
+      },
+      "type": "Ankle",
+      "location": "Leg",
+      "detail": "Not Specified",
+      "side": "Not Specified",
+      "returnDate": "2026-10-18"
+     }
+    },
+    {
+     "status": "Out",
+     "date": "2026-10-09T21:29Z",
+     "athlete": {
+      "id": "4567802",
+      "uid": "s:20~l:28~a:4567802",
+      "guid": "3c1ef570-ee54-3f4f-acda-895df4511798",
+      "lastName": "Kendall",
+      "fullName": "Drew Kendall",
+      "displayName": "Drew Kendall",
+      "shortName": "D. Kendall",
+      "links": [
+       {
+        "rel": [
+         "playercard",
+         "desktop",
+         "athlete"
+        ],
+        "href": "https://www.espn.com/nfl/player/_/id/4567802/drew-kendall",
+        "text": "Player Card"
+       }
+      ],
+      "headshot": {
+       "href": "https://a.espncdn.com/i/headshots/nfl/players/full/4567802.png",
+       "alt": "Drew Kendall"
+      },
+      "jersey": "66",
+      "position": {
+       "name": "Center",
+       "displayName": "Center",
+       "abbreviation": "C"
+      },
+      "collegeAthlete": {
+       "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/college-football/athletes/4567802?lang=en&region=us"
+      },
+      "status": {
+       "id": "1",
+       "name": "Active",
+       "type": "active",
+       "abbreviation": "Active"
+      }
+     },
+     "type": {
+      "id": "4",
+      "name": "INJURY_STATUS_OUT",
+      "description": "out",
+      "abbreviation": "O"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "OUT",
+       "abbreviation": "OUT",
+       "displayDescription": "Out"
+      },
+      "type": "Knee",
+      "location": "Leg",
+      "detail": "Not Specified",
+      "side": "Not Specified",
+      "returnDate": "2026-10-18"
+     }
+    }
+   ]
+  }
+ ],
+ "pickcenter": [
+  {
+   "provider": {
+    "id": "100",
+    "name": "DraftKings",
+    "priority": 1,
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/betting/Draftkings_Light.svg",
+      "rel": [
+       "light"
+      ]
+     },
+     {
+      "href": "https://a.espncdn.com/i/betting/Draftkings_Dark.svg",
+      "rel": [
+       "dark"
+      ]
+     }
+    ]
+   },
+   "details": "JAX -7.5",
+   "overUnder": 41.5,
+   "spread": -7.5,
+   "overOdds": -112,
+   "underOdds": -108,
+   "awayTeamOdds": {
+    "favorite": false,
+    "underdog": true,
+    "moneyLine": 310,
+    "spreadOdds": -112,
+    "team": {
+     "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/nfl/seasons/2026/teams/21?lang=en&region=us"
+    },
+    "teamId": "21",
+    "favoriteAtOpen": true
+   },
+   "homeTeamOdds": {
+    "favorite": true,
+    "underdog": false,
+    "moneyLine": -395,
+    "spreadOdds": -108,
+    "team": {
+     "$ref": "http://sports.core.api.espn.pvt/v2/sports/football/leagues/nfl/seasons/2026/teams/30?lang=en&region=us"
+    },
+    "teamId": "30",
+    "favoriteAtOpen": false
+   },
+   "links": [
+    {
+     "language": "en-US",
+     "rel": [
+      "home",
+      "desktop",
+      "bets",
+      "draftkings"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_1",
+     "text": "Home Bet",
+     "shortText": "Home Bet",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "home",
+       "betType": "straight"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "away",
+      "desktop",
+      "bets",
+      "draftkings"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_3",
+     "text": "Away Bet",
+     "shortText": "Away Bet",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "away",
+       "betType": "straight"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "homeSpread",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697N750_1",
+     "text": "Home Point Spread",
+     "shortText": "Home Point Spread",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "none",
+       "betType": "straight",
+       "betDetails": "Spread:JAX-7.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "awaySpread",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697P750_3",
+     "text": "Away Point Spread",
+     "shortText": "Away Point Spread",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "none",
+       "betType": "straight",
+       "betDetails": "Spread:PHI+7.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "over",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697O4150_1",
+     "text": "Over Odds",
+     "shortText": "Over Odds",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "over",
+       "betType": "straight",
+       "betDetails": "Over:41.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "under",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697U4150_3",
+     "text": "Under Odds",
+     "shortText": "Under Odds",
+     "isExternal": true,
+     "isPremium": false,
+     "tracking": {
+      "campaign": "betting-integrations",
+      "tags": {
+       "league": "nfl",
+       "sport": "football",
+       "gameId": 401872981,
+       "betSide": "under",
+       "betType": "straight",
+       "betDetails": "Under:41.5"
+      }
+     }
+    },
+    {
+     "language": "en-US",
+     "rel": [
+      "game",
+      "desktop",
+      "bets"
+     ],
+     "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254",
+     "text": "Game",
+     "shortText": "Game",
+     "isExternal": true,
+     "isPremium": false
+    }
+   ],
+   "moneyline": {
+    "displayName": "Moneyline",
+    "shortDisplayName": "ML",
+    "home": {
+     "close": {
+      "odds": "-395",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "home",
+        "desktop",
+        "bets",
+        "draftkings"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_1",
+       "text": "Home Bet",
+       "shortText": "Home Bet",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "home",
+         "betType": "straight"
+        }
+       }
+      }
+     },
+     "open": {
+      "odds": "+110"
+     }
+    },
+    "away": {
+     "close": {
+      "odds": "+310",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "away",
+        "desktop",
+        "bets",
+        "draftkings"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0ML84695697_3",
+       "text": "Away Bet",
+       "shortText": "Away Bet",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "away",
+         "betType": "straight"
+        }
+       }
+      }
+     },
+     "open": {
+      "odds": "-130"
+     }
+    }
+   },
+   "pointSpread": {
+    "displayName": "Spread",
+    "shortDisplayName": "Spread",
+    "home": {
+     "close": {
+      "line": "-7.5",
+      "odds": "-108",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "homeSpread",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697N750_1",
+       "text": "Home Point Spread",
+       "shortText": "Home Point Spread",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "none",
+         "betType": "straight",
+         "betDetails": "Spread:JAX-7.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "+2.5",
+      "odds": "-115"
+     }
+    },
+    "away": {
+     "close": {
+      "line": "+7.5",
+      "odds": "-112",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "awaySpread",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0HC84695697P750_3",
+       "text": "Away Point Spread",
+       "shortText": "Away Point Spread",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "none",
+         "betType": "straight",
+         "betDetails": "Spread:PHI+7.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "-2.5",
+      "odds": "-105"
+     }
+    }
+   },
+   "total": {
+    "displayName": "Total",
+    "shortDisplayName": "Total",
+    "over": {
+     "close": {
+      "line": "o41.5",
+      "odds": "-112",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "over",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697O4150_1",
+       "text": "Over Odds",
+       "shortText": "Over Odds",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "over",
+         "betType": "straight",
+         "betDetails": "Over:41.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "o44.5",
+      "odds": "-102"
+     }
+    },
+    "under": {
+     "close": {
+      "line": "u41.5",
+      "odds": "-108",
+      "link": {
+       "language": "en-US",
+       "rel": [
+        "under",
+        "desktop",
+        "bets"
+       ],
+       "href": "https://sportsbook.draftkings.com/gateway?s=__s__&wpcid=__wpcid__&wpsrc=413&wpcn=ESPN&wpscn=Widget&wpcrn=BetSlipDeepLink&wpscid=__wpscid__&wpcrid=xx&preurl=https%3A%2F%2Fsportsbook.draftkings.com%2Fevent%2F34118254%3Foutcomes%3D0OU84695697U4150_3",
+       "text": "Under Odds",
+       "shortText": "Under Odds",
+       "isExternal": true,
+       "isPremium": false,
+       "tracking": {
+        "campaign": "betting-integrations",
+        "tags": {
+         "league": "nfl",
+         "sport": "football",
+         "gameId": 401872981,
+         "betSide": "under",
+         "betType": "straight",
+         "betDetails": "Under:41.5"
+        }
+       }
+      }
+     },
+     "open": {
+      "line": "u44.5",
+      "odds": "-118"
+     }
+    }
+   },
+   "link": {
+    "language": "en-US",
+    "rel": [
+     "odds",
+     "desktop",
+     "event"
+    ],
+    "href": "https://www.espn.com/nfl/odds/_/gameId/401872981",
+    "text": "See More Odds and Props",
+    "shortText": "Odds",
+    "isExternal": false,
+    "isPremium": false
+   },
+   "header": {
+    "logo": {
+     "dark": "https://a.espncdn.com/i/espnbet/dark/espn-bet-square-off.svg",
+     "light": "https://a.espncdn.com/i/espnbet/espn-bet-square-off.svg",
+     "exclusivesLogoDark": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg",
+     "exclusivesLogoLight": "https://a.espncdn.com/i/espnbet/espn-bet-square-mint.svg"
+    },
+    "text": "Game Odds"
+   },
+   "footer": {
+    "disclaimer": "GAMBLING PROBLEM? CALL 1-800-GAMBLER or 1-800-MY-RESET, (800) 327-5050 or visit gamblinghelplinema.org (MA). Call 877-8-HOPENY/text HOPENY (467369) (NY). Call 888-789-7777/visit ccpg.org (CT), or visit www.mdgamblinghelp.org (MD), 1-800-981-0023 (PR). 21+ and present in most states. (18+ DC/KY/NH/PR/WY). Void in ONT. Eligibility restrictions apply. Terms: draftkings.com/sportsbook. On behalf of Boot Hill Casino (KS). Pass-thru of per wager tax may apply in IL."
+   }
+  }
+ ],
+ "odds": [],
+ "againstTheSpread": [
+  {
+   "team": {
+    "id": "21",
+    "uid": "s:20~l:28~t:21",
+    "displayName": "Philadelphia Eagles",
+    "abbreviation": "PHI",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/phi/philadelphia-eagles",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/phi",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:55Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/phi.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:56Z"
+     }
+    ]
+   },
+   "records": []
+  },
+  {
+   "team": {
+    "id": "30",
+    "uid": "s:20~l:28~t:30",
+    "displayName": "Jacksonville Jaguars",
+    "abbreviation": "JAX",
+    "links": [
+     {
+      "href": "https://www.espn.com/nfl/team/_/name/jax/jacksonville-jaguars",
+      "text": "Clubhouse"
+     },
+     {
+      "href": "https://www.espn.com/nfl/team/schedule/_/name/jax",
+      "text": "Schedule"
+     }
+    ],
+    "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+    "logos": [
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "default"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     },
+     {
+      "href": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/jax.png",
+      "width": 500,
+      "height": 500,
+      "alt": "",
+      "rel": [
+       "full",
+       "scoreboard",
+       "dark"
+      ],
+      "lastUpdated": "2024-06-25T18:50Z"
+     }
+    ]
+   },
+   "records": []
+  }
+ ],
+ "predictor": {
+  "header": "Matchup Predictor",
+  "homeTeam": {
+   "id": "30",
+   "gameProjection": "73.6"
+  },
+  "awayTeam": {
+   "id": "21",
+   "gameProjection": "26.2"
+  }
+ },
+ "header": [
+  {
+   "id": "30",
+   "homeAway": "home",
+   "team": "JAX",
+   "record": [
+    {
+     "type": "total",
+     "summary": "3-1",
+     "displayValue": "3-1"
+    },
+    {
+     "type": "home",
+     "summary": "2-0",
+     "displayValue": "2-0"
+    },
+    {
+     "type": "vsconf",
+     "summary": "3-1",
+     "displayValue": "3-1"
+    }
+   ]
+  },
+  {
+   "id": "21",
+   "homeAway": "away",
+   "team": "PHI",
+   "record": [
+    {
+     "type": "total",
+     "summary": "2-2",
+     "displayValue": "2-2"
+    },
+    {
+     "type": "road",
+     "summary": "1-1",
+     "displayValue": "1-1"
+    },
+    {
+     "type": "vsconf",
+     "summary": "1-2",
+     "displayValue": "1-2"
+    }
+   ]
+  }
+ ]
+}
