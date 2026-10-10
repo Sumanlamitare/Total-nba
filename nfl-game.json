@@ -1,0 +1,6564 @@
+{
+ "sport": "nfl",
+ "id": "401872981",
+ "date": "2026-10-11T13:30Z",
+ "status": {
+  "state": "pre",
+  "detail": "10/11 - 9:30 AM EDT"
+ },
+ "home": {
+  "id": "30",
+  "abbr": "JAX",
+  "name": "Jacksonville Jaguars",
+  "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+  "record": "3-1"
+ },
+ "away": {
+  "id": "21",
+  "abbr": "PHI",
+  "name": "Philadelphia Eagles",
+  "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+  "record": "2-2"
+ },
+ "ratings": {
+  "home": {
+   "pf": 25.4,
+   "pa": 17,
+   "net": 8.4,
+   "n": 4
+  },
+  "away": {
+   "pf": 20.4,
+   "pa": 21.9,
+   "net": -1.5,
+   "n": 4
+  },
+  "league": 21.9
+ },
+ "b2b": {
+  "home": false,
+  "away": false
+ },
+ "lines": {
+  "projMargin": 11.4,
+  "projTotal": 41,
+  "sides": [
+   {
+    "market": "Spread",
+    "pick": "JAX -7.5",
+    "pModel": 0.614,
+    "pMarket": 0.496,
+    "p": 0.532,
+    "price": -108,
+    "edge": 0.013,
+    "ev": 0.024,
+    "stake": 0.007,
+    "qualifies": false
+   },
+   {
+    "market": "Spread",
+    "pick": "PHI +7.5",
+    "pModel": 0.386,
+    "pMarket": 0.504,
+    "p": 0.468,
+    "price": -112,
+    "edge": -0.06,
+    "ev": -0.114,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Total",
+    "pick": "Over 41.5",
+    "pModel": 0.485,
+    "pMarket": 0.504,
+    "p": 0.498,
+    "price": -112,
+    "edge": -0.03,
+    "ev": -0.057,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Total",
+    "pick": "Under 41.5",
+    "pModel": 0.515,
+    "pMarket": 0.496,
+    "p": 0.502,
+    "price": -108,
+    "edge": -0.018,
+    "ev": -0.034,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Moneyline",
+    "pick": "JAX",
+    "pModel": 0.81,
+    "pMarket": 0.772,
+    "p": 0.784,
+    "price": -410,
+    "edge": -0.02,
+    "ev": -0.025,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Moneyline",
+    "pick": "PHI",
+    "pModel": 0.19,
+    "pMarket": 0.228,
+    "p": 0.216,
+    "price": 320,
+    "edge": -0.022,
+    "ev": -0.091,
+    "stake": 0,
+    "qualifies": false
+   }
+  ],
+  "lines": {
+   "spread": -7.5,
+   "total": 41.5,
+   "mlHome": -410,
+   "mlAway": 320,
+   "provider": "DraftKings"
+  }
+ },
+ "lastFive": [
+  {
+   "teamId": "30",
+   "abbr": "JAX",
+   "events": [
+    {
+     "date": "2026-10-04",
+     "opp": "CIN",
+     "home": false,
+     "result": "W",
+     "score": "22-17"
+    },
+    {
+     "date": "2026-09-27",
+     "opp": "NE",
+     "home": true,
+     "result": "W",
+     "score": "35-6"
+    },
+    {
+     "date": "2026-09-20",
+     "opp": "DEN",
+     "home": false,
+     "result": "L",
+     "score": "13-20"
+    },
+    {
+     "date": "2026-09-13",
+     "opp": "CLE",
+     "home": true,
+     "result": "W",
+     "score": "34-10"
+    },
+    {
+     "date": "2026-01-04",
+     "opp": "TEN",
+     "home": true,
+     "result": "W",
+     "score": "41-7"
+    }
+   ],
+   "record": "4-1"
+  },
+  {
+   "teamId": "21",
+   "abbr": "PHI",
+   "events": [
+    {
+     "date": "2026-10-04",
+     "opp": "LAR",
+     "home": true,
+     "result": "L",
+     "score": "20-24"
+    },
+    {
+     "date": "2026-09-29",
+     "opp": "CHI",
+     "home": false,
+     "result": "L",
+     "score": "7-27"
+    },
+    {
+     "date": "2026-09-20",
+     "opp": "TEN",
+     "home": false,
+     "result": "W",
+     "score": "24-20"
+    },
+    {
+     "date": "2026-09-13",
+     "opp": "WSH",
+     "home": true,
+     "result": "W",
+     "score": "24-22"
+    },
+    {
+     "date": "2026-01-04",
+     "opp": "WSH",
+     "home": true,
+     "result": "L",
+     "score": "17-24"
+    }
+   ],
+   "record": "2-3"
+  }
+ ],
+ "h2h": {
+  "team": "JAX",
+  "record": "0-1",
+  "meetings": [
+   {
+    "date": "2024-11-03",
+    "home": false,
+    "score": "23-28",
+    "result": "L",
+    "post": false
+   }
+  ]
+ },
+ "injuries": [
+  {
+   "abbr": "JAX",
+   "list": [
+    {
+     "name": "Eric Murray",
+     "pos": "S",
+     "status": "Doubtful"
+    },
+    {
+     "name": "Christian Braswell",
+     "pos": "CB",
+     "status": "Injured Reserve"
+    },
+    {
+     "name": "Caleb Ransaw",
+     "pos": "S",
+     "status": "Injured Reserve"
+    },
+    {
+     "name": "B.J. Green II",
+     "pos": "DE",
+     "status": "Injured Reserve"
+    },
+    {
+     "name": "Sam Mustipher",
+     "pos": "C",
+     "status": "Injured Reserve"
+    }
+   ]
+  },
+  {
+   "abbr": "PHI",
+   "list": [
+    {
+     "name": "Drew Kendall",
+     "pos": "C",
+     "status": "Out"
+    },
+    {
+     "name": "Marcus Epps",
+     "pos": "S",
+     "status": "Out"
+    },
+    {
+     "name": "Jonathan Greenard",
+     "pos": "LB",
+     "status": "Questionable"
+    },
+    {
+     "name": "Hollywood Brown",
+     "pos": "WR",
+     "status": "Out"
+    },
+    {
+     "name": "DeVonta Smith",
+     "pos": "WR",
+     "status": "Out"
+    }
+   ]
+  }
+ ],
+ "predictor": {
+  "home": 73.6,
+  "away": 26.2
+ },
+ "props": [
+  {
+   "key": "4040715|Total Passing Touchdowns (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Pass TD",
+   "type": "Total Passing Touchdowns (incl. overtime)",
+   "line": 0.5,
+   "open": 0.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.798,
+   "pMarket": 0.5,
+   "p": 0.634,
+   "price": -110,
+   "edge": 0.11,
+   "ev": 0.211,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 1.6,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.798
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 4,
+      "n": 5,
+      "rate": 0.8,
+      "lo": 0.376,
+      "hi": 0.964
+     },
+     "l10": {
+      "over": 8,
+      "n": 10,
+      "rate": 0.8,
+      "lo": 0.49,
+      "hi": 0.943
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4882093|Total Carries (incl. overtime)",
+   "aid": "4882093",
+   "player": "Bhayshul Tuten",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+   "market": "Carries",
+   "type": "Total Carries (incl. overtime)",
+   "line": 14.5,
+   "open": 14.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.777,
+   "pMarket": 0.5,
+   "p": 0.622,
+   "price": -110,
+   "edge": 0.098,
+   "ev": 0.188,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 11,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.223
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 17,
+      "line": {
+       "rushingAttempts": 17,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 15,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 13,
+      "line": {
+       "rushingAttempts": 13,
+       "rushingYards": 65,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": -3,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 15,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 66,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 22
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 4,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 51
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4870795|Total Receptions (incl. overtime)",
+   "aid": "4870795",
+   "player": "Makai Lemon",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4870795.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 3.5,
+   "open": 3.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.751,
+   "pMarket": 0.5,
+   "p": 0.609,
+   "price": -110,
+   "edge": 0.085,
+   "ev": 0.162,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 2.5,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.249
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 6,
+       "receivingYards": 27
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": 29
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": -5,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 14
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": -5
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "l10": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4715355|Total Receiving Yards (incl. overtime)",
+   "aid": "4715355",
+   "player": "Darius Cooper",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4715355.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 20.5,
+   "open": 23.5,
+   "moved": -3,
+   "side": "Under",
+   "pModel": 0.749,
+   "pMarket": 0.5,
+   "p": 0.608,
+   "price": -110,
+   "edge": 0.084,
+   "ev": 0.16,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 12.4,
+    "sd": 12,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.251
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 33,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 7,
+       "receivingYards": 33,
+       "receivingTouchdowns": 2
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 26,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 3,
+       "receivingYards": 26,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 9,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 9
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4432773|Total Receptions (incl. overtime)",
+   "aid": "4432773",
+   "player": "Brian Thomas Jr.",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432773.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 1.5,
+   "open": 2.5,
+   "moved": -1,
+   "side": "Over",
+   "pModel": 0.737,
+   "pMarket": 0.5,
+   "p": 0.602,
+   "price": -110,
+   "edge": 0.078,
+   "ev": 0.149,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 2.7,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.737
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 9,
+       "receivingYards": 40
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 3,
+       "receivingYards": 40
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 21,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 4,
+      "n": 5,
+      "rate": 0.8,
+      "lo": 0.376,
+      "hi": 0.964
+     },
+     "l10": {
+      "over": 9,
+      "n": 10,
+      "rate": 0.9,
+      "lo": 0.596,
+      "hi": 0.982
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4428850|Total Receptions (incl. overtime)",
+   "aid": "4428850",
+   "player": "Dontayvion Wicks",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4428850.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 3.5,
+   "open": 3.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.73,
+   "pMarket": 0.5,
+   "p": 0.598,
+   "price": -110,
+   "edge": 0.074,
+   "ev": 0.142,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 2.6,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.27
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 5,
+       "receivingYards": 32
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 5,
+      "line": {
+       "receptions": 5,
+       "receivingTargets": 6,
+       "receivingYards": 74
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 4,
+       "receivingYards": 73,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-28",
+      "opp": "BAL",
+      "home": true,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 7
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 2,
+      "n": 10,
+      "rate": 0.2,
+      "lo": 0.057,
+      "hi": 0.51
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4879194|Total Receiving Yards (incl. overtime)",
+   "aid": "4879194",
+   "player": "Josh Cameron",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4879194.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 10.5,
+   "open": 12.5,
+   "moved": -2,
+   "side": "Over",
+   "pModel": 0.728,
+   "pMarket": 0.5,
+   "p": 0.597,
+   "price": -110,
+   "edge": 0.074,
+   "ev": 0.14,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 19.6,
+    "sd": 14.9,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.728
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 42,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 42
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 12,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 12,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 20,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 20,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "l10": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": true
+  },
+  {
+   "key": "4431545|Total Rushing Yards (incl. overtime)",
+   "aid": "4431545",
+   "player": "Will Shipley",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4431545.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 35.5,
+   "open": 39.5,
+   "moved": -4,
+   "side": "Under",
+   "pModel": 1,
+   "pMarket": 0.5,
+   "p": 0.893,
+   "price": -110,
+   "edge": 0.369,
+   "ev": 0.704,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 9,
+    "sd": 7.7,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 23,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23,
+       "receivingTargets": 1
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 11
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 24,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 24,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 5
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 4,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 4,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 6
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 10,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.278
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4431545|Total Rushing Plus Receiving Yards (incl. overtime)",
+   "aid": "4431545",
+   "player": "Will Shipley",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4431545.png",
+   "market": "Rush+Rec Yds",
+   "type": "Total Rushing Plus Receiving Yards (incl. overtime)",
+   "line": 55.5,
+   "open": 57.5,
+   "moved": -2,
+   "side": "Under",
+   "pModel": 1,
+   "pMarket": 0.5,
+   "p": 0.893,
+   "price": -110,
+   "edge": 0.369,
+   "ev": 0.704,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 13.9,
+    "sd": 10.2,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 23,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23,
+       "receivingTargets": 1
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 11,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 11
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 29,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 24,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 5
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 12,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 4,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 6
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 10,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.278
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4431545|Total Carries (incl. overtime)",
+   "aid": "4431545",
+   "player": "Will Shipley",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4431545.png",
+   "market": "Carries",
+   "type": "Total Carries (incl. overtime)",
+   "line": 10.5,
+   "open": 10.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.995,
+   "pMarket": 0.5,
+   "p": 0.89,
+   "price": -110,
+   "edge": 0.366,
+   "ev": 0.699,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 2.6,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.005
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23,
+       "receivingTargets": 1
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 11
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 7,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 24,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 5
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 4,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 6
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 10,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.278
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360238|Total Rushing Yards (incl. overtime)",
+   "aid": "4360238",
+   "player": "Dameon Pierce",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360238.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 23.5,
+   "open": 19.5,
+   "moved": 4,
+   "side": "Under",
+   "pModel": 0.993,
+   "pMarket": 0.5,
+   "p": 0.881,
+   "price": -110,
+   "edge": 0.357,
+   "ev": 0.682,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Only 0 games this season",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 7.2,
+    "sd": 6.6,
+    "minutes": null,
+    "n": 0,
+    "push": 0,
+    "pOver": 0.007
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-01-04",
+      "opp": "LV",
+      "home": false,
+      "result": "L",
+      "value": 10,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 10
+      }
+     },
+     {
+      "date": "2025-11-09",
+      "opp": "JAX",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2025-10-26",
+      "opp": "SF",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2025-10-05",
+      "opp": "BAL",
+      "home": false,
+      "result": "W",
+      "value": 21,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 21
+      }
+     },
+     {
+      "date": "2025-09-07",
+      "opp": "LAR",
+      "home": false,
+      "result": "L",
+      "value": 5,
+      "line": {
+       "rushingAttempts": 3,
+       "rushingYards": 5,
+       "receivingTargets": 1
+      }
+     }
+    ],
+    "lastVsOpp": {
+     "date": "2025-11-09",
+     "value": 0,
+     "result": "W",
+     "score": "36-29"
+    },
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "season": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 1,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.793
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4431545|Total Receiving Yards (incl. overtime)",
+   "aid": "4431545",
+   "player": "Will Shipley",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4431545.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 16.5,
+   "open": 14.5,
+   "moved": 2,
+   "side": "Under",
+   "pModel": 0.992,
+   "pMarket": 0.5,
+   "p": 0.874,
+   "price": -110,
+   "edge": 0.35,
+   "ev": 0.668,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 4.9,
+    "sd": 4.8,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.008
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23,
+       "receivingTargets": 1
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 11,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 11
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 5,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 24,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 5
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 8,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 4,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 6
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 10,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.278
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4431545|Total Receptions (incl. overtime)",
+   "aid": "4431545",
+   "player": "Will Shipley",
+   "pos": "RB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4431545.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 2.5,
+   "open": 2.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.955,
+   "pMarket": 0.5,
+   "p": 0.772,
+   "price": -110,
+   "edge": 0.248,
+   "ev": 0.473,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 0.8,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.045
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23,
+       "receivingTargets": 1
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 11
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 7,
+       "rushingYards": 24,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 5
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 4,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 6
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 0,
+      "n": 10,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.278
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4870795|Total Receiving Yards (incl. overtime)",
+   "aid": "4870795",
+   "player": "Makai Lemon",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4870795.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 35.5,
+   "open": 33.5,
+   "moved": 2,
+   "side": "Under",
+   "pModel": 0.912,
+   "pMarket": 0.5,
+   "p": 0.718,
+   "price": -110,
+   "edge": 0.194,
+   "ev": 0.37,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 17.6,
+    "sd": 13.3,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.088
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 27,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 6,
+       "receivingYards": 27
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 29,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": 29
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 14,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": -5,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 14
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": -5,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": -5
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "l10": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4715355|Total Receptions (incl. overtime)",
+   "aid": "4715355",
+   "player": "Darius Cooper",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4715355.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 2.5,
+   "open": 2.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.886,
+   "pMarket": 0.5,
+   "p": 0.695,
+   "price": -110,
+   "edge": 0.171,
+   "ev": 0.326,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Too far from the line — the book may know something (check news)"
+   ],
+   "proj": {
+    "mu": 1.1,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.114
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 7,
+       "receivingYards": 33,
+       "receivingTouchdowns": 2
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 3,
+       "receivingYards": 26,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 9
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 2,
+      "n": 10,
+      "rate": 0.2,
+      "lo": 0.057,
+      "hi": 0.51
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4882093|Total Rushing Plus Receiving Yards (incl. overtime)",
+   "aid": "4882093",
+   "player": "Bhayshul Tuten",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+   "market": "Rush+Rec Yds",
+   "type": "Total Rushing Plus Receiving Yards (incl. overtime)",
+   "line": 82.5,
+   "open": 72.5,
+   "moved": 10,
+   "side": "Under",
+   "pModel": 0.756,
+   "pMarket": 0.5,
+   "p": 0.611,
+   "price": -110,
+   "edge": 0.087,
+   "ev": 0.167,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 59.5,
+    "sd": 33.2,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.244
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 91,
+      "line": {
+       "rushingAttempts": 17,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 90,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 62,
+      "line": {
+       "rushingAttempts": 13,
+       "rushingYards": 65,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": -3,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 88,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 66,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 22
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 51,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 51
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4882093|Total Rushing Yards (incl. overtime)",
+   "aid": "4882093",
+   "player": "Bhayshul Tuten",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 67.5,
+   "open": 58.5,
+   "moved": 9,
+   "side": "Under",
+   "pModel": 0.744,
+   "pMarket": 0.5,
+   "p": 0.605,
+   "price": -110,
+   "edge": 0.081,
+   "ev": 0.155,
+   "stake": 0.02,
+   "qualifies": true,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 49.5,
+    "sd": 27.5,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.256
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 73,
+      "line": {
+       "rushingAttempts": 17,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 73,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 65,
+      "line": {
+       "rushingAttempts": 13,
+       "rushingYards": 65,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": -3,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 66,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 66,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 22
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 51,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 51
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 2,
+      "n": 10,
+      "rate": 0.2,
+      "lo": 0.057,
+      "hi": 0.51
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "3121023|Total Receptions (incl. overtime)",
+   "aid": "3121023",
+   "player": "Dallas Goedert",
+   "pos": "TE",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3121023.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 4.5,
+   "open": 4.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.739,
+   "pMarket": 0.5,
+   "p": 0.602,
+   "price": -110,
+   "edge": 0.079,
+   "ev": 0.15,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Only 2 games this season"
+   ],
+   "proj": {
+    "mu": 3.3,
+    "sd": null,
+    "minutes": null,
+    "n": 2,
+    "push": 0,
+    "pOver": 0.261
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 3,
+       "receivingYards": 4
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 4,
+      "line": {
+       "receptions": 4,
+       "receivingTargets": 5,
+       "receivingYards": 77,
+       "receivingTouchdowns": 2
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 4,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 1,
+       "receptions": 4,
+       "receivingTargets": 7,
+       "receivingYards": 33,
+       "receivingTouchdowns": 1,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-28",
+      "opp": "BUF",
+      "home": false,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 6,
+       "receivingYards": 8,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-20",
+      "opp": "WSH",
+      "home": false,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 3,
+       "receivingYards": 32,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 2,
+      "n": 10,
+      "rate": 0.2,
+      "lo": 0.057,
+      "hi": 0.51
+     },
+     "season": {
+      "over": 0,
+      "n": 2,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.658
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4430539|Total Receiving Yards (incl. overtime)",
+   "aid": "4430539",
+   "player": "Brenton Strange",
+   "pos": "TE",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4430539.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 31.5,
+   "open": 37.5,
+   "moved": -6,
+   "side": "Over",
+   "pModel": 0.694,
+   "pMarket": 0.5,
+   "p": 0.581,
+   "price": -110,
+   "edge": 0.057,
+   "ev": 0.109,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 44.9,
+    "sd": 26.5,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.694
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 95,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 8,
+       "receivingYards": 95
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 32,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 32
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 17,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 23,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 3,
+       "receivingYards": 23,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 9,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 5,
+       "receivingYards": 9
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 5,
+      "n": 10,
+      "rate": 0.5,
+      "lo": 0.237,
+      "hi": 0.763
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Passing Attempts (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Pass Att",
+   "type": "Total Passing Attempts (incl. overtime)",
+   "line": 31.5,
+   "open": 31.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.688,
+   "pMarket": 0.5,
+   "p": 0.578,
+   "price": -110,
+   "edge": 0.055,
+   "ev": 0.104,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 28.5,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.312
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 27,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 25,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 37,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 25,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 35,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4432620|Total Receptions (incl. overtime)",
+   "aid": "4432620",
+   "player": "Parker Washington",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 4.5,
+   "open": 4.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.677,
+   "pMarket": 0.5,
+   "p": 0.573,
+   "price": -110,
+   "edge": 0.05,
+   "ev": 0.095,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 3.7,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.323
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 3,
+       "receptions": 1,
+       "receivingTargets": 3,
+       "receivingYards": 7
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 40,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 7,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 12,
+       "receivingYards": 98
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 5,
+      "line": {
+       "receptions": 5,
+       "receivingTargets": 6,
+       "receivingYards": 83,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 7,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 2,
+       "receptions": 7,
+       "receivingTargets": 12,
+       "receivingYards": 107,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Passing Interceptions (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "INT",
+   "type": "Total Passing Interceptions (incl. overtime)",
+   "line": 0.5,
+   "open": 0.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.665,
+   "pMarket": 0.5,
+   "p": 0.568,
+   "price": -110,
+   "edge": 0.044,
+   "ev": 0.085,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 0.6,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.335
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Pass Completions (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Completions",
+   "type": "Total Pass Completions (incl. overtime)",
+   "line": 20.5,
+   "open": 19.5,
+   "moved": 1,
+   "side": "Under",
+   "pModel": 0.659,
+   "pMarket": 0.5,
+   "p": 0.566,
+   "price": -110,
+   "edge": 0.042,
+   "ev": 0.08,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 18.9,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.341
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 18,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 19,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 17,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 18,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 18,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4432773|Total Receiving Yards (incl. overtime)",
+   "aid": "4432773",
+   "player": "Brian Thomas Jr.",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432773.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 24.5,
+   "open": 23.5,
+   "moved": 1,
+   "side": "Over",
+   "pModel": 0.659,
+   "pMarket": 0.5,
+   "p": 0.566,
+   "price": -110,
+   "edge": 0.042,
+   "ev": 0.08,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 34.6,
+    "sd": 24.6,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.659
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 17,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 8,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 8
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 40,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 9,
+       "receivingYards": 40
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 40,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 3,
+       "receivingYards": 40
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 21,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 21,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Carries (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Carries",
+   "type": "Total Carries (incl. overtime)",
+   "line": 6.5,
+   "open": 6.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.655,
+   "pMarket": 0.5,
+   "p": 0.564,
+   "price": -110,
+   "edge": 0.04,
+   "ev": 0.077,
+   "stake": 0.02,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 5.7,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.345
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 5,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 4,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 5,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 7,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 5,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4428850|Total Receiving Yards (incl. overtime)",
+   "aid": "4428850",
+   "player": "Dontayvion Wicks",
+   "pos": "WR",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4428850.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 45.5,
+   "open": 46.5,
+   "moved": -1,
+   "side": "Under",
+   "pModel": 0.642,
+   "pMarket": 0.5,
+   "p": 0.558,
+   "price": -110,
+   "edge": 0.034,
+   "ev": 0.065,
+   "stake": 0.018,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 35.7,
+    "sd": 26.9,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.358
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 18,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 32,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 5,
+       "receivingYards": 32
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 74,
+      "line": {
+       "receptions": 5,
+       "receivingTargets": 6,
+       "receivingYards": 74
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 73,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 4,
+       "receivingYards": 73,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-28",
+      "opp": "BAL",
+      "home": true,
+      "result": "L",
+      "value": 7,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 7
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4879194|Total Receptions (incl. overtime)",
+   "aid": "4879194",
+   "player": "Josh Cameron",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4879194.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 1.5,
+   "open": 1.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.638,
+   "pMarket": 0.5,
+   "p": 0.556,
+   "price": -110,
+   "edge": 0.033,
+   "ev": 0.062,
+   "stake": 0.017,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 1.3,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.362
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 42
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 2,
+       "receivingYards": 12,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {}
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 20,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "l10": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4882093|Total Receptions (incl. overtime)",
+   "aid": "4882093",
+   "player": "Bhayshul Tuten",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 1.5,
+   "open": 1.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.626,
+   "pMarket": 0.5,
+   "p": 0.551,
+   "price": -110,
+   "edge": 0.027,
+   "ev": 0.052,
+   "stake": 0.014,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 1.3,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.374
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 17,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 13,
+       "rushingYards": 65,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": -3,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 66,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 22
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 51
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Passing Attempts (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Pass Att",
+   "type": "Total Passing Attempts (incl. overtime)",
+   "line": 30.5,
+   "open": 30.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.617,
+   "pMarket": 0.5,
+   "p": 0.548,
+   "price": -110,
+   "edge": 0.024,
+   "ev": 0.046,
+   "stake": 0.013,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 28.9,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.383
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 23,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 29,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 29,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 23,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 30,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 0,
+      "n": 5,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.434
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 0,
+      "n": 4,
+      "rate": 0,
+      "lo": 0,
+      "hi": 0.49
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Pass Completions (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Completions",
+   "type": "Total Pass Completions (incl. overtime)",
+   "line": 18.5,
+   "open": 19.5,
+   "moved": -1,
+   "side": "Under",
+   "pModel": 0.611,
+   "pMarket": 0.5,
+   "p": 0.545,
+   "price": -110,
+   "edge": 0.021,
+   "ev": 0.041,
+   "stake": 0.011,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 17.4,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.389
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 12,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 16,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 26,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 14,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 20,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 5,
+      "n": 10,
+      "rate": 0.5,
+      "lo": 0.237,
+      "hi": 0.763
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4362619|Total Rushing Yards (incl. overtime)",
+   "aid": "4362619",
+   "player": "Chris Rodriguez Jr.",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4362619.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 26.5,
+   "open": 26.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.601,
+   "pMarket": 0.5,
+   "p": 0.541,
+   "price": -110,
+   "edge": 0.017,
+   "ev": 0.033,
+   "stake": 0.009,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 32.7,
+    "sd": 24,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.601
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 35,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 35,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 37,
+      "line": {
+       "rushingAttempts": 8,
+       "rushingYards": 37,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 13,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 13
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 23,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23
+      }
+     },
+     {
+      "date": "2026-01-04",
+      "opp": "PHI",
+      "home": false,
+      "result": "W",
+      "value": 65,
+      "line": {
+       "rushingAttempts": 16,
+       "rushingYards": 65,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 18,
+       "rushingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": {
+     "date": "2026-01-04",
+     "value": 65,
+     "result": "W",
+     "score": "24-17"
+    },
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 7,
+      "n": 10,
+      "rate": 0.7,
+      "lo": 0.397,
+      "hi": 0.892
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 2,
+      "n": 2,
+      "rate": 1,
+      "lo": 0.342,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "3121023|Total Receiving Yards (incl. overtime)",
+   "aid": "3121023",
+   "player": "Dallas Goedert",
+   "pos": "TE",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3121023.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 45.5,
+   "open": 40.5,
+   "moved": 5,
+   "side": "Under",
+   "pModel": 0.6,
+   "pMarket": 0.5,
+   "p": 0.541,
+   "price": -110,
+   "edge": 0.017,
+   "ev": 0.032,
+   "stake": 0.009,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first",
+    "Only 2 games this season"
+   ],
+   "proj": {
+    "mu": 38.3,
+    "sd": 28.2,
+    "minutes": null,
+    "n": 2,
+    "push": 0,
+    "pOver": 0.4
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 4,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 3,
+       "receivingYards": 4
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 77,
+      "line": {
+       "receptions": 4,
+       "receivingTargets": 5,
+       "receivingYards": 77,
+       "receivingTouchdowns": 2
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 33,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 1,
+       "receptions": 4,
+       "receivingTargets": 7,
+       "receivingYards": 33,
+       "receivingTouchdowns": 1,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-28",
+      "opp": "BUF",
+      "home": false,
+      "result": "W",
+      "value": 8,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 6,
+       "receivingYards": 8,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2025-12-20",
+      "opp": "WSH",
+      "home": false,
+      "result": "W",
+      "value": 32,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 3,
+       "receivingYards": 32,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 1,
+      "n": 2,
+      "rate": 0.5,
+      "lo": 0.095,
+      "hi": 0.905
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4432620|Total Receiving Yards (incl. overtime)",
+   "aid": "4432620",
+   "player": "Parker Washington",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 62.5,
+   "open": 60.5,
+   "moved": 2,
+   "side": "Under",
+   "pModel": 0.598,
+   "pMarket": 0.5,
+   "p": 0.54,
+   "price": -110,
+   "edge": 0.016,
+   "ev": 0.03,
+   "stake": 0.008,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 53,
+    "sd": 38.2,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.402
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 7,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 3,
+       "receptions": 1,
+       "receivingTargets": 3,
+       "receivingYards": 7
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 40,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 40,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 98,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 12,
+       "receivingYards": 98
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 83,
+      "line": {
+       "receptions": 5,
+       "receivingTargets": 6,
+       "receivingYards": 83,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 107,
+      "line": {
+       "rushingAttempts": 2,
+       "rushingYards": 2,
+       "receptions": 7,
+       "receivingTargets": 12,
+       "receivingYards": 107,
+       "receivingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Passing Interceptions (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "INT",
+   "type": "Total Passing Interceptions (incl. overtime)",
+   "line": 0.5,
+   "open": 0.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.569,
+   "pMarket": 0.5,
+   "p": 0.528,
+   "price": -110,
+   "edge": 0.004,
+   "ev": 0.008,
+   "stake": 0.002,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 0.6,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.431
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 0,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 0,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Rushing Yards (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 27.5,
+   "open": 27.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.566,
+   "pMarket": 0.5,
+   "p": 0.527,
+   "price": -110,
+   "edge": 0.003,
+   "ev": 0.005,
+   "stake": 0.002,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 25.1,
+    "sd": 14.4,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.434
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 18,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 25,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 16,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 46,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 14,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Passing Yards (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Pass Yds",
+   "type": "Total Passing Yards (incl. overtime)",
+   "line": 227.5,
+   "open": 228.5,
+   "moved": -1,
+   "side": "Under",
+   "pModel": 0.552,
+   "pMarket": 0.5,
+   "p": 0.521,
+   "price": -110,
+   "edge": -0.003,
+   "ev": -0.005,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 220.2,
+    "sd": 55.3,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.448
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 227,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 182,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 189,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 245,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 207,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Passing Plus Rushing Yards (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Pass+Rush Yds",
+   "type": "Total Passing Plus Rushing Yards (incl. overtime)",
+   "line": 217.5,
+   "open": 221.5,
+   "moved": -4,
+   "side": "Under",
+   "pModel": 0.553,
+   "pMarket": 0.5,
+   "p": 0.521,
+   "price": -110,
+   "edge": -0.003,
+   "ev": -0.005,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 206.8,
+    "sd": 80.7,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.447
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 111,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 178,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 280,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 249,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 182,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 5,
+      "n": 10,
+      "rate": 0.5,
+      "lo": 0.237,
+      "hi": 0.763
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "3916433|Total Receiving Yards (incl. overtime)",
+   "aid": "3916433",
+   "player": "Jakobi Meyers",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3916433.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 42.5,
+   "open": 42.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.545,
+   "pMarket": 0.5,
+   "p": 0.518,
+   "price": -110,
+   "edge": -0.006,
+   "ev": -0.011,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 45.1,
+    "sd": 22.5,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.545
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 33,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": 33
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 64,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 8,
+       "receivingYards": 64,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 28,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 28
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 40,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 2,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 40,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 12,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 4,
+       "receivingYards": 12
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Rushing Yards (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Rush Yds",
+   "type": "Total Rushing Yards (incl. overtime)",
+   "line": 15.5,
+   "open": 13.5,
+   "moved": 2,
+   "side": "Under",
+   "pModel": 0.543,
+   "pMarket": 0.5,
+   "p": 0.517,
+   "price": -110,
+   "edge": -0.006,
+   "ev": -0.012,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 14.2,
+    "sd": 11.9,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.457
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 0,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 25,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 31,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "3916433|Total Receptions (incl. overtime)",
+   "aid": "3916433",
+   "player": "Jakobi Meyers",
+   "pos": "WR",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3916433.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 3.5,
+   "open": 3.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.542,
+   "pMarket": 0.5,
+   "p": 0.517,
+   "price": -110,
+   "edge": -0.007,
+   "ev": -0.013,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 3.9,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.542
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 4,
+       "receivingYards": 33
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 7,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 8,
+       "receivingYards": 64,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 28
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "rushingAttempts": 1,
+       "rushingYards": 2,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 40,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 1,
+      "line": {
+       "receptions": 1,
+       "receivingTargets": 4,
+       "receivingYards": 12
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4040715|Total Passing Yards (incl. overtime)",
+   "aid": "4040715",
+   "player": "Jalen Hurts",
+   "pos": "QB",
+   "team": "PHI",
+   "opp": "JAX",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4040715.png",
+   "market": "Pass Yds",
+   "type": "Total Passing Yards (incl. overtime)",
+   "line": 186.5,
+   "open": 194.5,
+   "moved": -8,
+   "side": "Under",
+   "pModel": 0.53,
+   "pMarket": 0.5,
+   "p": 0.512,
+   "price": -110,
+   "edge": -0.012,
+   "ev": -0.023,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 181.7,
+    "sd": 64.2,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.47
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "LAR",
+      "home": true,
+      "result": "L",
+      "value": 93,
+      "line": {
+       "completions": 12,
+       "passingAttempts": 27,
+       "passingYards": 93,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CHI",
+      "home": false,
+      "result": "L",
+      "value": 153,
+      "line": {
+       "completions": 16,
+       "passingAttempts": 25,
+       "passingYards": 153,
+       "rushingAttempts": 4,
+       "rushingYards": 25,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "TEN",
+      "home": false,
+      "result": "W",
+      "value": 264,
+      "line": {
+       "completions": 26,
+       "passingAttempts": 37,
+       "passingYards": 264,
+       "passingTouchdowns": 2,
+       "rushingAttempts": 5,
+       "rushingYards": 16
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "WSH",
+      "home": true,
+      "result": "W",
+      "value": 203,
+      "line": {
+       "completions": 14,
+       "passingAttempts": 25,
+       "passingYards": 203,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 7,
+       "rushingYards": 46
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "SF",
+      "home": true,
+      "result": "L",
+      "value": 168,
+      "line": {
+       "completions": 20,
+       "passingAttempts": 35,
+       "passingYards": 168,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 5,
+       "rushingYards": 14
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Passing Touchdowns (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Pass TD",
+   "type": "Total Passing Touchdowns (incl. overtime)",
+   "line": 1.5,
+   "open": 1.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.525,
+   "pMarket": 0.5,
+   "p": 0.51,
+   "price": -110,
+   "edge": -0.014,
+   "ev": -0.026,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 1.8,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.525
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 1,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 4,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 3,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 7,
+      "n": 10,
+      "rate": 0.7,
+      "lo": 0.397,
+      "hi": 0.892
+     },
+     "season": {
+      "over": 2,
+      "n": 4,
+      "rate": 0.5,
+      "lo": 0.15,
+      "hi": 0.85
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4882093|Total Receiving Yards (incl. overtime)",
+   "aid": "4882093",
+   "player": "Bhayshul Tuten",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4882093.png",
+   "market": "Rec Yds",
+   "type": "Total Receiving Yards (incl. overtime)",
+   "line": 9.5,
+   "open": 10.5,
+   "moved": -1,
+   "side": "Over",
+   "pModel": 0.524,
+   "pMarket": 0.5,
+   "p": 0.51,
+   "price": -110,
+   "edge": -0.014,
+   "ev": -0.027,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 10,
+    "sd": 8,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.524
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 18,
+      "line": {
+       "rushingAttempts": 17,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 18
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 17,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 73,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": -3,
+      "line": {
+       "rushingAttempts": 13,
+       "rushingYards": 65,
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": -3,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 22,
+      "line": {
+       "rushingAttempts": 15,
+       "rushingYards": 66,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 22
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 0,
+      "line": {
+       "rushingAttempts": 4,
+       "rushingYards": 51
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 3,
+      "n": 5,
+      "rate": 0.6,
+      "lo": 0.231,
+      "hi": 0.882
+     },
+     "l10": {
+      "over": 4,
+      "n": 10,
+      "rate": 0.4,
+      "lo": 0.168,
+      "hi": 0.687
+     },
+     "season": {
+      "over": 3,
+      "n": 4,
+      "rate": 0.75,
+      "lo": 0.301,
+      "hi": 0.954
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4362619|Total Carries (incl. overtime)",
+   "aid": "4362619",
+   "player": "Chris Rodriguez Jr.",
+   "pos": "RB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4362619.png",
+   "market": "Carries",
+   "type": "Total Carries (incl. overtime)",
+   "line": 6.5,
+   "open": 6.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.52,
+   "pMarket": 0.5,
+   "p": 0.508,
+   "price": -110,
+   "edge": -0.016,
+   "ev": -0.03,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 7.4,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.52
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 6,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 35,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 8,
+      "line": {
+       "rushingAttempts": 8,
+       "rushingYards": 37,
+       "rushingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 13
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 6,
+      "line": {
+       "rushingAttempts": 6,
+       "rushingYards": 23
+      }
+     },
+     {
+      "date": "2026-01-04",
+      "opp": "PHI",
+      "home": false,
+      "result": "W",
+      "value": 16,
+      "line": {
+       "rushingAttempts": 16,
+       "rushingYards": 65,
+       "receptions": 1,
+       "receivingTargets": 1,
+       "receivingYards": 18,
+       "rushingTouchdowns": 1
+      }
+     }
+    ],
+    "lastVsOpp": {
+     "date": "2026-01-04",
+     "value": 16,
+     "result": "W",
+     "score": "24-17"
+    },
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 2,
+      "n": 2,
+      "rate": 1,
+      "lo": 0.342,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4430539|Total Receptions (incl. overtime)",
+   "aid": "4430539",
+   "player": "Brenton Strange",
+   "pos": "TE",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4430539.png",
+   "market": "Receptions",
+   "type": "Total Receptions (incl. overtime)",
+   "line": 3.5,
+   "open": 3.5,
+   "moved": 0,
+   "side": "Over",
+   "pModel": 0.521,
+   "pMarket": 0.5,
+   "p": 0.508,
+   "price": -110,
+   "edge": -0.016,
+   "ev": -0.03,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 3.8,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.521
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 7,
+      "line": {
+       "receptions": 7,
+       "receivingTargets": 8,
+       "receivingYards": 95
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "receptions": 3,
+       "receivingTargets": 5,
+       "receivingYards": 32
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 2,
+       "receivingYards": 17
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 3,
+       "receivingYards": 23,
+       "receivingTouchdowns": 1
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "receptions": 2,
+       "receivingTargets": 5,
+       "receivingYards": 9
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 1,
+      "n": 5,
+      "rate": 0.2,
+      "lo": 0.036,
+      "hi": 0.624
+     },
+     "l10": {
+      "over": 3,
+      "n": 10,
+      "rate": 0.3,
+      "lo": 0.108,
+      "hi": 0.603
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  },
+  {
+   "key": "4360310|Total Carries (incl. overtime)",
+   "aid": "4360310",
+   "player": "Trevor Lawrence",
+   "pos": "QB",
+   "team": "JAX",
+   "opp": "PHI",
+   "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4360310.png",
+   "market": "Carries",
+   "type": "Total Carries (incl. overtime)",
+   "line": 3.5,
+   "open": 3.5,
+   "moved": 0,
+   "side": "Under",
+   "pModel": 0.505,
+   "pMarket": 0.5,
+   "p": 0.502,
+   "price": -110,
+   "edge": -0.022,
+   "ev": -0.042,
+   "stake": 0,
+   "qualifies": false,
+   "flags": [
+    "Odds not posted yet — check the real price first"
+   ],
+   "proj": {
+    "mu": 3.7,
+    "sd": null,
+    "minutes": null,
+    "n": 4,
+    "push": 0,
+    "pOver": 0.495
+   },
+   "context": {
+    "last5": [
+     {
+      "date": "2026-10-04",
+      "opp": "CIN",
+      "home": false,
+      "result": "W",
+      "value": 3,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 227,
+       "passingTouchdowns": 1,
+       "rushingAttempts": 3
+      }
+     },
+     {
+      "date": "2026-09-27",
+      "opp": "NE",
+      "home": true,
+      "result": "W",
+      "value": 4,
+      "line": {
+       "completions": 19,
+       "passingAttempts": 29,
+       "passingYards": 182,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 4,
+       "rushingYards": 25
+      }
+     },
+     {
+      "date": "2026-09-20",
+      "opp": "DEN",
+      "home": false,
+      "result": "L",
+      "value": 2,
+      "line": {
+       "completions": 17,
+       "passingAttempts": 29,
+       "passingYards": 189,
+       "rushingAttempts": 2,
+       "rushingYards": 6
+      }
+     },
+     {
+      "date": "2026-09-13",
+      "opp": "CLE",
+      "home": true,
+      "result": "W",
+      "value": 2,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 23,
+       "passingYards": 245,
+       "passingTouchdowns": 4,
+       "rushingAttempts": 2,
+       "rushingYards": 3
+      }
+     },
+     {
+      "date": "2026-01-11",
+      "opp": "BUF",
+      "home": true,
+      "result": "L",
+      "value": 6,
+      "line": {
+       "completions": 18,
+       "passingAttempts": 30,
+       "passingYards": 207,
+       "passingTouchdowns": 3,
+       "rushingAttempts": 6,
+       "rushingYards": 31
+      }
+     }
+    ],
+    "lastVsOpp": null,
+    "hit": {
+     "l5": {
+      "over": 2,
+      "n": 5,
+      "rate": 0.4,
+      "lo": 0.118,
+      "hi": 0.769
+     },
+     "l10": {
+      "over": 6,
+      "n": 10,
+      "rate": 0.6,
+      "lo": 0.313,
+      "hi": 0.832
+     },
+     "season": {
+      "over": 1,
+      "n": 4,
+      "rate": 0.25,
+      "lo": 0.046,
+      "hi": 0.699
+     },
+     "vsOpp": {
+      "over": 0,
+      "n": 0,
+      "rate": null,
+      "lo": 0,
+      "hi": 1
+     }
+    }
+   },
+   "pick": false
+  }
+ ],
+ "model": {
+  "maxModel": 0.8,
+  "wProp": 0.4,
+  "wGame": 0.3,
+  "minEdgeProp": 0.03,
+  "minEdgeAssumed": 0.06,
+  "minEdgeGame": 0.02,
+  "kellyFrac": 0.25,
+  "kellyCap": 0.02,
+  "assumedPrice": -110
+ },
+ "at": "2026-10-10T09:13:00.949Z"
+}

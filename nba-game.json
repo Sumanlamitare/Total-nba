@@ -1,0 +1,330 @@
+{
+ "sport": "nba",
+ "id": "401902645",
+ "date": "2026-10-10T22:30Z",
+ "status": {
+  "state": "pre",
+  "detail": "10/10 - 6:30 PM EDT"
+ },
+ "home": {
+  "id": "28",
+  "abbr": "TOR",
+  "name": "Toronto Raptors",
+  "logo": "https://a.espncdn.com/i/teamlogos/nba/500/tor.png",
+  "record": "0-1"
+ },
+ "away": {
+  "id": "12",
+  "abbr": "LAC",
+  "name": "LA Clippers",
+  "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lac.png",
+  "record": "1-0"
+ },
+ "ratings": {
+  "home": {
+   "pf": 113.9,
+   "pa": 112.5,
+   "net": 1.4,
+   "n": 0
+  },
+  "away": {
+   "pf": 113.5,
+   "pa": 112.9,
+   "net": 0.6,
+   "n": 0
+  },
+  "league": 113.2
+ },
+ "b2b": {
+  "home": false,
+  "away": false
+ },
+ "lines": {
+  "projMargin": 2.8,
+  "projTotal": 226.4,
+  "sides": [
+   {
+    "market": "Spread",
+    "pick": "TOR -4.5",
+    "pModel": 0.445,
+    "pMarket": 0.504,
+    "p": 0.487,
+    "price": -112,
+    "edge": -0.042,
+    "ev": -0.079,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Spread",
+    "pick": "LAC +4.5",
+    "pModel": 0.555,
+    "pMarket": 0.496,
+    "p": 0.513,
+    "price": -108,
+    "edge": -0.006,
+    "ev": -0.011,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Total",
+    "pick": "Over 217.5",
+    "pModel": 0.69,
+    "pMarket": 0.496,
+    "p": 0.557,
+    "price": -108,
+    "edge": 0.037,
+    "ev": 0.072,
+    "stake": 0.019,
+    "qualifies": true
+   },
+   {
+    "market": "Total",
+    "pick": "Under 217.5",
+    "pModel": 0.31,
+    "pMarket": 0.504,
+    "p": 0.443,
+    "price": -112,
+    "edge": -0.085,
+    "ev": -0.161,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Moneyline",
+    "pick": "TOR",
+    "pModel": 0.597,
+    "pMarket": 0.622,
+    "p": 0.615,
+    "price": -185,
+    "edge": -0.034,
+    "ev": -0.053,
+    "stake": 0,
+    "qualifies": false
+   },
+   {
+    "market": "Moneyline",
+    "pick": "LAC",
+    "pModel": 0.403,
+    "pMarket": 0.378,
+    "p": 0.385,
+    "price": 154,
+    "edge": -0.009,
+    "ev": -0.022,
+    "stake": 0,
+    "qualifies": false
+   }
+  ],
+  "lines": {
+   "spread": -4.5,
+   "total": 217.5,
+   "mlHome": -185,
+   "mlAway": 154,
+   "provider": "DraftKings"
+  }
+ },
+ "lastFive": [
+  {
+   "teamId": "28",
+   "abbr": "TOR",
+   "events": [
+    {
+     "date": "2026-04-12",
+     "opp": "BKN",
+     "home": true,
+     "result": "W",
+     "score": "136-101"
+    },
+    {
+     "date": "2026-04-10",
+     "opp": "NY",
+     "home": false,
+     "result": "L",
+     "score": "95-112"
+    },
+    {
+     "date": "2026-04-09",
+     "opp": "MIA",
+     "home": true,
+     "result": "W",
+     "score": "128-114"
+    },
+    {
+     "date": "2026-04-07",
+     "opp": "MIA",
+     "home": true,
+     "result": "W",
+     "score": "121-95"
+    },
+    {
+     "date": "2026-04-05",
+     "opp": "BOS",
+     "home": false,
+     "result": "L",
+     "score": "101-115"
+    }
+   ],
+   "record": "3-2"
+  },
+  {
+   "teamId": "12",
+   "abbr": "LAC",
+   "events": [
+    {
+     "date": "2026-04-13",
+     "opp": "GS",
+     "home": true,
+     "result": "W",
+     "score": "115-110"
+    },
+    {
+     "date": "2026-04-11",
+     "opp": "POR",
+     "home": false,
+     "result": "L",
+     "score": "97-116"
+    },
+    {
+     "date": "2026-04-09",
+     "opp": "OKC",
+     "home": true,
+     "result": "L",
+     "score": "110-128"
+    },
+    {
+     "date": "2026-04-08",
+     "opp": "DAL",
+     "home": true,
+     "result": "W",
+     "score": "116-103"
+    },
+    {
+     "date": "2026-04-06",
+     "opp": "SAC",
+     "home": false,
+     "result": "W",
+     "score": "138-109"
+    }
+   ],
+   "record": "3-2"
+  }
+ ],
+ "h2h": {
+  "team": "TOR",
+  "record": "1-4",
+  "meetings": [
+   {
+    "date": "2026-03-26",
+    "home": false,
+    "score": "94-119",
+    "result": "L",
+    "post": false
+   },
+   {
+    "date": "2026-01-17",
+    "home": true,
+    "score": "117-121",
+    "result": "L",
+    "post": false
+   },
+   {
+    "date": "2025-02-02",
+    "home": true,
+    "score": "115-108",
+    "result": "W",
+    "post": false
+   },
+   {
+    "date": "2024-11-10",
+    "home": false,
+    "score": "103-105",
+    "result": "L",
+    "post": false
+   },
+   {
+    "date": "2024-01-27",
+    "home": true,
+    "score": "107-127",
+    "result": "L",
+    "post": false
+   }
+  ]
+ },
+ "injuries": [
+  {
+   "abbr": "TOR",
+   "list": [
+    {
+     "name": "Kawhi Leonard",
+     "pos": "F",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Trayce Jackson-Davis",
+     "pos": "F",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Jamison Battle",
+     "pos": "F",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Allen Graves",
+     "pos": "F",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Nate Bittle",
+     "pos": "C",
+     "status": "Day-To-Day"
+    }
+   ]
+  },
+  {
+   "abbr": "LAC",
+   "list": [
+    {
+     "name": "Kobe Sanders",
+     "pos": "G",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Bradley Beal",
+     "pos": "G",
+     "status": "Day-To-Day"
+    },
+    {
+     "name": "Max Strus",
+     "pos": "G",
+     "status": "Out"
+    },
+    {
+     "name": "Yanic Konan Niederhauser",
+     "pos": "C",
+     "status": "Out"
+    },
+    {
+     "name": "Brandon Ingram",
+     "pos": "F",
+     "status": "Out"
+    }
+   ]
+  }
+ ],
+ "predictor": null,
+ "props": [],
+ "model": {
+  "maxModel": 0.8,
+  "wProp": 0.4,
+  "wGame": 0.3,
+  "minEdgeProp": 0.03,
+  "minEdgeAssumed": 0.06,
+  "minEdgeGame": 0.02,
+  "kellyFrac": 0.25,
+  "kellyCap": 0.02,
+  "assumedPrice": -110
+ },
+ "at": "2026-10-10T09:13:01.206Z"
+}

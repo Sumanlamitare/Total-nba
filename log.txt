@@ -1,0 +1,24 @@
+nfl: slate 2026-10-11, 13 games (330 ms)
+nfl: PHI @ JAX analysed in 1076 ms; 46 props, 9 qualify, 7 picks; lines {"spread":-7.5,"total":41.5,"mlHome":-410,"mlAway":320,"provider":"DraftKings"}; proj margin 11.4 total 41
+  ratings {"home":{"pf":25.4,"pa":17,"net":8.4,"n":4},"away":{"pf":20.4,"pa":21.9,"net":-1.5,"n":4},"league":21.9}
+  game sides ["JAX -7.5 pM=0.614 mkt=0.496 p=0.532 edge=0.013","PHI +7.5 pM=0.386 mkt=0.504 p=0.468 edge=-0.06","Over 41.5 pM=0.485 mkt=0.504 p=0.498 edge=-0.03","Under 41.5 pM=0.515 mkt=0.496 p=0.502 edge=-0.018","JAX pM=0.81 mkt=0.772 p=0.784 edge=-0.02","PHI pM=0.19 mkt=0.228 p=0.216 edge=-0.022"]
+  lastFive ["JAX 4-1","PHI 2-3"] h2h {"team":"JAX","record":"0-1","meetings":[{"date":"2024-11-03","home":false,"score":"23-28","result":"L","post":false}]}
+  PICK Jalen Hurts (PHI) Pass TD Over 0.5 | mu 1.6 sd null n 4 | pModel 0.798 p 0.634 edge 0.11 ev 0.211 | L5 4/5 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Bhayshul Tuten (JAX) Carries Under 14.5 | mu 11 sd null n 4 | pModel 0.777 p 0.622 edge 0.098 ev 0.188 | L5 3/5 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Makai Lemon (PHI) Receptions Under 3.5 | mu 2.5 sd null n 4 | pModel 0.751 p 0.609 edge 0.085 ev 0.162 | L5 0/4 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Darius Cooper (PHI) Rec Yds Under 20.5 | mu 12.4 sd 12 n 4 | pModel 0.749 p 0.608 edge 0.084 ev 0.16 | L5 2/5 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Brian Thomas Jr. (JAX) Receptions Over 1.5 | mu 2.7 sd null n 4 | pModel 0.737 p 0.602 edge 0.078 ev 0.149 | L5 4/5 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Dontayvion Wicks (PHI) Receptions Under 3.5 | mu 2.6 sd null n 4 | pModel 0.73 p 0.598 edge 0.074 ev 0.142 | L5 1/5 | vsOpp null | Odds not posted yet — check the real price first
+  PICK Josh Cameron (JAX) Rec Yds Over 10.5 | mu 19.6 sd 14.9 n 4 | pModel 0.728 p 0.597 edge 0.074 ev 0.14 | L5 3/4 | vsOpp null | Odds not posted yet — check the real price first
+       Will Shipley (PHI) Rush Yds Under 35.5 | mu 9 sd 7.7 n 4 | pModel 1 p 0.893 edge 0.369 ev 0.704 | L5 0/5 | vsOpp null | Odds not posted yet — check the real price first; Too far from the line — the book may know something (check news)
+       Will Shipley (PHI) Rush+Rec Yds Under 55.5 | mu 13.9 sd 10.2 n 4 | pModel 1 p 0.893 edge 0.369 ev 0.704 | L5 0/5 | vsOpp null | Odds not posted yet — check the real price first; Too far from the line — the book may know something (check news)
+       Will Shipley (PHI) Carries Under 10.5 | mu 2.6 sd null n 4 | pModel 0.995 p 0.89 edge 0.366 ev 0.699 | L5 0/5 | vsOpp null | Odds not posted yet — check the real price first; Too far from the line — the book may know something (check news)
+       Dameon Pierce (PHI) Rush Yds Under 23.5 | mu 7.2 sd 6.6 n 0 | pModel 0.993 p 0.881 edge 0.357 ev 0.682 | L5 0/5 | vsOpp {"date":"2025-11-09","value":0,"result":"W","score":"36-29"} | Odds not posted yet — check the real price first; Only 0 games this season; Too far from the line — the book may know something (check news)
+       Will Shipley (PHI) Rec Yds Under 16.5 | mu 4.9 sd 4.8 n 4 | pModel 0.992 p 0.874 edge 0.35 ev 0.668 | L5 0/5 | vsOpp null | Odds not posted yet — check the real price first; Too far from the line — the book may know something (check news)
+  markets {"Pass TD":2,"Carries":5,"Receptions":11,"Rec Yds":11,"Rush Yds":6,"Rush+Rec Yds":2,"Pass Att":2,"INT":2,"Completions":2,"Pass Yds":2,"Pass+Rush Yds":1}
+nba: slate 2026-10-10, 7 games (51 ms)
+nba: LAC @ TOR analysed in 205 ms; 0 props, 0 qualify, 0 picks; lines {"spread":-4.5,"total":217.5,"mlHome":-185,"mlAway":154,"provider":"DraftKings"}; proj margin 2.8 total 226.4
+  ratings {"home":{"pf":113.9,"pa":112.5,"net":1.4,"n":0},"away":{"pf":113.5,"pa":112.9,"net":0.6,"n":0},"league":113.2}
+  game sides ["TOR -4.5 pM=0.445 mkt=0.504 p=0.487 edge=-0.042","LAC +4.5 pM=0.555 mkt=0.496 p=0.513 edge=-0.006","Over 217.5 pM=0.69 mkt=0.496 p=0.557 edge=0.037","Under 217.5 pM=0.31 mkt=0.504 p=0.443 edge=-0.085","TOR pM=0.597 mkt=0.622 p=0.615 edge=-0.034","LAC pM=0.403 mkt=0.378 p=0.385 edge=-0.009"]
+  lastFive ["TOR 3-2","LAC 3-2"] h2h {"team":"TOR","record":"1-4","meetings":[{"date":"2026-03-26","home":false,"score":"94-119","result":"L","post":false},{"date":"2026-01-17","home":true,"score":"117-121","result":"L","post":false},{"date":"2025-02-02","home":true,"score":"115-108","result":"W","post":false},{"date":"2024-11-10","home":false,"score":"103-105","result":"L","post":false},{"date":"2024-01-27","home":true,"score":"107-127","result":"L","post":false}]}
+  markets {}
