@@ -37,7 +37,7 @@ export default function App() {
           : <Slate key={sport + (route.date || '')} sport={sport} date={route.date} go={go} />}
       </main>
       <footer className="foot">
-        <p><b>How picks are made.</b> Each stat is projected from the player's recent and last-season games (regressed toward his normal level), turned into a probability against tonight's line, blended with the sportsbook's own price, and kept only if it beats the break-even by 3+ points (2 for game lines) with no injury or small-sample flags. Stakes are quarter-Kelly, capped at 2% of bankroll. Last 5, last meetings and hit rates are context — they don't move the score.</p>
+        <p><b>How picks are made.</b> Each stat is projected from the player's recent and last-season games (regressed toward his normal level), turned into a probability against tonight's line, blended with the sportsbook's own price, and kept only if it beats the break-even by 3+ points (6 when the book hasn't posted a price, 2 for game lines) with no injury or small-sample flags. Stakes are quarter-Kelly, capped at 2% of bankroll. Last 5, last meetings and hit rates are context — they don't move the score.</p>
         <p>Data: ESPN's free API (odds from the sportsbook it lists). For personal research only. Bet responsibly.</p>
       </footer>
     </div>
