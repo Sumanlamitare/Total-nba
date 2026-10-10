@@ -1,0 +1,28 @@
+name: Try engine
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - run: node tools/try.mjs
+      - name: Push output to the try branch
+        if: always()
+        run: |
+          cd try
+          git init -q && git checkout -q -b try
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "try"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" try:try
