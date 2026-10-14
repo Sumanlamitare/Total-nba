@@ -18,8 +18,12 @@ try {
   for (const name of DROP) {
     if (!before.includes(name)) { log(`${name}: not present`); continue; }
     const cols = await client.db(name).listCollections().toArray();
-    for (const c of cols) log(`  ${name}.${c.name}: ${await client.db(name).collection(c.name).estimatedDocumentCount()} docs`);
-    log(`${name}: dropped = ${await client.db(name).dropDatabase()}`);
+    // the app's database user may not hold dropDatabase, so remove each collection (or empty it if dropping is refused too)
+    for (const c of cols) {
+      const col = client.db(name).collection(c.name), n = await col.estimatedDocumentCount();
+      try { await col.drop(); log(`  ${name}.${c.name}: ${n} docs, dropped`); }
+      catch (e) { const r = await col.deleteMany({}); log(`  ${name}.${c.name}: ${n} docs, drop refused (${e.message}); deleted ${r.deletedCount}`); }
+    }
   }
   const after = await list('after');
   const others = after.filter(n => !['admin', 'local', 'config', ...DROP].includes(n));
