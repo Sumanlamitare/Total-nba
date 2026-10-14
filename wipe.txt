@@ -1,0 +1,14 @@
+before: edge (10.0 MB), totalnba (186.6 MB), admin (0.0 MB), local (0.0 MB)
+  totalnba.schedules: 0 docs, dropped
+  totalnba.players: 3035 docs, dropped
+  totalnba.records: 11 docs, dropped
+  totalnba.quota: 0 docs, dropped
+  totalnba.lines: 835418 docs, dropped
+  totalnba.imports: 4 docs, dropped
+  totalnba.days: 9964 docs, dropped
+  totalnba.notable: 4530 docs, dropped
+  totalnba.seasons: 36 docs, dropped
+  totalnba.games: 42004 docs, dropped
+  edge.snapshots: 13 docs, dropped
+  edge.cache: 557 docs, dropped
+after: admin (0.0 MB), local (0.0 MB)
