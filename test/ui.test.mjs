@@ -20,6 +20,18 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+// Look for something on the book's visible pages, turning pages forward (→) until it shows up.
+async function findInBook(p, make, turns = 4) {
+  for (let k = 0; ; k++) {
+    const loc = make(p.locator('.book'));
+    if (await loc.first().isVisible().catch(() => false)) return loc;
+    if (k >= turns) throw new Error('not found in the book');
+    await p.keyboard.press('ArrowRight');
+    await p.locator('.book:not(.turning)').waitFor();
+    await p.waitForTimeout(150);
+  }
+}
+
 async function page(opts = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, ignoreHTTPSErrors: true, ...opts });
   // Fonts come from Google; the tests don't need them.
@@ -46,17 +58,24 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
   const reader = p.getByRole('dialog', { name: /Bill Russell/ });
   await reader.waitFor({ timeout: 15000 });
   assert.match(p.url(), /\/book\/4152\/bill-russell$/);
-  await p.getByRole('button', { name: /Begin reading/ }).click();
-  await p.getByText(/played 13 regular seasons/).waitFor();
-  for (let k = 0; k < 5; k++) await p.keyboard.press('ArrowRight');
-  await p.getByRole('heading', { name: 'Statistical record', exact: true }).waitFor();
-  assert.equal(await p.locator('table.stats tbody tr').count(), 13);
+  // The first spread: bookplate on the left, title page on the right. Turn the page to read on.
+  await p.locator('.book .bookplate').waitFor();
+  await p.keyboard.press('ArrowRight');
+  await findInBook(p, b => b.getByText(/played 13 regular seasons/));
+  // A leaf turns: mid-turn the book shows a leaf with two faces.
+  await p.keyboard.press('ArrowRight');
+  await p.locator('.book .leaf3d .face.back').waitFor({ state: 'attached' });
+  await p.locator('.book:not(.turning)').waitFor();
+  // Jump by chapter: the statistical record.
+  await p.getByLabel('Chapter').selectOption('7');
+  await p.locator('.book:not(.turning)').waitFor();
+  const rows = await findInBook(p, b => b.locator('table.stats tbody tr'));
+  assert.equal(await rows.count(), 13);
   // Rebounds were not recorded by ESPN for these seasons: blank, not zero.
-  const reb = await p.locator('table.stats tbody tr').first().locator('td').nth(5).innerText();
-  assert.equal(reb, '—');
-  await p.getByRole('radio', { name: 'Totals' }).click();
-  await p.getByRole('radio', { name: 'Playoffs' }).click();
-  assert.equal(await p.locator('table.stats tbody tr').count(), 13);
+  assert.equal(await rows.first().locator('td').nth(5).innerText(), '—');
+  await p.locator('.book').getByRole('radio', { name: 'Totals' }).click();
+  await p.locator('.book').getByRole('radio', { name: 'Playoffs' }).click();
+  assert.equal(await p.locator('.book table.stats tbody tr').count(), 13);
   await p.keyboard.press('Escape');
   await reader.waitFor({ state: 'detached' });
   assert.equal(new URL(p.url()).pathname, '/');
@@ -78,8 +97,12 @@ test('a link straight to a book opens it on its own', async () => {
   await p.goto(base + '/book/4142/wilt-chamberlain');
   const reader = p.getByRole('dialog', { name: /Wilt Chamberlain/ });
   await reader.waitFor({ timeout: 30000 });
-  await p.getByRole('button', { name: /The player/ }).first().click();
-  await p.getByText(/career began in 1959-60/).waitFor();
+  await p.keyboard.press('ArrowRight');
+  await p.locator('.book:not(.turning)').waitFor();
+  // The contents page carries real page numbers and turns to the chapter.
+  await p.locator('.book .toc').getByRole('button', { name: /The player/ }).click();
+  await p.locator('.book:not(.turning)').waitFor();
+  await findInBook(p, b => b.getByText(/career began in 1959-60/));
   await p.keyboard.press('Escape');
   await reader.waitFor({ state: 'detached' });
   assert.deepEqual(p.errors, []);
@@ -89,10 +112,12 @@ test('records chapter loads career highs and says where they come from', async (
   const p = await page();
   await p.goto(base + '/book/1966/lebron-james');
   await p.getByRole('dialog', { name: /LeBron James/ }).waitFor({ timeout: 30000 });
-  await p.getByRole('button', { name: /Records/ }).first().click();
-  await p.getByText('Led the league').waitFor();
-  await p.getByText(/Counted from ESPN's game logs/).waitFor({ timeout: 10000 });
-  assert.ok(await p.locator('table.highs tbody tr').count() >= 5);
+  await p.getByLabel('Chapter').selectOption('4');
+  await p.locator('.book:not(.turning)').waitFor();
+  await findInBook(p, b => b.getByText('Led the league'));
+  const highs = await findInBook(p, b => b.locator('table.highs tbody tr'), 6);
+  assert.ok(await highs.count() >= 5);
+  await findInBook(p, b => b.getByText(/Counted from ESPN's game logs/));
 });
 
 test('without WebGL the library is a shelf list that works by keyboard', async () => {
@@ -113,13 +138,15 @@ test('without WebGL the library is a shelf list that works by keyboard', async (
   await p.getByRole('dialog').waitFor({ state: 'detached' });
 });
 
-test('phone: the reader is a single page with a chapter picker', async () => {
+test('phone: the reader is a single page that turns, with a chapter picker', async () => {
   const p = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   await p.goto(base + '/book/3992/james-harden');
   await p.getByRole('dialog', { name: /James Harden/ }).waitFor({ timeout: 30000 });
-  await p.getByLabel('Chapter').selectOption('6');
-  await p.getByRole('heading', { name: 'Statistical record', exact: true }).waitFor();
-  assert.ok(await p.locator('tr.combined').count() >= 2, 'traded seasons show a season total');
+  await p.getByLabel('Chapter').selectOption('7');
+  await p.locator('.book:not(.turning)').waitFor();
+  await findInBook(p, b => b.getByRole('heading', { name: 'Statistical record', exact: true }));
+  const combined = await findInBook(p, b => b.locator('tr.combined'));
+  assert.ok(await combined.count() >= 2, 'traded seasons show a season total');
   const w = await p.evaluate(() => document.documentElement.scrollWidth);
   assert.ok(w <= 390, 'no sideways page scroll');
 });

@@ -8,8 +8,8 @@ Live: https://total-nba-ja9d.vercel.app
 
 - **Walk the room.** Drag (or use `[` `]`, or the brass arrows) to move between bookcases. Scroll or pinch to step closer. The A–Z strip jumps to a letter.
 - **Find a player.** Use the card catalogue (`/`). Enter takes you to the book's shelf, and Shift+Enter opens it. If the shelves don't hold a player, the catalogue asks ESPN's search and shelves any NBA player it finds.
-- **Open a book.** Click a book; on touch, tap once to select it and again to open. The opening animation can be skipped with any click or key.
-- **Read.** Use ← → or swipe to turn chapters, and Esc to go back to the shelf you came from. Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
+- **Open a book.** Click a book; on touch, tap once to select it and again to open. The book slides off the shelf, the cover opens onto marbled endpapers, and the endpaper and half-title leaves turn over to the title page. Any click or key skips the animation; closing plays it in reverse and puts the book back.
+- **Read.** The book is paginated into real pages: a two-page spread on wide screens, one page on phones. Pages turn as leaves hinged at the spine. Drag a page, swipe, click the dog-eared corner, or use ← →. The contents page lists real page numbers and turns to any chapter. Esc goes back to the shelf you came from. Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
 - **Without 3D.** The *Shelf list* shows the same shelves as plain buttons, fully keyboard-operable. Browsers without WebGL get it automatically. *Reading the spines* explains the spines and has a switch that turns animation off (the system reduced-motion setting is honored too).
 
 ## What a spine tells you
@@ -63,6 +63,7 @@ The result is about 5,240 players. Anyone else ESPN knows is added the first tim
   - Each bookcase is one `InstancedMesh`, about 400 books in one draw call, and all the woodwork in the room is one more.
   - Spine text is painted into a canvas atlas per bookcase, only for the cases near the camera, one per frame. Atlases are freed when the camera leaves. A small shader maps each book's spine face to its rectangle in the atlas.
   - The scene renders only when something moves.
+  - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page is a 3D-transformed leaf whose two faces are the outgoing and incoming pages, with shading and a cast shadow driven by the turn angle.
   - three.js loads as a separate chunk, so the shelf list and reader don't wait for it.
   - All textures (wood, parquet, leather, brass plaques, covers) are drawn in code. No image assets.
 - **API** (`api/`, Vercel functions):

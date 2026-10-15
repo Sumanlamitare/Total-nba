@@ -138,3 +138,86 @@ export function paintCover(p, { width = 512, height = 720, portrait = null } = {
   ctx.font = `italic 28px ${TEXT}`; ctx.fillText(span(p) || '', width / 2, height * 0.74 + 46);
   return canvas;
 }
+
+// ---- Pages inside the 3D book (they match the reader's first spread, so the hand-off is seamless) -------------
+
+const PAPER = '#f6eedb';
+function paper(width, height, edge = 'left') {
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, width, 0);
+  if (edge === 'left') { g.addColorStop(0, '#dccaa0'); g.addColorStop(0.08, PAPER); g.addColorStop(1, PAPER); }
+  else { g.addColorStop(0, PAPER); g.addColorStop(0.92, PAPER); g.addColorStop(1, '#dccaa0'); }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
+  return { canvas, ctx };
+}
+
+// Hand-marbled endpaper: combed colour stripes pushed around by layered waves.
+export function paintMarble(width = 512, height = 720, seed = 3) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#5c1f18', '#1f3355', '#b88c45', '#e8dcc0', '#24453f', '#7a2a20', '#2a2f52', '#c9a25a'];
+  const img = ctx.createImageData(width, height);
+  const rgb = colors.map(c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)));
+  const s = seed * 1.7;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const u = x / width, v = y / height;
+    const d = 0.09 * Math.sin(u * 9 + s + Math.sin(v * 7 + s) * 2) + 0.05 * Math.sin(u * 23 - v * 11 + s * 2) + 0.03 * Math.sin(v * 31 + u * 5);
+    const band = Math.floor(((v + d) * 26 + 64) % colors.length);
+    const c = rgb[band], o = (y * width + x) * 4;
+    img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+export function paintHalfTitle(p, width = 512, height = 720) {
+  const { canvas, ctx } = paper(width, height, 'left');
+  ctx.fillStyle = '#2a2118'; ctx.textAlign = 'center';
+  let size = 34; ctx.font = `${size}px ${FACE}`;
+  while (ctx.measureText(p.n).width > width - 140 && size > 18) { size -= 2; ctx.font = `${size}px ${FACE}`; }
+  ctx.fillText(p.n, width / 2, height * 0.36);
+  ctx.strokeStyle = '#9c7a3c'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(width / 2 - 40, height * 0.36 + 22); ctx.lineTo(width / 2 + 40, height * 0.36 + 22); ctx.stroke();
+  return canvas;
+}
+
+export function paintBookplate(p, shelfMark, width = 512, height = 720) {
+  const { canvas, ctx } = paper(width, height, 'right');
+  const w = 240, h = 170, x = (width - w) / 2, y = height * 0.42 - h / 2;
+  ctx.fillStyle = '#f9f2e1'; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = '#8d6a33'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h); ctx.strokeRect(x - 6, y - 6, w + 12, h + 12);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8a2f24'; ctx.font = `italic 18px ${TEXT}`; ctx.fillText('Ex libris', width / 2, y + 34);
+  ctx.fillStyle = '#2a2118'; ctx.font = `22px ${FACE}`; ctx.fillText('The Player Library', width / 2, y + 64);
+  ctx.font = `italic 19px ${TEXT}`; ctx.fillText(p.n, width / 2, y + 102);
+  if (shelfMark) { ctx.fillStyle = '#5b4a38'; ctx.font = `15px ${TEXT}`; ctx.fillText(shelfMark, width / 2, y + 136); }
+  return canvas;
+}
+
+export function paintTitlePage(p, { width = 512, height = 720, portrait = null } = {}) {
+  const { canvas, ctx } = paper(width, height, 'left');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5b4a38'; ctx.font = `16px ${FACE}`; ctx.fillText('T H E   P L A Y E R   L I B R A R Y', width / 2, 96);
+  const cy = 230, r = 78;
+  ctx.fillStyle = '#fbf3e0'; ctx.beginPath(); ctx.arc(width / 2, cy, r, 0, Math.PI * 2); ctx.fill();
+  if (portrait) {
+    ctx.save(); ctx.beginPath(); ctx.arc(width / 2, cy, r, 0, Math.PI * 2); ctx.clip();
+    const s = (r * 2.5) / portrait.width;
+    ctx.drawImage(portrait, width / 2 - (portrait.width * s) / 2, cy - r * 0.8, portrait.width * s, portrait.height * s);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = '#8a2f24'; ctx.font = `64px ${FACE}`; ctx.textBaseline = 'middle';
+    ctx.fillText((p.n || '').split(/\s+/).filter(Boolean).map(s => s[0]).slice(0, 2).join(''), width / 2, cy + 4);
+    ctx.textBaseline = 'alphabetic';
+  }
+  ctx.strokeStyle = '#c49a52'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(width / 2, cy, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#2a2118';
+  let size = 46; ctx.font = `${size}px ${FACE}`;
+  while (ctx.measureText(p.n).width > width - 90 && size > 22) { size -= 2; ctx.font = `${size}px ${FACE}`; }
+  ctx.fillText(p.n, width / 2, 380);
+  ctx.fillStyle = '#5b4a38'; ctx.font = `italic 22px ${TEXT}`; ctx.fillText(span(p) || '', width / 2, 418);
+  ctx.strokeStyle = '#8d6a33'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(width / 2 - 50, 446); ctx.lineTo(width / 2 + 50, 446); ctx.stroke();
+  return canvas;
+}
