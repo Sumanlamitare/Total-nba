@@ -39,7 +39,7 @@ test('an organizer starts a group, a player joins by link, both play', async () 
   await org.getByRole('radio', { name: /Soccer/ }).click();
   await org.getByLabel('Usual spot (optional)').fill('Riverside Field');
   await org.getByRole('button', { name: 'Create group' }).click();
-  await org.getByText('Now invite your players').waitFor();
+  await org.getByText('Now invite your players', { exact: true }).waitFor();
   const link = (await org.locator('.invrow code').first().textContent()).trim();
   const code = link.split('/join/')[1];
   assert.ok(code && code.length >= 4, link);
