@@ -1,142 +1,157 @@
-// End to end against a real MongoDB (CI runs a mongo service): the API through the dev server,
-// alerts caught by a local webhook receiver. Needs MONGODB_URI.
+// End to end against a real MongoDB (CI runs one): the API through the dev server, several users at once.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import http from 'node:http';
 import { spawn } from 'node:child_process';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
-const PORT = 5391, HOOK = 5392, BASE = `http://localhost:${PORT}`;
-const DB = `nightjar_e2e_${Date.now()}`;
-let server, hook, mongo, hits = [];
-
-const wait = ms => new Promise(r => setTimeout(r, ms));
-async function until(fn, ms = 5000) { const t = Date.now(); while (Date.now() - t < ms) { const v = await fn(); if (v) return v; await wait(50); } return fn(); }
+const PORT = 5491, BASE = `http://localhost:${PORT}`, DB = `turnout_e2e_${Date.now()}`;
+let server, mongo;
 
 function client() {
   let cookie = '';
-  return async (method, path, body, headers = {}) => {
-    const r = await fetch(BASE + path, { method, headers: { ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(cookie ? { cookie } : {}), ...headers }, body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body) });
-    const sc = r.headers.get('set-cookie');
-    if (sc) cookie = sc.split(';')[0];
-    const text = await r.text();
-    let json = null; try { json = JSON.parse(text); } catch { /* text */ }
-    return { status: r.status, json, text, type: r.headers.get('content-type') || '' };
+  return async (method, path, body) => {
+    const r = await fetch(BASE + path, { method, headers: { ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(cookie ? { cookie } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+    const sc = r.headers.get('set-cookie'); if (sc) cookie = sc.split(';')[0];
+    return { status: r.status, json: await r.json().catch(() => null) };
   };
+}
+async function person(name) {
+  const c = client();
+  const r = await c('POST', '/api/auth', { action: 'signup', name, email: `${name.toLowerCase()}@example.com`, password: 'hoops-forever' });
+  assert.equal(r.status, 200, JSON.stringify(r.json));
+  c.id = r.json.user.id; c.name = name;
+  return c;
 }
 
 before(async () => {
-  assert.ok(process.env.MONGODB_URI, 'MONGODB_URI must be set for e2e tests');
-  hook = http.createServer((req, res) => { let b = ''; req.on('data', c => b += c).on('end', () => { hits.push(JSON.parse(b)); res.end('ok'); }); }).listen(HOOK);
-  server = spawn(process.execPath, ['scripts/dev.mjs'], { env: { ...process.env, NO_VITE: '1', PORT: String(PORT), NIGHTJAR_DB: DB, NIGHTJAR_ALLOW_HTTP: '1' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  assert.ok(process.env.MONGODB_URI, 'MONGODB_URI must be set');
+  server = spawn(process.execPath, ['scripts/dev.mjs'], { env: { ...process.env, NO_VITE: '1', PORT: String(PORT), TURNOUT_DB: DB }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise(r => server.stdout.on('data', d => String(d).includes('dev on') && r()));
   mongo = await new MongoClient(process.env.MONGODB_URI).connect();
 });
-after(async () => { server?.kill(); hook?.close(); await mongo?.db(DB).dropDatabase(); await mongo?.close(); });
+after(async () => { server?.kill(); await mongo?.db(DB).dropDatabase(); await mongo?.close(); });
 
-test('the whole journey', async () => {
-  const a = client(), b = client();
-  const checks = () => mongo.db(DB).collection('checks');
+test('a group runs a full week of pickup', async () => {
+  const games = () => mongo.db(DB).collection('games');
+  const anon = client();
+  assert.equal((await anon('POST', '/api/auth', { action: 'signup', name: '', email: 'x@example.com', password: 'longenough' })).status, 400);
 
-  assert.equal((await a('GET', '/api/auth')).json.user, null);
-  assert.equal((await a('POST', '/api/auth', { action: 'signup', email: 'bad', password: 'longenough' })).status, 400);
-  assert.equal((await a('POST', '/api/auth', { action: 'signup', email: 'a@example.com', password: 'short' })).status, 400);
-  const su = await a('POST', '/api/auth', { action: 'signup', email: 'A@Example.com', password: 'longenough', name: 'Ada' });
-  assert.equal(su.status, 200); assert.equal(su.json.user.email, 'a@example.com');
-  assert.equal((await a('GET', '/api/auth')).json.user.name, 'Ada');
-  assert.equal((await b('POST', '/api/auth', { action: 'signup', email: 'a@example.com', password: 'longenough' })).status, 409);
-  assert.equal((await b('POST', '/api/auth', { action: 'login', email: 'a@example.com', password: 'wrongpass' })).status, 401);
-  await b('POST', '/api/auth', { action: 'signup', email: 'b@example.com', password: 'longenough' });
+  const olivia = await person('Olivia'), marcus = await person('Marcus'), sam = await person('Sam'), jo = await person('Jo'), stranger = await person('Stranger');
 
-  // writes must be JSON (CSRF guard)
-  assert.equal((await a('POST', '/api/checks', 'name=x', { 'content-type': 'application/x-www-form-urlencoded' })).status, 415);
-  assert.equal((await client()('GET', '/api/checks')).status, 401);
+  // group + invite
+  const g = await olivia('POST', '/api/groups', { name: 'Tuesday Night Hoops', sport: 'basketball', location: 'Rucker Park' });
+  assert.equal(g.status, 200);
+  const gid = g.json.id;
+  let grp = await olivia('GET', `/api/groups?id=${gid}`);
+  const code = grp.json.group.invite;
+  assert.ok(code);
+  assert.equal((await stranger('GET', `/api/groups?id=${gid}`)).status, 404, 'non-members cannot see the group');
+  const preview = await anon('GET', `/api/groups?invite=${code}`);
+  assert.equal(preview.json.group.name, 'Tuesday Night Hoops'); assert.equal(preview.json.group.members, 1);
+  for (const p of [marcus, sam, jo]) assert.equal((await p('POST', `/api/groups?invite=${code}&action=join`, {})).status, 200);
+  assert.equal((await marcus('POST', `/api/groups?invite=${code}&action=join`, {})).status, 200, 'joining twice is harmless');
+  grp = await olivia('GET', `/api/groups?id=${gid}`);
+  assert.equal(grp.json.members.length, 4);
+  assert.equal((await marcus('GET', `/api/groups?id=${gid}`)).json.group.invite, null, 'members do not see the invite code');
 
-  const created = await a('POST', '/api/checks', { name: 'Nightly backup', period: 3600, grace: 600, tags: 'db' });
-  assert.equal(created.status, 200);
-  const c = created.json.check;
-  assert.equal(c.state, 'new'); assert.ok(c.key.length >= 20);
-  assert.equal((await b('GET', `/api/checks?id=${c.id}`)).status, 404, 'other users cannot see it');
+  // games: organizers only
+  const when = new Date(Date.now() + 3 * 864e5).toISOString();
+  assert.equal((await marcus('POST', '/api/games', { groupId: gid, startsAt: when, capacity: 3 })).status, 403);
+  const gm = await olivia('POST', '/api/games', { groupId: gid, startsAt: when, capacity: 3, minPlayers: 2, cost: 30, imIn: true });
+  assert.equal(gm.status, 200);
+  const id = gm.json.id;
+  let x = await olivia('GET', `/api/games?id=${id}`);
+  assert.equal(x.json.game.location, 'Rucker Park', 'defaults to the group location');
+  assert.equal(x.json.game.me, 'in');
 
-  // alerts go to a webhook
-  assert.equal((await a('POST', '/api/channels', { kind: 'webhook', target: 'http://example.com/x' })).status, 400);
-  assert.equal((await a('POST', '/api/channels', { kind: 'slack', target: 'https://example.com/x' })).status, 400);
-  assert.equal((await a('POST', '/api/channels', { kind: 'webhook', name: 'test hook', target: `http://127.0.0.1:${HOOK}/hook` })).status, 200);
-  const t = await a('POST', `/api/checks?id=${c.id}&action=test`, {});
-  assert.equal(t.json.results[0].ok, true); assert.equal(hits.at(-1).event, 'test');
+  // RSVPs, waitlist and promotion
+  await marcus('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' });
+  x = await sam('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' });
+  assert.equal(x.json.game.taken, 3); assert.equal(x.json.game.need, 0);
+  x = await jo('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' });
+  assert.equal(x.json.game.me, 'waitlist');
+  assert.equal(x.json.game.costEach, 10);
+  assert.equal((await stranger('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' })).status, 404);
+  assert.equal((await jo('POST', `/api/games?id=${id}&action=rsvp`, { want: 'yes' })).status, 400);
 
-  // first ping: up, no alert
-  const n0 = hits.length;
-  const p1 = await a('GET', `/p/${c.key}`);
-  assert.equal(p1.status, 200); assert.equal(p1.text, 'OK\n');
-  assert.equal((await a('GET', `/api/checks?id=${c.id}`)).json.check.state, 'up');
-  assert.equal(hits.length, n0);
-  assert.equal((await a('GET', '/p/doesnotexist12345')).status, 404);
+  // a late drop (within 24 hours) promotes the waitlist and is remembered
+  await games().updateOne({ _id: new ObjectId(id) }, { $set: { startsAt: new Date(Date.now() + 2 * 3600e3) } });
+  x = await marcus('POST', `/api/games?id=${id}&action=rsvp`, { want: 'out' });
+  assert.equal(x.json.game.me, 'out');
+  assert.equal((await jo('GET', `/api/games?id=${id}`)).json.game.me, 'in', 'Jo was promoted');
+  assert.equal((await games().findOne({ _id: new ObjectId(id) })).lateDrops.length, 1);
 
-  // missed deadline -> sweep marks it down and alerts once
-  await checks().updateOne({}, { $set: { due: new Date(Date.now() - 1000) } });
-  const list = await a('GET', '/api/checks');
-  assert.equal(list.json.checks[0].state, 'down');
-  await until(() => hits.some(h => h.event === 'down'));
-  assert.equal(hits.filter(h => h.event === 'down').length, 1);
-  await a('GET', '/api/checks');
-  assert.equal(hits.filter(h => h.event === 'down').length, 1, 'no duplicate alert');
+  // many people answering at the same moment: nobody is lost
+  const crowd = await Promise.all(['Ana', 'Ben', 'Cy', 'Dee', 'Eli', 'Fay'].map(person));
+  await Promise.all(crowd.map(p => p('POST', `/api/groups?invite=${code}&action=join`, {})));
+  const answers = await Promise.all(crowd.map(p => p('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' })));
+  assert.ok(answers.every(a => a.status === 200), answers.map(a => a.status).join());
+  x = await olivia('GET', `/api/games?id=${id}`);
+  assert.equal(x.json.game.roster.in.length, 3); assert.equal(x.json.game.roster.waitlist.length, 6);
+  assert.equal(x.json.game.roster.out.length, 1);
 
-  // ping again -> back up, alert
-  await a('POST', `/p/${c.key}`, 'backup ok: 12GB');
-  await until(() => hits.some(h => h.event === 'up'));
-  let d = await a('GET', `/api/checks?id=${c.id}`);
-  assert.equal(d.json.check.state, 'up'); assert.equal(d.json.pings[0].body, 'backup ok: 12GB');
-  assert.ok(d.json.check.uptime30 < 1);
+  // skills and teams
+  assert.equal((await marcus('POST', `/api/groups?id=${gid}&action=skill`, { userId: sam.id, skill: 5 })).status, 403);
+  assert.equal((await olivia('POST', `/api/groups?id=${gid}&action=skill`, { userId: sam.id, skill: 5 })).status, 200);
+  await olivia('PATCH', `/api/games?id=${id}`, { capacity: 4 });
+  x = await olivia('POST', `/api/games?id=${id}&action=teams`, { n: 2 });
+  assert.equal(x.status, 200);
+  assert.deepEqual(x.json.game.teams.map(t => t.length), [2, 2]);
+  assert.equal(x.json.game.teams.flat().length, 4);
+  assert.equal((await marcus('POST', `/api/games?id=${id}&action=teams`, { n: 2 })).status, 403);
 
-  // start + success measures duration; /fail and exit codes report failure
-  await a('GET', `/p/${c.key}/start`);
-  assert.equal((await a('GET', `/api/checks?id=${c.id}`)).json.check.state, 'running');
-  await wait(120);
-  await a('GET', `/p/${c.key}/0`);
-  d = await a('GET', `/api/checks?id=${c.id}`);
-  assert.ok(d.json.check.lastDuration >= 100);
-  await a('GET', `/p/${c.key}/1`);
-  assert.equal((await a('GET', `/api/checks?id=${c.id}`)).json.check.state, 'down');
-  await until(() => hits.filter(h => h.event === 'down').length === 2);
+  // the result can only be entered once the game has started
+  assert.equal((await olivia('POST', `/api/games?id=${id}&action=result`, { noShows: [] })).status, 409);
+  await games().updateOne({ _id: new ObjectId(id) }, { $set: { startsAt: new Date(Date.now() - 3600e3) } });
+  const teams = (await olivia('GET', `/api/games?id=${id}`)).json.game.teams;
+  const winners = teams[0].map(p => p.id);
+  const noShow = teams[1][0].id;
+  x = await olivia('POST', `/api/games?id=${id}&action=result`, { score: [21, 17], noShows: [noShow] });
+  assert.equal(x.status, 200); assert.equal(x.json.game.status, 'played');
+  assert.equal((await jo('POST', `/api/games?id=${id}&action=rsvp`, { want: 'out' })).status, 409, 'played games are closed');
 
-  // pause: not swept while paused, a ping resumes it
-  await a('GET', `/p/${c.key}`);
-  await a('POST', `/api/checks?id=${c.id}&action=pause`, {});
-  await checks().updateOne({}, { $set: { due: new Date(Date.now() - 1000) } });
-  assert.equal((await a('GET', '/api/checks')).json.checks[0].state, 'paused');
-  await a('GET', `/p/${c.key}`);
-  assert.equal((await a('GET', '/api/checks')).json.checks[0].state, 'up');
+  grp = await olivia('GET', `/api/groups?id=${gid}`);
+  const st = Object.fromEntries(grp.json.stats.map(s => [s.userId, s]));
+  for (const w of winners) assert.equal(st[w].wins, 1);
+  assert.equal(st[noShow].noShows, 1); assert.equal(st[noShow].losses, 0);
+  assert.equal(st[marcus.id].lateDrops, 1); assert.equal(st[marcus.id].reliability, 0);
+  assert.equal(grp.json.past.length, 1); assert.equal(grp.json.upcoming.length, 0);
 
-  // edit
-  const e = await a('PATCH', `/api/checks?id=${c.id}`, { name: 'DB backup', period: 86400, public: true });
-  assert.equal(e.json.check.name, 'DB backup'); assert.equal(e.json.check.period, 86400);
+  // comments
+  x = await sam('POST', `/api/games?id=${id}&action=comment`, { text: 'Good run 🔥' });
+  const cid = x.json.game.comments[0].id;
+  assert.equal((await jo('POST', `/api/games?id=${id}&action=uncomment`, { commentId: cid })).status, 403);
+  assert.equal((await sam('POST', `/api/games?id=${id}&action=uncomment`, { commentId: cid })).json.game.comments.length, 0);
 
-  // public status page and badge; no secrets leak
-  assert.equal((await a('PATCH', '/api/account', { slug: 'api' })).status, 400);
-  assert.equal((await a('PATCH', '/api/account', { slug: 'ada-labs', pageTitle: 'Ada Labs' })).status, 200);
-  assert.equal((await b('PATCH', '/api/account', { slug: 'ada-labs' })).status, 409);
-  const page = await client()('GET', '/api/public?slug=ada-labs');
-  assert.equal(page.json.title, 'Ada Labs'); assert.equal(page.json.checks.length, 1); assert.equal(page.json.checks[0].bars.length, 30);
-  assert.ok(!page.text.includes(c.key), 'ping key must not leak');
-  const badge = await client()('GET', `/b/${c.badge}.svg`);
-  assert.match(badge.type, /svg/); assert.match(badge.text, /DB backup/); assert.match(badge.text, />up</);
+  // home lists
+  await olivia('POST', '/api/games', { groupId: gid, startsAt: new Date(Date.now() + 864e5).toISOString(), capacity: 10 });
+  const home = await jo('GET', '/api/games');
+  assert.equal(home.json.games.length, 1); assert.equal(home.json.games[0].groupName, 'Tuesday Night Hoops');
+  assert.equal((await jo('GET', '/api/groups')).json.groups[0].next.capacity, 10);
 
-  // plan limit
-  for (let i = 0; i < 19; i++) await a('POST', '/api/checks', { name: 'job ' + i, period: 3600, grace: 600 });
-  assert.equal((await a('POST', '/api/checks', { name: 'one too many', period: 3600, grace: 600 })).status, 402);
+  // roles, renames, leaving
+  assert.equal((await olivia('POST', `/api/groups?id=${gid}&action=role`, { userId: marcus.id, role: 'admin' })).status, 200);
+  assert.equal((await marcus('POST', '/api/games', { groupId: gid, startsAt: when, capacity: 8 })).status, 200);
+  assert.equal((await marcus('POST', `/api/groups?id=${gid}&action=remove`, { userId: olivia.id })).status, 403);
+  await jo('PATCH', '/api/auth', { name: 'Joanna' });
+  grp = await olivia('GET', `/api/groups?id=${gid}`);
+  assert.ok(grp.json.members.some(m => m.name === 'Joanna'));
+  assert.equal((await olivia('POST', `/api/groups?id=${gid}&action=leave`, {})).status, 409, 'owner must hand over first');
+  assert.equal((await sam('POST', `/api/groups?id=${gid}&action=leave`, {})).status, 200);
+  assert.equal((await sam('GET', `/api/groups?id=${gid}`)).status, 404);
 
-  // password change signs out other sessions
-  const a2 = client();
-  await a2('POST', '/api/auth', { action: 'login', email: 'a@example.com', password: 'longenough' });
-  assert.equal((await a('POST', '/api/auth', { action: 'password', current: 'longenough', password: 'evenlonger1' })).status, 200);
-  assert.equal((await a2('GET', '/api/auth')).json.user, null);
-  assert.equal((await a('GET', '/api/auth')).json.user.email, 'a@example.com');
+  // account deletion is blocked while you own a group with members; the owner can hand it over
+  assert.equal((await olivia('DELETE', '/api/auth', { password: 'hoops-forever' })).status, 409);
+  assert.equal((await olivia('POST', `/api/groups?id=${gid}&action=role`, { userId: marcus.id, role: 'owner' })).status, 200);
+  assert.equal((await olivia('DELETE', '/api/auth', { password: 'hoops-forever' })).status, 200);
+  grp = await marcus('GET', `/api/groups?id=${gid}`);
+  assert.equal(grp.json.me.role, 'owner');
+  assert.ok(!grp.json.members.some(m => m.userId === olivia.id));
 
-  // delete account removes everything
-  assert.equal((await a('DELETE', '/api/account', { password: 'nope' })).status, 400);
-  assert.equal((await a('DELETE', '/api/account', { password: 'evenlonger1' })).status, 200);
-  assert.equal(await checks().countDocuments({ name: 'DB backup' }), 0);
-  assert.equal((await a('GET', '/api/auth')).json.user, null);
-  assert.equal((await client()('GET', '/api/public?slug=ada-labs')).status, 404);
+  // new invite link invalidates the old one; deleting the group removes its games
+  const fresh = await marcus('POST', `/api/groups?id=${gid}&action=invite`, {});
+  assert.notEqual(fresh.json.invite, code);
+  assert.equal((await stranger('POST', `/api/groups?invite=${code}&action=join`, {})).status, 404);
+  assert.equal((await marcus('DELETE', `/api/groups?id=${gid}`)).status, 200);
+  assert.equal(await games().countDocuments({ groupId: new ObjectId(gid) }), 0);
 });

@@ -1,9 +1,9 @@
 {
-  "name": "nightjar",
+  "name": "turnout",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Nightjar — cron job and heartbeat monitoring. Know the moment a scheduled job doesn't run.",
+  "description": "Turnout \u2014 run pickup games without the group-chat chaos: RSVPs, waitlists, fair teams, results.",
   "engines": {
     "node": ">=20"
   },
@@ -11,8 +11,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
     "test": "node --test test/unit.test.mjs",
-    "test:e2e": "node --test test/e2e.test.mjs",
-    "sweep": "node scripts/sweep.mjs"
+    "test:e2e": "node --test test/e2e.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",

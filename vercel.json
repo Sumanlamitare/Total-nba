@@ -3,9 +3,7 @@
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 30 } },
   "rewrites": [
-    { "source": "/p/:path(.*)", "destination": "/api/ping?path=:path" },
-    { "source": "/b/:badge", "destination": "/api/public?badge=:badge" },
-    { "source": "/((?!api/|assets/|p/|b/|favicon|logo|og).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|favicon|logo).*)", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [
