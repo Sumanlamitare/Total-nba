@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { Platform, useColorScheme, View } from 'react-native';
+import '../lib/web';
 import { Stack, router, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -53,6 +54,13 @@ function Nav() {
   );
 }
 
+// On a computer the web preview is shown phone-sized in the middle of the screen
+function Frame({ children }) {
+  const c = useColors();
+  if (Platform.OS !== 'web') return children;
+  return <View style={{ flex: 1, backgroundColor: c.panel2 }}><View style={{ flex: 1, width: '100%', maxWidth: 460, alignSelf: 'center', backgroundColor: c.bg, overflow: 'hidden' }}>{children}</View></View>;
+}
+
 export default function Root() {
-  return <SessionProvider><Nav /></SessionProvider>;
+  return <SessionProvider><Frame><Nav /></Frame></SessionProvider>;
 }

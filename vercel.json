@@ -1,15 +1,38 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && npm run build:preview",
   "outputDirectory": "dist",
-  "functions": { "api/*.js": { "maxDuration": 30 } },
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
-    { "source": "/((?!api/|assets/|favicon|logo|\\.well-known/).*)", "destination": "/index.html" }
+    {
+      "source": "/preview/:path*",
+      "destination": "/preview/index.html"
+    },
+    {
+      "source": "/((?!api/|assets/|preview/|favicon|logo|\\.well-known/).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
-    { "source": "/(.*)", "headers": [
-      { "key": "x-content-type-options", "value": "nosniff" },
-      { "key": "referrer-policy", "value": "strict-origin-when-cross-origin" },
-      { "key": "x-frame-options", "value": "DENY" }
-    ] }
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "x-content-type-options",
+          "value": "nosniff"
+        },
+        {
+          "key": "referrer-policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "x-frame-options",
+          "value": "DENY"
+        }
+      ]
+    }
   ]
 }

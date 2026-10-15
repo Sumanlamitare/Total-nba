@@ -1,2 +1,4 @@
-mobile/
 test/
+mobile/node_modules/
+mobile/dist-web/
+mobile/dist-ios/
