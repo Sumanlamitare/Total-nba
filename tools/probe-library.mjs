@@ -1,59 +1,52 @@
-// Probe ESPN's free API for what a player library can use. Writes probe/*.json (trimmed) and probe/report.txt.
+// Probe 2: how to enumerate historical players, trades, honors for legends, gamelog shape.
 import fs from 'node:fs';
 fs.mkdirSync('probe', { recursive: true });
 const out = []; const log = s => { console.log(s); out.push(s); };
 const H = { 'user-agent': 'Mozilla/5.0', accept: 'application/json' };
-async function get(name, url) {
-  const t = Date.now();
+async function get(name, url, save = true) {
   try {
-    const r = await fetch(url, { headers: H });
-    const txt = await r.text();
-    log(`\n### ${name} ${r.status} ${txt.length}B ${Date.now() - t}ms\n${url}`);
+    const r = await fetch(url, { headers: H }); const txt = await r.text();
+    log(`\n### ${name} ${r.status} ${txt.length}B\n${url}`);
     let j = null; try { j = JSON.parse(txt); } catch { log('not json: ' + txt.slice(0, 200)); }
-    if (j) fs.writeFileSync(`probe/${name}.json`, JSON.stringify(j, null, 1).slice(0, 400000));
+    if (j && save) fs.writeFileSync(`probe/${name}.json`, JSON.stringify(j).slice(0, 2_000_000));
     return j;
-  } catch (e) { log(`\n### ${name} ERR ${e.message}\n${url}`); return null; }
+  } catch (e) { log(`\n### ${name} ERR ${e.message}`); return null; }
 }
-const keys = (o, d = 0) => (o && typeof o === 'object' ? Object.keys(o).slice(0, 40).join(', ') : String(o));
 const CORE = 'https://sports.core.api.espn.com', WEB = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba', SITE = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
+const summary = j => `count=${j?.count} pageCount=${j?.pageCount} items=${j?.items?.length} first=${JSON.stringify(j?.items?.[0]).slice(0, 300)}`;
 
-// 1. the full athlete index
-for (const [n, u] of [
-  ['index_v3_all', `${CORE}/v3/sports/basketball/nba/athletes?limit=20000`],
-  ['index_v3_active', `${CORE}/v3/sports/basketball/nba/athletes?limit=20000&active=true`],
-  ['index_v2', `${CORE}/v2/sports/basketball/leagues/nba/athletes?limit=1000`],
-]) {
-  const j = await get(n, u);
-  if (j) { log(`top keys: ${keys(j)}; count=${j.count} pageCount=${j.pageCount} items=${j.items?.length}`); log('first item: ' + JSON.stringify(j.items?.[0]).slice(0, 800)); log('last item: ' + JSON.stringify(j.items?.at(-1)).slice(0, 400)); }
+for (const q of ['active=false', 'active=false&page=2', 'limit=100&page=50']) { const j = await get(`v3_${q.replace(/[^a-z0-9]/gi, '_')}`, `${CORE}/v3/sports/basketball/nba/athletes?limit=20000&${q}`); log(summary(j)); }
+for (const y of [1950, 1965, 1980, 1990, 1997, 2005, 2015]) { const j = await get(`season_${y}_athletes`, `${CORE}/v2/sports/basketball/leagues/nba/seasons/${y}/athletes?limit=1000`); log(summary(j)); }
+for (const y of [1960, 1986, 1996]) { const j = await get(`roster_bos_${y}`, `${SITE}/teams/2/roster?season=${y}`); log(`roster keys ${Object.keys(j || {})} athletes=${(j?.athletes || []).length} first=${JSON.stringify((j?.athletes || [])[0]).slice(0, 400)}`); }
+for (const y of [1960, 1986]) { const j = await get(`core_team_athletes_${y}`, `${CORE}/v2/sports/basketball/leagues/nba/seasons/${y}/teams/2/athletes?limit=200`); log(summary(j)); }
+for (const q of ['larry bird', 'kareem', 'wilt chamberlain', 'bill russell']) {
+  for (const u of [`https://site.web.api.espn.com/apis/common/v3/search?query=${encodeURIComponent(q)}&limit=5&mode=prefix&type=player&sport=basketball&league=nba`,
+    `https://site.web.api.espn.com/apis/search/v2?query=${encodeURIComponent(q)}&limit=5`]) {
+    const j = await get(`search_${q.replace(/ /g, '_')}_${u.includes('/v2') ? 'v2' : 'v3'}`, u);
+    log(JSON.stringify(j).slice(0, 900));
+  }
 }
-// 2. per-player: legend, star, journeyman, rookie, 70s player
-const P = { lebron: 1966, jordan: 1035, kareem: 33, curry: 3975, wemby: 5104157, bird: 1575, journeyman: 2490 };
-for (const [n, id] of Object.entries(P)) {
-  const a = await get(`athlete_${n}`, `${WEB}/athletes/${id}`);
-  if (a) log(`athlete keys: ${keys(a.athlete || a)}`);
+// a mid-season trade (Harden 2020-21), a legend's honors, an old-timer's stats
+for (const [n, id] of [['harden', 3992], ['jordan', 1035]]) {
   const s = await get(`stats_${n}`, `${WEB}/athletes/${id}/stats`);
-  if (s) { log(`stats keys: ${keys(s)}; categories=${(s.categories || []).map(c => `${c.name}(${c.statistics?.length} rows, labels ${c.labels?.length})`).join(' | ')}`); }
-  if (n === 'lebron' || n === 'kareem') {
-    await get(`stats_post_${n}`, `${WEB}/athletes/${id}/stats?seasontype=3`);
-    await get(`bio_${n}`, `${WEB}/athletes/${id}/bio`);
-    await get(`gamelog_${n}`, `${WEB}/athletes/${id}/gamelog`);
-    await get(`splits_${n}`, `${WEB}/athletes/${id}/splits`);
-    await get(`core_athlete_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}`);
-    await get(`core_awards_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}/awards`);
-    await get(`core_statslog_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}/statisticslog`);
-    await get(`core_records_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}/records`);
-    await get(`core_seasons_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}/seasons`);
-    await get(`core_careerstats_${n}`, `${CORE}/v2/sports/basketball/leagues/nba/athletes/${id}/statistics`);
-  }
-  for (const u of [`https://a.espncdn.com/i/headshots/nba/players/full/${id}.png`]) {
-    const r = await fetch(u, { method: 'HEAD' }).catch(() => null);
-    log(`headshot ${n}: ${r?.status} ${r?.headers.get('content-type')} ${r?.headers.get('content-length')}`);
-  }
+  log(`${n} seasons: ` + JSON.stringify((s?.categories?.[0]?.statistics || []).map(r => [r.season?.displayName, r.teamSlug, r.stats?.[0]])));
+  const b = await get(`bio_${n}`, `${WEB}/athletes/${id}/bio`);
+  log(`${n} awards: ` + JSON.stringify((b?.awards || []).map(a => [a.name, a.displayCount])));
+  log(`${n} teams: ` + JSON.stringify((b?.teamHistory || []).map(t => [t.displayName, t.seasons])));
 }
-// 3. teams (for colors, logos) incl. historical
-await get('teams', `${SITE}/teams`);
-await get('core_franchises', `${CORE}/v2/sports/basketball/leagues/nba/franchises?limit=100`);
-// 4. season awards (MVP etc.)
-await get('core_season_awards_2016', `${CORE}/v2/sports/basketball/leagues/nba/seasons/2016/awards?limit=100`);
-await get('core_athlete_season_awards', `${CORE}/v2/sports/basketball/leagues/nba/seasons/2016/athletes/1966/awards`);
+const pj = await get('stats_post_jordan', `${WEB}/athletes/1035/stats?seasontype=3`);
+log('jordan playoff rows: ' + JSON.stringify((pj?.categories?.[0]?.statistics || []).map(r => [r.season?.displayName, r.stats?.[0], r.stats?.at(-1)])));
+// gamelog shape (smaller: an older season)
+const g = await get('gamelog_lebron_2016', `${WEB}/athletes/1966/gamelog?season=2016`);
+if (g) {
+  log('gamelog keys ' + Object.keys(g) + ' labels ' + JSON.stringify(g.labels) + ' names ' + JSON.stringify(g.names));
+  log('seasonTypes ' + JSON.stringify((g.seasonTypes || []).map(st => [st.displayName, (st.categories || []).map(c => [c.displayName, c.type, (c.events || []).length])])));
+  const e0 = Object.entries(g.events || {})[0]; log('event ' + JSON.stringify(e0).slice(0, 900));
+  const c0 = g.seasonTypes?.[0]?.categories?.[0]; log('row ' + JSON.stringify(c0?.events?.[0]).slice(0, 400));
+}
+// old-season gamelog availability
+for (const [n, id, s] of [['jordan_1988', 1035, 1988], ['jordan_1997', 1035, 1997]]) {
+  const j = await get(`gamelog_${n}`, `${WEB}/athletes/${id}/gamelog?season=${s}`, false);
+  log(`${n}: events=${Object.keys(j?.events || {}).length} types=${JSON.stringify((j?.seasonTypes || []).map(st => st.displayName))}`);
+}
 fs.writeFileSync('probe/report.txt', out.join('\n') + '\n');
