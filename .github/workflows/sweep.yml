@@ -1,0 +1,23 @@
+name: Sweep
+
+# Safety net: marks checks that missed their deadline as down and sends alerts,
+# even when no pings or dashboard visits happen. GitHub may delay scheduled runs by a few minutes.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - run: npm run sweep
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

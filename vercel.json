@@ -1,6 +1,17 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": { "api/*.js": { "maxDuration": 60 } },
-  "rewrites": [{ "source": "/((?!api/|assets/).*)", "destination": "/index.html" }]
+  "functions": { "api/*.js": { "maxDuration": 30 } },
+  "rewrites": [
+    { "source": "/p/:path(.*)", "destination": "/api/ping?path=:path" },
+    { "source": "/b/:badge", "destination": "/api/public?badge=:badge" },
+    { "source": "/((?!api/|assets/|p/|b/|favicon|logo|og).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "x-content-type-options", "value": "nosniff" },
+      { "key": "referrer-policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "x-frame-options", "value": "DENY" }
+    ] }
+  ]
 }
