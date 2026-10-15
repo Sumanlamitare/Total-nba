@@ -17,6 +17,8 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); await mongo?.db(DB).dropDatabase(); await mongo?.close(); });
 
+// screens underneath stay mounted (hidden), like iOS navigation, so only match what's on screen
+const seen = (p, text) => p.locator(`text=${text} >> visible=true`).first();
 const phone = () => browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 async function signup(p, name, email) {
   await p.getByPlaceholder('Marcus Bell').fill(name);
@@ -42,8 +44,8 @@ test('organizer and player use the app end to end', async () => {
   await org.getByText('Invite your players').waitFor();
   await org.getByRole('button', { name: '+ Post a game' }).click();
   await org.getByRole('button', { name: 'Post game' }).click();
-  await org.getByText('You’re in ✅').waitFor();
-  await org.getByText('Riverside Field').first().waitFor();
+  await seen(org, 'You’re in ✅').waitFor();
+  await seen(org, '📍 Riverside Field').waitFor();
 
   const group = await mongo.db(DB).collection('groups').findOne({ name: 'Sunday Soccer' });
   assert.equal((await mongo.db(DB).collection('games').countDocuments({ groupId: group._id })), 1);
@@ -53,20 +55,21 @@ test('organizer and player use the app end to end', async () => {
   await ply.getByRole('button', { name: 'Sign up to join' }).click();
   await signup(ply, 'Marcus Bell', 'marcus@example.com');
   await ply.getByRole('button', { name: 'Join group' }).click();
-  await ply.getByText('Riverside Field').first().click();
-  await ply.getByText('Are you in?').first().waitFor();
+  await seen(ply, 'Members 2').waitFor(); // on the group screen
+  await ply.locator('text="Riverside Field" >> visible=true').first().click(); // the game card, not the group header
+  await seen(ply, 'I’m in').waitFor();
   await ply.getByRole('radio', { name: 'I’m in' }).click();
-  await ply.getByText('You’re in ✅').waitFor();
+  await seen(ply, 'You’re in ✅').waitFor();
   await ply.getByLabel('Message').fill('On my way ⚽');
   await ply.getByRole('button', { name: 'Send' }).click();
-  await ply.getByText('On my way ⚽').waitFor();
+  await seen(ply, 'On my way ⚽').waitFor();
 
   await org.reload();
-  await org.getByText('Marcus Bell').first().waitFor();
-  await org.getByText('On my way ⚽').waitFor();
+  await seen(org, 'Marcus Bell').waitFor();
+  await seen(org, 'On my way ⚽').waitFor();
   await org.getByRole('button', { name: 'Make teams' }).click();
-  await org.getByText('Lights').waitFor();
-  await org.getByText('Darks').waitFor();
+  await seen(org, 'Lights').waitFor();
+  await seen(org, 'Darks').waitFor();
 
   // the app stores its token, not a cookie
   assert.equal((await ply.context().cookies()).length, 0);
