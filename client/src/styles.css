@@ -105,8 +105,8 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 }
 .plaque-label { font: 24px/1.1 var(--face); }
 .plaque-sub { font: italic 13px/1.2 var(--serif); opacity: .8; }
-.az { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; padding: 4px 8px; background: rgba(20, 13, 8, .72); border: 1px solid rgba(196, 154, 82, .25); border-radius: 2px; }
-.az button { min-width: 28px; min-height: 30px; border: 0; background: none; color: #cdb88f; font: 16px/1 var(--face); border-radius: 2px; }
+.az { display: flex; flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: thin; justify-content: flex-start; gap: 2px; padding: 4px 8px; background: rgba(20, 13, 8, .72); border: 1px solid rgba(196, 154, 82, .25); border-radius: 2px; }
+.az button { min-width: 40px; min-height: 32px; border: 0; border-bottom: 3px solid var(--team, transparent); background: none; color: #cdb88f; font: 15px/1 var(--face); border-radius: 2px 2px 0 0; flex: 0 0 auto; }
 .az button:hover { color: #fff3d6; }
 .az button.on { color: var(--night); background: var(--brass); }
 .zoom { position: fixed; right: 18px; bottom: max(18px, env(safe-area-inset-bottom)); display: grid; gap: 6px; }

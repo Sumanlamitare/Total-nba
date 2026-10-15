@@ -14,7 +14,7 @@ export default function Legend({ onClose, motion, setMotion, meta, noGL }) {
     <aside className="legend" role="dialog" aria-label="Reading the spines" tabIndex={-1} ref={ref}>
       <button className="close" onClick={onClose} aria-label="Close">×</button>
       <h2>Reading the spines</h2>
-      <p>Books are shelved by surname, A to Z, left to right and top to bottom.</p>
+      <p>Every franchise has its own bookcase, its brass plaque banded in the team's colours. A player's book sits with the team they played the most games for, by ESPN's records (award records or ESPN's last team when games aren't recorded). Inside a bookcase, books run A to Z by surname. Players whose team ESPN doesn't record share the last bay.</p>
       <dl className="key">
         <dt><span className="k-thick" aria-hidden><i style={{ width: 6 }} /><i style={{ width: 12 }} /><i style={{ width: 20 }} /></span>Thickness</dt>
         <dd>Length of the career as far as ESPN's records show it: a long career is a thick book.</dd>

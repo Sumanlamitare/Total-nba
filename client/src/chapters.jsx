@@ -3,7 +3,7 @@
 // table scrolls inside its block). Chapter state (chosen tabs and filters) lives in `ui`, outside the pages,
 // because a page is rendered more than once while it turns.
 import React, { useState } from 'react';
-import { span as spanOf, seasonLabel } from './shelves.js';
+import { span as spanOf, seasonLabel, shelvedBecause } from './shelves.js';
 import { n0, n1, pct, longDate, shortDate, ageOn, list, plural } from './format.js';
 import { perSeason, byTeam, best, LEADER_PHRASE, coverageGap, teamsInSeason } from './bookdata.js';
 import { SeasonColumns, Accumulation } from './charts.jsx';
@@ -81,7 +81,7 @@ function titlePage(book, { player, shelf }, add) {
       <hr className="rule" />
       <p className="ex-libris">
         {book.regular ? <>A record of {plural(book.regular.seasons, 'season')} on ESPN's books{book.playoffs ? `, ${plural(book.playoffs.seasons, 'playoff run')}` : ''}.</> : <>ESPN keeps no season statistics for this player; the book holds what it does have.</>}
-        {shelf && <><br />Shelved in bookcase {shelf.cs.label}, shelf {shelf.s}.</>}
+        {shelf && <><br />{shelf.cs.team.id ? <>Shelved with the {shelf.cs.team.name}, {shelvedBecause(player)}.</> : <>Shelved in the bay for players whose team ESPN does not record.</>}</>}
       </p>
       <p className="turn-hint">Turn the page — drag its corner, swipe, or press →</p>
     </div>

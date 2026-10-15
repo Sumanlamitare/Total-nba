@@ -4,7 +4,7 @@
 //   colour    — decade of the first season (one leather per era)
 //   gold bands — MVP awards; gilt stars — Finals MVP awards
 
-export const CASE = { width: 1.9, shelves: 7, shelfGap: 0.42, depth: 0.34, board: 0.035, side: 0.05 };
+export const CASE = { width: 1.0, shelves: 7, shelfGap: 0.42, depth: 0.34, board: 0.035, side: 0.05 };
 CASE.height = CASE.shelves * CASE.shelfGap + CASE.board + 0.12;
 // Height of the board a shelf's books stand on; shelf 0 is the top shelf (books read top to bottom).
 export const shelfY = s => 0.1 + (CASE.shelves - 1 - s) * CASE.shelfGap;
@@ -53,34 +53,66 @@ export function bookSize(p) {
 
 const prefix = (p, n) => (p.k || p.l || p.n || '?').slice(0, n);
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+export const NO_TEAM = { id: null, abbr: '—', name: 'Team not on record', short: 'Unrecorded', color: '#4d4237', alt: '#c49a52' };
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
-// Pack players (already sorted by k) into cases. Returns { books, cases, letters }.
-export function pack(players) {
-  const inner = CASE.width - 0.03;
-  const books = []; const cases = [];
-  let c = 0, s = 0, x = 0;
-  const startCase = () => cases.push({ index: cases.length, first: books.length, last: books.length - 1, shelves: [] });
-  startCase();
+// Shelve by franchise: each team gets its own bookcase(s), A to Z by surname inside, the books spread evenly over
+// the shelves (a brass bookend closes each shelf). Teams run alphabetically; players with no team on ESPN's
+// record come last. Returns { books, cases, teams } — teams[k] = { ...team, first: case index, count }.
+export function pack(players, teamList = []) {
+  const inner = CASE.width - 0.06; // leave room for the bookend
+  const byId = new Map(teamList.map(t => [t.id, t]));
+  const groups = new Map();
   players.forEach((p, i) => {
-    const size = bookSize(p);
-    if (x + size.w > inner) {
-      s++; x = 0;
-      if (s >= CASE.shelves) { c++; s = 0; startCase(); }
-    }
-    books.push({ i, c, s, x: -inner / 2 + x + size.w / 2, ...size });
-    cases[c].last = books.length - 1;
-    x += size.w + 0.0015;
+    const key = p.tm && byId.has(p.tm) ? p.tm : null;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(i);
   });
+  const order = [...groups.keys()].filter(k => k != null).sort((a, b) => byId.get(a).name.localeCompare(byId.get(b).name));
+  if (groups.has(null)) order.push(null);
+
+  const books = [], cases = [], teams = [];
+  for (const key of order) {
+    const team = key == null ? NO_TEAM : byId.get(key);
+    const idx = groups.get(key);
+    const sizes = idx.map(i => bookSize(players[i]));
+    const total = sizes.reduce((a, s) => a + s.w + 0.0015, 0);
+    const nCases = Math.max(1, Math.ceil(total / (inner * CASE.shelves * 0.97)));
+    const perShelf = Math.min(inner, total / (nCases * CASE.shelves) + 0.03);
+    const t = { ...team, first: cases.length, count: idx.length, cases: nCases };
+    teams.push(t);
+    let c = -1, s = CASE.shelves, x = 0;
+    const newCase = () => {
+      c = cases.length; s = 0; x = 0;
+      const nth = cases.filter(k => k.team === t).length;
+      cases.push({ index: c, team: t, first: books.length, last: books.length - 1, ends: [], label: nCases > 1 ? `${team.short || team.name} ${ROMAN[nth + 1] || nth + 1}` : team.name });
+    };
+    idx.forEach((i, k) => {
+      const size = sizes[k];
+      if (c < 0 || x + size.w > (s === CASE.shelves - 1 ? inner : perShelf)) {
+        if (c >= 0 && x > 0) cases[c].ends.push({ s, x: -inner / 2 + x });
+        if (c < 0 || s + 1 >= CASE.shelves) newCase(); else { s++; x = 0; }
+      }
+      books.push({ i, c, s, x: -inner / 2 + x + size.w / 2, ...size });
+      cases[c].last = books.length - 1;
+      x += size.w + 0.0015;
+    });
+    if (x > 0) cases[c].ends.push({ s, x: -inner / 2 + x });
+  }
   for (const cs of cases) {
     const a = players[books[cs.first]?.i], b = players[books[cs.last]?.i];
     cs.from = a ? cap(prefix(a, 2)) : ''; cs.to = b ? cap(prefix(b, 2)) : '';
-    cs.label = cs.from === cs.to ? cs.from : `${cs.from} – ${cs.to}`;
+    cs.range = cs.from === cs.to ? cs.from : `${cs.from} – ${cs.to}`;
   }
-  // First book of each letter, for the A–Z index.
-  const letters = {};
-  books.forEach((b, n) => { const L = (players[b.i].k || '?')[0].toUpperCase(); if (/[A-Z]/.test(L) && letters[L] == null) letters[L] = n; });
-  return { books, cases, letters };
+  return { books, cases, teams };
 }
+
+// Why a book is shelved where it is, in words.
+export const shelvedBecause = p => (!p?.tm ? 'ESPN records no team for this player'
+  : p.tms === 'seasons' ? 'the team ESPN\'s season lists show most often'
+  : p.tms === 'awards' ? 'the team named on the player\'s award records'
+  : p.tms === 'last' ? 'the last team ESPN lists for the player'
+  : 'the team with the most games on ESPN\'s record');
 
 // Index of the book for a player id.
 export const bookIndexOf = (layout, players, id) => layout.books.findIndex(b => players[b.i].i === id);

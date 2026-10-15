@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import { parseStats, compose, foldGamelog, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
 import { foldSeason, awardRows, countHonors, finishSpans, foldCareer, publicRecord, entry, sortKey, currentSeason, leaderOf } from '../lib/catalog.js';
 import { pack, span, seasonLabel, bookSize, CASE } from '../client/src/shelves.js';
+import { assignTeam } from '../lib/catalog.js';
 import { localSearch } from '../client/src/search.js';
 import { perSeason, byTeam, best, coverageGap } from '../client/src/bookdata.js';
 
@@ -141,21 +142,42 @@ test('sortKey, seasons and the current season', () => {
   assert.equal(currentSeason(new Date('2026-06-01')), 2026);
 });
 
-test('shelving: every catalogued player has exactly one book, in alphabetical order', () => {
-  const players = catalog.players;
+test('shelving by team: one book per player, a bookcase per franchise, A to Z inside, unrecorded last', () => {
+  const players = catalog.players, teams = catalog.meta.teams || [];
   assert.ok(players.length > 5000);
-  const layout = pack(players);
+  const layout = pack(players, teams);
   assert.equal(layout.books.length, players.length);
   assert.equal(new Set(layout.books.map(b => b.i)).size, players.length);
-  for (let n = 1; n < layout.books.length; n++) {
-    const a = layout.books[n - 1], b = layout.books[n];
-    assert.ok(b.c > a.c || (b.c === a.c && (b.s > a.s || (b.s === a.s && b.x > a.x))), 'reading order');
-    assert.ok(Math.abs(b.x) + b.w / 2 <= CASE.width / 2, 'fits on the shelf');
-    assert.ok(b.s < CASE.shelves);
+  for (const cs of layout.cases) {
+    const inCase = layout.books.slice(cs.first, cs.last + 1);
+    assert.ok(inCase.every(b => b.c === cs.index), 'contiguous');
+    // Every book in a case belongs to that case's team.
+    for (const b of inCase) assert.equal(players[b.i].tm && teams.some(t => t.id === players[b.i].tm) ? players[b.i].tm : null, cs.team.id);
+    for (let n = 1; n < inCase.length; n++) {
+      const a = inCase[n - 1], b = inCase[n];
+      assert.ok(players[a.i].k <= players[b.i].k, 'A to Z');
+      assert.ok(b.s > a.s || (b.s === a.s && b.x > a.x), 'reading order');
+    }
+    for (const b of inCase) assert.ok(Math.abs(b.x) + b.w / 2 <= CASE.width / 2 && b.s < CASE.shelves, 'fits');
+    assert.ok(cs.ends.length >= 1, 'bookends');
   }
-  assert.equal(layout.letters.A, 0);
-  assert.ok('ABCJMRWZ'.split('').every(L => layout.letters[L] != null));
-  assert.ok(layout.cases.length >= 8 && layout.cases.length <= 30);
+  const named = layout.teams.filter(t => t.id);
+  assert.deepEqual(named.map(t => t.name), [...named.map(t => t.name)].sort((a, b) => a.localeCompare(b)));
+  if (layout.teams.some(t => !t.id)) assert.equal(layout.teams[layout.teams.length - 1].id, null);
+  // Without team data everything still has a place.
+  const flat = pack(players.slice(0, 500), []);
+  assert.equal(flat.books.length, 500);
+  assert.equal(flat.teams.length, 1);
+});
+
+test('team assignment: most games first, then season lists, awards, last team', () => {
+  const fr = new Set(['2', '13', '25']);
+  const p = { cg: { 13: 400, 2: 900 }, sg: { 13: 9999 }, ag: {}, lt: '25' };
+  assert.equal(assignTeam(p, fr), '2'); assert.equal(p.tms, 'games');
+  assert.equal(assignTeam({ cg: {}, sg: { 25: 30 }, ag: { 2: 3 }, lt: '13' }, fr), '25');
+  assert.equal(assignTeam({ cg: {}, sg: {}, ag: { 2: 3 }, lt: '13' }, fr), '2');
+  const q = { cg: {}, sg: {}, ag: {}, lt: '13' }; assert.equal(assignTeam(q, fr), '13'); assert.equal(q.tms, 'last');
+  assert.equal(assignTeam({ cg: { 99: 50 }, sg: {}, ag: {}, lt: null }, fr), null, 'unknown team ids are not shelved under a franchise');
 });
 
 test('thickness follows career length', () => {

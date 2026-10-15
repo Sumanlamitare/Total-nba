@@ -67,15 +67,22 @@ function floorTexture() {
   return t;
 }
 
-function plaqueTexture(text) {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
+// A brass plaque naming the team, with enamel bands in the team's colours at either end.
+function plaqueTexture(text, sub, color, alt) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 192;
   const g = c.getContext('2d');
-  const grd = g.createLinearGradient(0, 0, 0, 128);
+  const grd = g.createLinearGradient(0, 0, 0, 192);
   grd.addColorStop(0, '#e2c27c'); grd.addColorStop(0.5, '#b38a45'); grd.addColorStop(1, '#8a6630');
-  g.fillStyle = grd; g.fillRect(0, 0, 512, 128);
-  g.strokeStyle = '#5e4320'; g.lineWidth = 6; g.strokeRect(8, 8, 496, 112);
-  g.fillStyle = '#2a1c0c'; g.font = '64px "IM Fell English SC", Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(text, 256, 68);
+  g.fillStyle = grd; g.fillRect(0, 0, 1024, 192);
+  if (color) {
+    for (const x of [22, 1024 - 22 - 46]) { g.fillStyle = color; g.fillRect(x, 22, 46, 148); if (alt) { g.fillStyle = alt; g.fillRect(x + 17, 22, 12, 148); } }
+  }
+  g.strokeStyle = '#5e4320'; g.lineWidth = 8; g.strokeRect(10, 10, 1004, 172);
+  g.fillStyle = '#2a1c0c'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let size = 84; g.font = `${size}px "IM Fell English SC", Georgia, serif`;
+  while (g.measureText(text).width > 820 && size > 40) { size -= 4; g.font = `${size}px "IM Fell English SC", Georgia, serif`; }
+  g.fillText(text, 512, sub ? 80 : 98);
+  if (sub) { g.font = 'italic 38px "EB Garamond", Georgia, serif'; g.fillStyle = '#3d2a12'; g.fillText(sub, 512, 146); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
@@ -94,7 +101,7 @@ export class Room {
     const n = layout.cases.length;
     this.n = n;
     this.step = (Math.PI * 2) / Math.max(n, 8);
-    this.R = Math.max(4.2, (Math.max(n, 8) * (CASE.width + 0.5)) / (Math.PI * 2));
+    this.R = Math.max(4.2, (Math.max(n, 8) * (CASE.width + 0.3)) / (Math.PI * 2));
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
@@ -188,14 +195,22 @@ export class Room {
 
     // Brass plaques with each case's letter range.
     this.plaques = [];
-    const plaqueGeo = new THREE.PlaneGeometry(0.62, 0.155); this.disposables.push(plaqueGeo);
+    const plaqueGeo = new THREE.PlaneGeometry(0.94, 0.176); this.disposables.push(plaqueGeo);
     layout.cases.forEach((cs, i) => {
-      const t = plaqueTexture(cs.label);
+      const t = plaqueTexture(cs.label, cs.team.cases > 1 ? cs.range : `${cs.team.count.toLocaleString('en-US')} books`, cs.team.color, cs.team.alt);
       const mat = new THREE.MeshStandardMaterial({ map: t, roughness: 0.35, metalness: 0.6 });
       const pl = new THREE.Mesh(plaqueGeo, mat);
       pl.applyMatrix4(this.caseFrame(i).multiply(new THREE.Matrix4().makeTranslation(0, H + 0.04, D / 2 + 0.071)));
       scene.add(pl); this.disposables.push(t, mat); this.plaques.push(pl);
     });
+
+    // Brass bookends at the end of each shelf's run of books.
+    const ends = layout.cases.flatMap((cs, i) => cs.ends.map(e => ({ i, ...e })));
+    const endGeo = new THREE.BoxGeometry(0.012, 0.2, 0.16), endMat = new THREE.MeshStandardMaterial({ color: '#b48a46', roughness: 0.35, metalness: 0.75 });
+    const bookends = new THREE.InstancedMesh(endGeo, endMat, Math.max(1, ends.length));
+    ends.forEach((e, k) => bookends.setMatrixAt(k, this.caseFrame(e.i).multiply(new THREE.Matrix4().makeTranslation(e.x + 0.012, shelfY(e.s) + 0.1, CASE.depth / 2 - 0.1))));
+    bookends.count = ends.length;
+    scene.add(bookends); this.disposables.push(endGeo, endMat);
 
     // Books: one instanced mesh per case.
     this.bookGeo = new THREE.BoxGeometry(1, 1, 1); this.disposables.push(this.bookGeo);

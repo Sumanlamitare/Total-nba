@@ -35,7 +35,8 @@ export default function App() {
   }, []);
 
   const players = catalog?.players || null;
-  const layout = useMemo(() => (players ? pack(players) : null), [players]);
+  const teamList = catalog?.meta?.teams;
+  const layout = useMemo(() => (players ? pack(players, teamList || []) : null), [players, teamList]);
   const indexOf = useMemo(() => {
     const m = new Map();
     layout?.books.forEach((b, n) => m.set(players[b.i].i, n));
@@ -111,7 +112,7 @@ export default function App() {
     setSearchOpen(false); setFocus(n);
     const p = playerAt(n);
     const cs = layout.cases[layout.books[n].c];
-    setAnnounce(`${p.n}: bookcase ${cs.label}, shelf ${layout.books[n].s + 1}. Press Enter to open.`);
+    setAnnounce(`${p.n}: ${cs.label} bookcase, shelf ${layout.books[n].s + 1}. Press Enter to open.`);
     if (mode === 'room') roomRef.current?.showBook(n);
     return true;
   }, [indexOf, layout, mode]); // eslint-disable-line react-hooks/exhaustive-deps

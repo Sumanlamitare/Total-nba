@@ -62,7 +62,7 @@ export default function Catalogue({ players, layout, indexOf, onClose, onGo, onO
                 <button className="card-main" onClick={() => onGo(p.i)}>
                   <span className="card-name">{p.n}</span>
                   <span className="card-meta">{[span(p), POS[p.p] || p.p, (p.t || []).slice(0, 4).join(' · ')].filter(Boolean).join(' — ')}</span>
-                  {b && <span className="card-loc">Bookcase {layout.cases[b.c].label} · shelf {b.s + 1}</span>}
+                  {b && <span className="card-loc">{layout.cases[b.c].label} bookcase · shelf {b.s + 1}</span>}
                 </button>
                 <button className="btn small" onClick={() => onOpen(p.i)} aria-label={`Open ${p.n}`}>Open</button>
               </li>

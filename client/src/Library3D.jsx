@@ -23,6 +23,8 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
   const [hovered, setHovered] = useState(-1);
   const [ready, setReady] = useState(false);
   const cb = useRef({});
+  const focusRef = useRef(focus);
+  focusRef.current = focus;
   cb.current = { onOpen, onDesk, onFail, setFocus, announce, onReady };
 
   useImperativeHandle(ref, () => ({
@@ -50,6 +52,8 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
       } catch (e) { console.error(e); cb.current.onFail(); return; }
       roomRef.current = room;
       if (saved && saved.n === layout.cases.length) { room.goTo(Math.round(saved.a), { y: saved.y, dist: saved.dist, instant: true }); }
+      // A book chosen before the room was ready (catalogue search, deep link): go to it now.
+      if (focusRef.current >= 0) room.showBook(focusRef.current, { instant: true });
       setReady(true);
       cb.current.onReady?.();
     });
@@ -85,12 +89,14 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
   useEffect(() => {
     if (blocked) return;
     const onKey = e => {
-      const r = roomRef.current; if (!r || e.target.closest?.('input, textarea, select, [role=dialog]')) return;
-      if (e.altKey || e.metaKey || e.ctrlKey) return;
+      if (e.target.closest?.('input, textarea, select, [role=dialog]') || e.altKey || e.metaKey || e.ctrlKey) return;
+      const r = roomRef.current;
+      // The room may still be waiting for its fonts: a book already chosen (from the catalogue) can be opened.
+      if (!r) { if ((e.key === 'Enter' || e.key === ' ') && focusRef.current >= 0) { e.preventDefault(); cb.current.onOpen(focusRef.current); } return; }
       const books = layout.books;
       let n = r.selected;
       const firstOfCase = c => layout.cases[c].first;
-      const go = m => { e.preventDefault(); r.showBook(m); const p = players[books[m].i]; const cs = layout.cases[books[m].c]; cb.current.announce(`${p.n}, ${span(p)}. Bookcase ${cs.label}, shelf ${books[m].s + 1}.`); };
+      const go = m => { e.preventDefault(); r.showBook(m); const p = players[books[m].i]; const cs = layout.cases[books[m].c]; cb.current.announce(`${p.n}, ${span(p)}. ${cs.label} bookcase, shelf ${books[m].s + 1}.`); };
       switch (e.key) {
         case 'ArrowRight': return go(n < 0 ? firstOfCase(station) : Math.min(books.length - 1, n + 1));
         case 'ArrowLeft': return go(n < 0 ? firstOfCase(station) : Math.max(0, n - 1));
@@ -118,7 +124,6 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
 
   const cs = layout.cases[station];
   const sp = slipBook >= 0 ? players[layout.books[slipBook].i] : null;
-  const letters = Object.keys(layout.letters);
   const touch = isTouch();
 
   return (
@@ -140,13 +145,15 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
           <button className="arrow" onClick={() => { roomRef.current?.select(-1); roomRef.current?.nudge(-1); }} aria-label="Previous bookcase">‹</button>
           <div className="plaque" aria-live="polite">
             <span className="plaque-label">{cs?.label}</span>
-            <span className="plaque-sub">Bookcase {station + 1} of {layout.cases.length}</span>
+            <span className="plaque-sub">{cs?.team.cases > 1 ? `${cs.range} · ` : ''}{cs?.team.count.toLocaleString('en-US')} books · bookcase {station + 1} of {layout.cases.length}</span>
           </div>
           <button className="arrow" onClick={() => { roomRef.current?.select(-1); roomRef.current?.nudge(1); }} aria-label="Next bookcase">›</button>
         </div>
-        <div className="az" role="group" aria-label="Jump to a letter">
-          {letters.map(L => (
-            <button key={L} className={layout.books[layout.letters[L]].c === station ? 'on' : ''} onClick={() => { const n = layout.letters[L]; roomRef.current?.goTo(layout.books[n].c, { dist: 3.4, y: 1.55 }); roomRef.current?.select(-1); }}>{L}</button>
+        <div className="az" role="group" aria-label="Go to a team's bookcase">
+          {layout.teams.map(t => (
+            <button key={t.id || 'none'} title={t.name} aria-label={t.name} className={cs?.team === t ? 'on' : ''}
+              style={{ '--team': t.color || '#c49a52' }}
+              onClick={() => { roomRef.current?.goTo(t.first, { dist: 3.4, y: 1.55 }); roomRef.current?.select(-1); }}>{t.abbr}</button>
           ))}
         </div>
       </nav>

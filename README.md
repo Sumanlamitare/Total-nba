@@ -1,12 +1,12 @@
 # The Player Library
 
-Every NBA player ESPN has on record gets a book, shelved alphabetically in a 3D reading room. Walk the shelves, pull a book, and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
+Every NBA player ESPN has on record gets a book, shelved with their team in a 3D reading room. Walk the shelves, pull a book, and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
 
 Live: https://total-nba-ja9d.vercel.app
 
 ## Using it
 
-- **Walk the room.** Drag (or use `[` `]`, or the brass arrows) to move between bookcases. Scroll or pinch to step closer. The A–Z strip jumps to a letter.
+- **Walk the room.** Every franchise has its own bookcase, its plaque banded in the team's colours. Drag (or use `[` `]`, or the brass arrows) to move between bookcases. Scroll or pinch to step closer. The team strip jumps to a team.
 - **Find a player.** Use the card catalogue (`/`). Enter takes you to the book's shelf, and Shift+Enter opens it. If the shelves don't hold a player, the catalogue asks ESPN's search and shelves any NBA player it finds.
 - **Open a book.** Click a book; on touch, tap once to select it and again to open. The book slides off the shelf, the cover opens onto marbled endpapers, and the endpaper and half-title leaves turn over to the title page. Any click or key skips the animation; closing plays it in reverse and puts the book back.
 - **Read.** The book is paginated into real pages: a two-page spread on wide screens, one page on phones. Pages turn as leaves hinged at the spine. Drag a page, swipe, click the dog-eared corner, or use ← →. The contents page lists real page numbers and turns to any chapter. Esc goes back to the shelf you came from. Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
@@ -21,6 +21,8 @@ Live: https://total-nba-ja9d.vercel.app
 | Gilt stars | One per Finals MVP award |
 | Leather | Decade of the first season |
 | Height | Decoration only |
+
+**Which team's bookcase.** A book sits with the franchise the player played the most games for in ESPN's career statistics. When those aren't recorded, it falls back to the team on the player's award records, then to ESPN's last-team field. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics sit with Oklahoma City. About a third of the books, mostly early players, have no team on ESPN's record and share a final bay. Inside a bookcase, books run A to Z by surname, spread evenly over the shelves.
 
 ## Data: ESPN's free public API, nothing invented
 

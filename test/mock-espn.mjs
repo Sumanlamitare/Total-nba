@@ -9,7 +9,7 @@ export function mockEspn() {
   const hits = [];
   const season = (y, qualified) => {
     const row = (id, name, first, last, team, gp, pts, reb) => ({
-      athlete: { id, displayName: name, firstName: first, lastName: last, debutYear: id === '1966' ? 2003 : 2015, position: { abbreviation: 'F' }, teams: [{ abbreviation: team }] },
+      athlete: { id, displayName: name, firstName: first, lastName: last, debutYear: id === '1966' ? 2003 : 2015, position: { abbreviation: 'F' }, teams: [{ id: { CLE: '5', BOS: '2', NYK: '18' }[team], abbreviation: team }] },
       categories: [{ name: 'general', values: [gp, 30, reb] }, { name: 'offensive', values: [pts] }, { name: 'defensive', values: [1, 1] }],
     });
     const athletes = [row('1966', 'LeBron James', 'LeBron', 'James', 'CLE', 76, 25.3, 7.4), row('100', 'Ann Able', 'Ann', 'Able', y === 2016 ? 'BOS' : 'NYK', 60, 8.1, 3.2)];
@@ -34,6 +34,7 @@ export function mockEspn() {
     [/\/core\/seasons\/1960\/awards\/33$/, () => ({ id: '33', name: 'MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/1960/athletes/4142` }, team: { $ref: `${base}/core/seasons/1960/teams/9` } }] })],
     [/\/core\/seasons\/2016\/awards\/33$/, () => ({ id: '33', name: 'MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/2016/athletes/1966` } }] })],
     [/\/core3\/athletes$/, () => ({ items: [{ id: '1966', displayName: 'LeBron James', firstName: 'LeBron', lastName: 'James' }, { id: '5000001', displayName: 'Rookie Newman', firstName: 'Rookie', lastName: 'Newman' }] })],
+    [/\/site\/teams$/, () => ({ sports: [{ leagues: [{ teams: [['1', 'ATL', 'Atlanta Hawks'], ['2', 'BOS', 'Boston Celtics'], ['5', 'CLE', 'Cleveland Cavaliers'], ['9', 'GS', 'Golden State Warriors'], ['13', 'LAL', 'Los Angeles Lakers'], ['14', 'MIA', 'Miami Heat'], ['18', 'NY', 'New York Knicks']].map(([id, abbreviation, displayName]) => ({ team: { id, abbreviation, displayName, shortDisplayName: displayName.split(' ').pop(), color: '112233', alternateColor: 'ddeeff' } })) }] }] })],
     [/\/search$/, u => ({ results: [{ type: 'player', contents: /forgotten/i.test(u.searchParams.get('query')) ? [{ uid: 's:40~l:46~a:7777', displayName: 'Forgotten Guard' }, { uid: 's:20~l:28~a:5', displayName: 'Football Person' }] : [] }] })],
   ];
   const server = http.createServer((req, res) => {
@@ -47,7 +48,7 @@ export function mockEspn() {
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     base = `http://127.0.0.1:${server.address().port}`;
     resolve({
-      env: { ESPN_WEB: `${base}/web`, ESPN_CORE: `${base}/core`, ESPN_CORE3: `${base}/core3`, ESPN_SEARCH: `${base}/search` },
+      env: { ESPN_WEB: `${base}/web`, ESPN_CORE: `${base}/core`, ESPN_CORE3: `${base}/core3`, ESPN_SEARCH: `${base}/search`, ESPN_SITE: `${base}/site` },
       hits, close: () => new Promise(r => server.close(r)),
     });
   }));

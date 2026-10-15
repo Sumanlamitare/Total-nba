@@ -80,13 +80,20 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     return () => { live = false; };
   }, [blocks, geo]);
 
-  const paged = useMemo(() => (heights && heights.length === blocks.length && geo ? paginate(blocks, heights, geo.textH) : null), [heights, blocks, geo]);
+  // The pages on screen come from the last complete measurement, so a re-measure (new data, fonts) swaps the new
+  // layout in at once instead of dropping the book for a frame.
+  const fresh = useMemo(() => (heights && heights.length === blocks.length && geo ? { blocks, paged: paginate(blocks, heights, geo.textH) } : null), [heights, blocks, geo]);
+  const viewRef = useRef(null);
+  if (fresh) viewRef.current = fresh;
+  const view = viewRef.current;
+  const paged = view?.paged || null;
+  const shown = view?.blocks || [];
   useEffect(() => {
     if (paged && JSON.stringify(paged.chapterPages) !== JSON.stringify(chapterPages)) setChapterPages(paged.chapterPages);
   }, [paged]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pagedRef = useRef(null), blocksRef = useRef([]);
-  pagedRef.current = paged; blocksRef.current = blocks;
+  pagedRef.current = paged; blocksRef.current = shown;
   const n = paged?.pages.length || 0;
   const spread = !!geo?.spread;
   const last = spread ? Math.floor(n / 2) : Math.max(0, n - 1);
@@ -101,18 +108,19 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const anchor = useRef(null);
   useLayoutEffect(() => {
     if (!paged || anchor.current == null) return;
-    const k = blocks.findIndex(b => b.key === anchor.current);
+    const k = shown.findIndex(b => b.key === anchor.current);
     if (k < 0) return;
     const p = paged.pages.findIndex(pg => pg.blocks.includes(k));
     if (p < 0) return;
     const want = spread ? spreadOf(p) : p;
     if (want !== pos && !anim.current.turn) setPos(want);
   }, [paged]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!paged) return;
-    const p = firstPageOf(pos);
-    if (p != null && paged.pages[p]) anchor.current = blocks[paged.pages[p].blocks[0]].key;
-  }, [pos]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Land on a spread/page and remember the text there (set at the same moment, so a re-flow can't race it).
+  const land = to => {
+    const pg = pagedRef.current, fp = firstPageOf(to);
+    if (pg && fp != null && pg.pages[fp]) anchor.current = blocksRef.current[pg.pages[fp].blocks[0]].key;
+    setPos(to);
+  };
   useEffect(() => { if (pos > last && n) setPos(last); }, [last, n, pos]);
 
   // ---- turning ----------------------------------------------------------------------------------------------
@@ -139,7 +147,8 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
       const latest = pagedRef.current, k = t.anchorKey ? blocksRef.current.findIndex(b => b.key === t.anchorKey) : -1;
       const p = k >= 0 && latest ? latest.pages.findIndex(x => x.blocks.includes(k)) : -1;
       if (p >= 0) t.to = spread ? spreadOf(p) : p;
-      setPos(t.to);
+      land(t.to);
+      if (anim.current.queued != null) { const q = anim.current.queued; anim.current.queued = null; setTimeout(() => startTurnRef.current(q), 0); }
       const pg = spread ? [leftOf(t.to), rightOf(t.to)].filter(x => typeof x === 'number') : [t.to];
       const ch = pg.length ? (pagedRef.current || paged).pages[pg[pg.length - 1]]?.ch ?? 0 : 0;
       setAnnounce(`${pg.length === 2 ? `Pages ${pg[0] + 1} and ${pg[1] + 1}` : pg.length ? `Page ${pg[0] + 1}` : 'Endpaper'}${ch > 1 ? `: Chapter ${ROMAN[ch]}, ${CHAPTERS[ch]}` : ch === 1 ? ': Contents' : ''}.`);
@@ -160,22 +169,28 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   }, [finish]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startTurn = useCallback((to, { drag = false } = {}) => {
-    if (anim.current.turn || to === pos || to < 0 || to > last) return false;
+    // A request while a leaf is still moving waits for it to land (fast clicking turns page after page).
+    if (anim.current.turn) { if (!drag && to >= 0 && to <= last) anim.current.queued = to; return !drag; }
+    if (to === pos || to < 0 || to > last) return false;
     const fp = firstPageOf(to);
-    const t = { dir: to > pos ? 1 : -1, from: pos, to, anchorKey: fp != null && paged?.pages[fp] ? blocks[paged.pages[fp].blocks[0]].key : null };
+    const t = { dir: to > pos ? 1 : -1, from: pos, to, anchorKey: fp != null && paged?.pages[fp] ? shown[paged.pages[fp].blocks[0]].key : null };
     if (!motion) { anim.current.turn = t; finish(true); return true; }
     anim.current.turn = t; anim.current.p = 0;
     setTurn(t);
     if (!drag) requestAnimationFrame(() => animateTo(1));
     return true;
-  }, [pos, last, motion, animateTo, finish, paged, blocks]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pos, last, motion, animateTo, finish, paged, shown]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const startTurnRef = useRef(startTurn);
+  startTurnRef.current = startTurn;
   useLayoutEffect(() => { if (turn) setP(anim.current.p); }); // place a freshly rendered leaf
 
   const goPage = useCallback(p => { startTurn(spread ? spreadOf(p) : p); }, [startTurn, spread]);
   goPageRef.current = goPage;
-  const next = () => startTurn(pos + 1);
-  const prev = () => startTurn(pos - 1);
+  // Relative turns count from where the book is heading, so pressing → three times turns three leaves.
+  const heading = () => anim.current.queued ?? anim.current.turn?.to ?? pos;
+  const next = () => startTurn(heading() + 1);
+  const prev = () => startTurn(heading() - 1);
 
   // Keys.
   useEffect(() => {
@@ -227,7 +242,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     return (
       <div className={`pg ${side}`} style={{ padding: `${geo.padTop}px ${geo.padX}px ${geo.padBottom}px` }}>
         <p className="pg-head" aria-hidden>{side === 'left' || !spread ? name : ch > 1 ? `${ROMAN[ch]} · ${CHAPTERS[ch]}` : ''}</p>
-        <div className="pg-body">{page.blocks.map(b => <div className="blk" key={blocks[b].key}>{blocks[b].el}</div>)}</div>
+        <div className="pg-body">{page.blocks.map(b => <div className="blk" key={shown[b].key}>{shown[b].el}</div>)}</div>
         {ch > 0 && <p className="pg-folio" aria-hidden>{k + 1}</p>}
       </div>
     );
@@ -335,7 +350,7 @@ function Endpaper({ side, shelf, id, name, onClose }) {
           <p className="bp-ex">Ex libris</p>
           <p className="bp-lib">The Player Library</p>
           <p className="bp-name">{name}</p>
-          {shelf && <dl><dt>Shelf mark</dt><dd>{shelf.cs.label} · {shelf.s}</dd><dt>ESPN no.</dt><dd>{id}</dd></dl>}
+          {shelf && <dl><dt>Shelf mark</dt><dd>{shelf.cs.label} · {shelf.s}</dd><dt>Team</dt><dd>{shelf.cs.team.abbr}</dd><dt>ESPN no.</dt><dd>{id}</dd></dl>}
         </div>
       ) : (
         <div className="bookplate end">

@@ -25,7 +25,10 @@ async function findInBook(p, make, turns = 4) {
   for (let k = 0; ; k++) {
     const loc = make(p.locator('.book'));
     if (await loc.first().isVisible().catch(() => false)) return loc;
-    if (k >= turns) throw new Error('not found in the book');
+    if (k >= turns) {
+      const state = await p.evaluate(() => ({ pages: document.querySelector('.pg-count')?.textContent, chapter: document.querySelector('.chapter-pick select')?.value, heads: [...document.querySelectorAll('.book h2, .book h3')].map(h => h.textContent), turning: !!document.querySelector('.book.turning') }));
+      throw new Error(`not found in the book: ${JSON.stringify(state)}`);
+    }
     await p.keyboard.press('ArrowRight');
     await p.locator('.book:not(.turning)').waitFor();
     await p.waitForTimeout(150);
@@ -46,7 +49,7 @@ async function page(opts = {}) {
 test('the reading room: search guides to the shelf, a book opens, chapters turn, Esc returns', async () => {
   const p = await page();
   await p.goto(base + '/');
-  await p.getByText(/Bookcase 1 of \d+/).waitFor({ timeout: 30000 });
+  await p.getByText(/bookcase 1 of \d+/i).waitFor({ timeout: 30000 });
   assert.match(await p.locator('.tagline').innerText(), /5,2\d\d NBA players/);
   await p.waitForTimeout(1500);
   await p.keyboard.press('/');
@@ -54,7 +57,7 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
   assert.equal(await p.locator('.card-name').first().innerText(), 'Bill Russell');
   await p.keyboard.press('Enter');
   await p.locator('.slip.chosen', { hasText: 'Bill Russell' }).waitFor();
-  await p.getByRole('button', { name: 'Open book' }).click();
+  await p.keyboard.press('Enter'); // opens the selected book (the slip's button does the same)
   const reader = p.getByRole('dialog', { name: /Bill Russell/ });
   await reader.waitFor({ timeout: 15000 });
   assert.match(p.url(), /\/book\/4152\/bill-russell$/);
@@ -93,7 +96,7 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
 test('a link straight to a book opens it on its own', async () => {
   const p = await page();
   await p.goto(base + '/');
-  await p.getByText(/Bookcase 1 of/).waitFor({ timeout: 30000 });
+  await p.getByText(/bookcase 1 of/i).waitFor({ timeout: 30000 });
   await p.goto(base + '/book/4142/wilt-chamberlain');
   const reader = p.getByRole('dialog', { name: /Wilt Chamberlain/ });
   await reader.waitFor({ timeout: 30000 });
