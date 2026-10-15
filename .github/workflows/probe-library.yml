@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: probe or ingest
+        description: probe, ingest or snapshot
         default: ingest
 
 permissions:
@@ -23,7 +23,13 @@ jobs:
       - run: mkdir -p probe
       - if: inputs.task == 'probe'
         run: node tools/probe-library.mjs
-      - if: inputs.task != 'probe'
+      - if: inputs.task == 'snapshot'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/snapshot.mjs 2>&1 | tee probe/report.txt
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      - if: inputs.task == 'ingest'
         run: |
           npm ci --no-audit --no-fund
           node scripts/ingest.mjs --scan 8000 2>&1 | tee probe/report.txt

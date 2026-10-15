@@ -16,6 +16,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: node scripts/ingest.mjs
+      - run: node scripts/ingest.mjs --scan 8000
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
