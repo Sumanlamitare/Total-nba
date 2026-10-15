@@ -11,7 +11,7 @@ const d = await db();
 try {
   const players = await d.collection('players').find({}).sort({ k: 1, _id: 1 }).toArray();
   const meta = await d.collection('meta').findOne({ _id: 'catalog' });
-  fs.writeFileSync('probe/catalog.json', JSON.stringify({ players: players.map(publicRecord), meta: { players: meta.players, from: meta.from, to: meta.to, at: meta.at } }));
+  fs.writeFileSync('probe/catalog.json', JSON.stringify({ players: players.map(publicRecord), meta: { players: meta.players, from: meta.from, to: meta.to, at: meta.at, teams: meta.teams || [] } }));
   console.log('catalog', players.length);
   const names = ['abdul-jabbar', 'magic johnson', 'tim duncan', 'dirk nowitzki'];
   for (const q of names) {

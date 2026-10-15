@@ -11,6 +11,6 @@ export default route({
       d.collection('meta').findOne({ _id: 'catalog' }),
     ]);
     cache(res, 3600);
-    return { players: players.map(publicRecord), meta: meta ? { players: meta.players, from: meta.from, to: meta.to, at: meta.at } : null };
+    return { players: players.map(publicRecord), meta: meta ? { players: meta.players, from: meta.from, to: meta.to, at: meta.at, teams: meta.teams || [] } : null };
   },
 });
