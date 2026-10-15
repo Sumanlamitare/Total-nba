@@ -14,9 +14,9 @@ for (const [name, id] of [['bird', 2335], ['wilt', 4142], ['russell', 4152], ['m
       if (k === 'stats' || k === 'post') note = (j.categories || []).map(c => `${c.name}:${c.statistics?.length} [${(c.statistics || []).map(s => s.season?.displayName).join(',')}]`).join(' | ');
       if (k === 'bio') note = JSON.stringify((j.awards || []).map(a => [a.name, a.displayCount])) + ' teams ' + JSON.stringify((j.teamHistory || []).map(t => [t.displayName, t.seasons]));
       if (k === 'core') note = JSON.stringify({ n: j.displayName, debut: j.debutYear, pos: j.position?.abbreviation, dob: j.dateOfBirth, ht: j.displayHeight, bp: j.birthPlace, draft: j.draft?.displayText, college: j.college?.$ref, exp: j.experience });
-      if (k === 'gamelog') note = JSON.stringify((j.filters || []).find(f => f.name === 'season')?.options?.map(o => o.value)?.slice(-5));
+      if (k === "gamelog") note = JSON.stringify(Object.keys(j)) + " " + JSON.stringify((j.filters || []).find(f => f.name === 'season')?.options?.map(o => o.value)?.slice(-5));
     } catch {}
-    log(`${name} ${k} ${r.status} ${r.t.length}B ${note.slice(0, 900)}`);
+    log(`${name} ${k} ${r.status} ${r.t.length}B ${String(note ?? "").slice(0, 900)}`);
     if (k === 'stats' && name === 'wilt') fs.writeFileSync('probe/stats_wilt.json', r.t);
   }
 }
