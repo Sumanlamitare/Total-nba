@@ -46,7 +46,7 @@ test('sign up, create a check, ping it, see it go up, publish a status page', as
   assert.equal(await page.locator('.checkrow .pill.s-up').count(), 1);
 
   await page.getByRole('link', { name: 'Status page' }).click();
-  await page.getByPlaceholder('acme').fill('ui-tester');
+  await page.getByPlaceholder('acme', { exact: true }).fill('ui-tester');
   await page.getByRole('button', { name: 'Save' }).click();
   await page.getByText('Status page saved').waitFor();
   await page.getByRole('checkbox').check();
