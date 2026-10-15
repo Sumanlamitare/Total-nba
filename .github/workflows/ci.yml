@@ -23,3 +23,10 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017
       - run: npm run build
+      - name: Browser test
+        run: |
+          npm i --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+          node --test test/ui.test.mjs
+        env:
+          MONGODB_URI: mongodb://localhost:27017
