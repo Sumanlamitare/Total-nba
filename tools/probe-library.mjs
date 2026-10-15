@@ -15,25 +15,29 @@ async function get(name, url, save = true) {
 const CORE = 'https://sports.core.api.espn.com', WEB = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba', SITE = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const summary = j => `count=${j?.count} pageCount=${j?.pageCount} items=${j?.items?.length} first=${JSON.stringify(j?.items?.[0]).slice(0, 300)}`;
 
-for (const q of ['active=false', 'active=false&page=2', 'limit=100&page=50']) { const j = await get(`v3_${q.replace(/[^a-z0-9]/gi, '_')}`, `${CORE}/v3/sports/basketball/nba/athletes?limit=20000&${q}`); log(summary(j)); }
-for (const y of [1950, 1965, 1980, 1990, 1997, 2005, 2015]) { const j = await get(`season_${y}_athletes`, `${CORE}/v2/sports/basketball/leagues/nba/seasons/${y}/athletes?limit=1000`); log(summary(j)); }
-for (const y of [1960, 1986, 1996]) { const j = await get(`roster_bos_${y}`, `${SITE}/teams/2/roster?season=${y}`); log(`roster keys ${Object.keys(j || {})} athletes=${(j?.athletes || []).length} first=${JSON.stringify((j?.athletes || [])[0]).slice(0, 400)}`); }
-for (const y of [1960, 1986]) { const j = await get(`core_team_athletes_${y}`, `${CORE}/v2/sports/basketball/leagues/nba/seasons/${y}/teams/2/athletes?limit=200`); log(summary(j)); }
-for (const q of ['larry bird', 'kareem', 'wilt chamberlain', 'bill russell']) {
+const safe = async (label, fn) => { try { await fn(); } catch (e) { log(`!! ${label} crashed: ${e.message}`); } };
+// ESPN's stats pages: every player with stats in a season
+for (const y of [1950, 1965, 1980, 1990, 1997, 2010, 2025]) await safe('byathlete ' + y, async () => {
+  const j = await get(`byathlete_${y}`, `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=false&page=1&limit=1000&sort=offensive.avgPoints:desc&season=${y}&seasontype=2`);
+  log(`keys ${Object.keys(j || {})} pagination ${JSON.stringify(j?.pagination)} athletes=${(j?.athletes || []).length}`);
+  log('first ' + JSON.stringify((j?.athletes || [])[0]).slice(0, 700));
+  log('categories ' + JSON.stringify((j?.categories || []).map(c => [c.name, (c.names || []).slice(0, 6)])).slice(0, 600));
+});
+for (const q of ['larry bird', 'kareem', 'wilt chamberlain', 'bill russell']) await safe('search ' + q, async () => {
   for (const u of [`https://site.web.api.espn.com/apis/common/v3/search?query=${encodeURIComponent(q)}&limit=5&mode=prefix&type=player&sport=basketball&league=nba`,
     `https://site.web.api.espn.com/apis/search/v2?query=${encodeURIComponent(q)}&limit=5`]) {
     const j = await get(`search_${q.replace(/ /g, '_')}_${u.includes('/v2') ? 'v2' : 'v3'}`, u);
     log(JSON.stringify(j).slice(0, 900));
   }
-}
+});
 // a mid-season trade (Harden 2020-21), a legend's honors, an old-timer's stats
-for (const [n, id] of [['harden', 3992], ['jordan', 1035]]) {
+for (const [n, id] of [['harden', 3992], ['jordan', 1035]]) await safe('player ' + n, async () => {
   const s = await get(`stats_${n}`, `${WEB}/athletes/${id}/stats`);
   log(`${n} seasons: ` + JSON.stringify((s?.categories?.[0]?.statistics || []).map(r => [r.season?.displayName, r.teamSlug, r.stats?.[0]])));
   const b = await get(`bio_${n}`, `${WEB}/athletes/${id}/bio`);
   log(`${n} awards: ` + JSON.stringify((b?.awards || []).map(a => [a.name, a.displayCount])));
   log(`${n} teams: ` + JSON.stringify((b?.teamHistory || []).map(t => [t.displayName, t.seasons])));
-}
+});
 const pj = await get('stats_post_jordan', `${WEB}/athletes/1035/stats?seasontype=3`);
 log('jordan playoff rows: ' + JSON.stringify((pj?.categories?.[0]?.statistics || []).map(r => [r.season?.displayName, r.stats?.[0], r.stats?.at(-1)])));
 // gamelog shape (smaller: an older season)
