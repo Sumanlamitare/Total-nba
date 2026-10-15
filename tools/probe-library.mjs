@@ -1,31 +1,32 @@
-// Probe 5: legends' endpoints (Bird, Wilt, Russell), headshot CORS, qualified leaders sort keys.
+// Probe 6: where ESPN records a player's teams when the season lists and career stats don't.
 import fs from 'node:fs';
 fs.mkdirSync('probe', { recursive: true });
 const out = []; const log = s => { console.log(s); out.push(s); };
-const raw = async url => { try { const r = await fetch(url.replace('http:', 'https:'), { headers: { 'user-agent': 'Mozilla/5.0', origin: 'https://example.com' } }); const t = await r.text(); return { status: r.status, t, h: r.headers }; } catch (e) { return { status: 0, t: e.message, h: new Headers() }; } };
+const get = async url => { try { const r = await fetch(url.replace(/^http:/, 'https:'), { headers: { 'user-agent': 'Mozilla/5.0' } }); return r.ok ? r.json() : { status: r.status }; } catch (e) { return { err: e.message }; } };
 const WEB = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba';
 const CORE = 'https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba';
-for (const [name, id] of [['bird', 2335], ['wilt', 4142], ['russell', 4152], ['magic', 1449]]) {
-  for (const [k, u] of [['athlete', `${WEB}/athletes/${id}`], ['stats', `${WEB}/athletes/${id}/stats`], ['post', `${WEB}/athletes/${id}/stats?seasontype=3`], ['bio', `${WEB}/athletes/${id}/bio`], ['core', `${CORE}/athletes/${id}`], ['gamelog', `${WEB}/athletes/${id}/gamelog`]]) {
-    const r = await raw(u);
-    let note = '';
-    try { const j = JSON.parse(r.t);
-      if (k === 'athlete') note = JSON.stringify({ n: j.athlete?.displayName, pos: j.athlete?.position?.abbreviation, dob: j.athlete?.displayDOB, ht: j.athlete?.displayHeight, draft: j.athlete?.displayDraft, col: j.athlete?.college?.name, debut: j.athlete?.debutYear, hs: !!j.athlete?.headshot });
-      if (k === 'stats' || k === 'post') note = (j.categories || []).map(c => `${c.name}:${c.statistics?.length} [${(c.statistics || []).map(s => s.season?.displayName).join(',')}]`).join(' | ');
-      if (k === 'bio') note = JSON.stringify((j.awards || []).map(a => [a.name, a.displayCount])) + ' teams ' + JSON.stringify((j.teamHistory || []).map(t => [t.displayName, t.seasons]));
-      if (k === 'core') note = JSON.stringify({ n: j.displayName, debut: j.debutYear, pos: j.position?.abbreviation, dob: j.dateOfBirth, ht: j.displayHeight, bp: j.birthPlace, draft: j.draft?.displayText, college: j.college?.$ref, exp: j.experience });
-      if (k === "gamelog") note = JSON.stringify(Object.keys(j)) + " " + JSON.stringify((j.filters || []).find(f => f.name === 'season')?.options?.map(o => o.value)?.slice(-5));
-    } catch {}
-    log(`${name} ${k} ${r.status} ${r.t.length}B ${String(note ?? "").slice(0, 900)}`);
-    if (k === 'stats' && name === 'wilt') fs.writeFileSync('probe/stats_wilt.json', r.t);
+const ids = ['3857', '5574', '4804', '5923', '6232', '4999', '4749', '4649', '4471', '2473', '2335', '4152'];
+for (const id of ids) {
+  const c = await get(`${CORE}/athletes/${id}`);
+  const w = await get(`${WEB}/athletes/${id}`);
+  const seasons = await get(`${CORE}/athletes/${id}/seasons?limit=50`);
+  const items = seasons.items || [];
+  let firstSeasonTeam = null;
+  if (items[0]?.$ref) {
+    const y = (items[0].$ref.match(/seasons\/(\d+)/) || [])[1];
+    const sa = await get(`${CORE}/seasons/${y}/athletes/${id}`);
+    firstSeasonTeam = { y, team: sa.team?.$ref, keys: Object.keys(sa).join(',') };
   }
+  log(`${id} ${c.displayName} debut=${c.debutYear} coreTeam=${c.team?.$ref || '-'} webTeam=${w.athlete?.team?.abbreviation || '-'}/${w.athlete?.team?.displayName || ''} seasons=${seasons.count ?? seasons.status} first=${items.map(i => (i.$ref.match(/seasons\/(\d+)/) || [])[1]).join(',')} ${JSON.stringify(firstSeasonTeam)}`);
 }
-const hs = await raw('https://a.espncdn.com/i/headshots/nba/players/full/1966.png');
-log(`headshot cors: ${hs.status} acao=${hs.h.get('access-control-allow-origin')} type=${hs.h.get('content-type')}`);
-for (const y of [1985, 1990, 2016]) for (const s of ['offensive.avgPoints', 'general.avgRebounds', 'offensive.avgAssists', 'defensive.avgSteals', 'defensive.avgBlocks']) {
-  const r = await raw(`${WEB}/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=3&sort=${s}:desc&season=${y}&seasontype=2`);
-  try { const j = JSON.parse(r.t); log(`leaders ${y} ${s}: ${r.status} count=${j.pagination?.count} ${(j.athletes || []).map(a => a.athlete.displayName).join(', ')}`); } catch { log(`leaders ${y} ${s}: ${r.status} ${r.t.slice(0, 100)}`); }
+const teams = await get('https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams');
+const list = teams.sports?.[0]?.leagues?.[0]?.teams?.map(t => [t.team.id, t.team.abbreviation, t.team.displayName]) || [];
+log('current teams: ' + JSON.stringify(list));
+for (const [y, tid] of [[1960, 9], [1975, 25], [1970, 26], [2005, 25], [1995, 28], [1950, 1], [1955, 17]]) {
+  const t = await get(`${CORE}/seasons/${y}/teams/${tid}`);
+  log(`season ${y} team ${tid}: ${t.displayName} (${t.abbreviation}) status=${t.status ?? ''}`);
 }
-const b85 = await raw(`${WEB}/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=false&page=1&limit=1000&sort=offensive.avgPoints:desc&season=1985&seasontype=2`);
-try { const j = JSON.parse(b85.t); log(`byathlete 1985 count=${j.pagination?.count}; cats=${JSON.stringify(j.categories?.map(c => [c.name, c.names]))}`); } catch { log('b85 ' + b85.status); }
+const all = await get(`${CORE}/franchises?limit=100`);
+log('franchises count ' + all.count);
+for (const it of (all.items || []).slice(0, 60)) { const f = await get(it.$ref); log(`  franchise ${f.id} ${f.displayName} (${f.abbreviation}) active=${f.isActive}`); }
 fs.writeFileSync('probe/report.txt', out.join('\n') + '\n');
