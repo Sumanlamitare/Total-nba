@@ -578,7 +578,7 @@ export class Room {
       }
     }
     if (this.anim) {
-      const t = this.anim.dur ? clamp((now - this.anim.t0) / (this.anim.dur * 1000), 0, 1) : 1;
+      const t = this.anim.dur ? clamp((performance.now() - this.anim.t0) / (this.anim.dur * 1000), 0, 1) : 1;
       this.anim.step(t);
       if (t >= 1) { const a = this.anim; this.anim = null; a.done?.(); }
       moving = true;
