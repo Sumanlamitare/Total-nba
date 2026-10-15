@@ -74,7 +74,10 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
     if (!s.visible) { el.style.opacity = 0; return; }
     const w = el.offsetWidth || 220;
     el.style.opacity = 1;
-    el.style.transform = `translate(${Math.round(Math.max(8, Math.min(innerWidth - w - 8, s.x - w / 2)))}px, ${Math.round(Math.max(70, s.y - el.offsetHeight - 14))}px)`;
+    const top = (document.querySelector('.masthead')?.getBoundingClientRect().bottom || 70) + 6;
+    let y = s.y - el.offsetHeight - 14;
+    if (y < top) y = s.y + 24; // no room above the book: hang the slip below its top edge instead
+    el.style.transform = `translate(${Math.round(Math.max(8, Math.min(innerWidth - w - 8, s.x - w / 2)))}px, ${Math.round(y)}px)`;
   }
   useEffect(() => { placeSlip(); });
 
@@ -146,11 +149,11 @@ const Library3D = forwardRef(function Library3D({ players, layout, focus, setFoc
             <button key={L} className={layout.books[layout.letters[L]].c === station ? 'on' : ''} onClick={() => { const n = layout.letters[L]; roomRef.current?.goTo(layout.books[n].c, { dist: 3.4, y: 1.55 }); roomRef.current?.select(-1); }}>{L}</button>
           ))}
         </div>
-        <div className="zoom" role="group" aria-label="Distance">
-          <button onClick={() => roomRef.current?.zoom(0.75)} aria-label="Step closer">+</button>
-          <button onClick={() => roomRef.current?.zoom(1.33)} aria-label="Step back">−</button>
-        </div>
       </nav>
+      <div className="zoom" role="group" aria-label="Distance">
+        <button onClick={() => roomRef.current?.zoom(0.75)} aria-label="Step closer">+</button>
+        <button onClick={() => roomRef.current?.zoom(1.33)} aria-label="Step back">−</button>
+      </div>
 
       <p className="hint" aria-hidden="true">
         {touch ? 'Drag to walk the shelves · pinch to step closer · tap a book' : 'Drag or use [ ] to walk · scroll to step closer · arrow keys to browse · Enter to open'}

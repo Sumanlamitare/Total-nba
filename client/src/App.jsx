@@ -146,13 +146,13 @@ export default function App() {
         </a>
         <p className="tagline">{players ? `${players.length.toLocaleString('en-US')} NBA players, one book each` : 'Opening the doors…'}</p>
         <nav className="tools" aria-label="Library tools">
-          <button className="btn" onClick={() => setSearchOpen(true)} aria-keyshortcuts="/"><span className="ico" aria-hidden>⌕</span> Card catalogue</button>
+          <button className="btn" onClick={() => setSearchOpen(true)} aria-keyshortcuts="/" aria-label="Search the card catalogue"><span className="ico" aria-hidden>⌕</span> <span className="long">Card catalogue</span><span className="short">Search</span></button>
           {!noGL && (
-            <button className="btn ghost" onClick={() => setMode(m => (m === 'room' ? 'list' : 'room'))} aria-pressed={mode === 'list'}>
-              {mode === 'room' ? 'Shelf list' : 'Reading room'}
+            <button className="btn ghost" onClick={() => setMode(m => (m === 'room' ? 'list' : 'room'))} aria-label={mode === 'room' ? 'Shelf list' : 'Reading room'}>
+              {mode === 'room' ? <><span className="long">Shelf list</span><span className="short">List</span></> : <><span className="long">Reading room</span><span className="short">Room</span></>}
             </button>
           )}
-          <button className="btn ghost" onClick={() => setLegendOpen(o => !o)} aria-expanded={legendOpen}>Reading the spines</button>
+          <button className="btn ghost" onClick={() => setLegendOpen(o => !o)} aria-expanded={legendOpen} aria-label="Key: reading the spines"><span className="long">Reading the spines</span><span className="short">Key</span></button>
         </nav>
       </header>
 

@@ -295,6 +295,9 @@ export class Room {
     const b = this.layout.books[n];
     const close = this.mobile ? 1.5 : 1.25;
     this.goTo(b.c, { y: shelfY(b.s) + 0.2, dist: Math.min(this.goal.dist, close), instant });
+    // Slide along the arc so the book itself, not the middle of its case, is in front of the camera.
+    this.goal.a += b.x / (this.step * this.R);
+    if (instant || this.reducedMotion) this.view.a = this.goal.a;
     this.select(n);
   }
 
@@ -395,7 +398,8 @@ export class Room {
         if (pointers.size < 2) pinch = null;
         if (!down) return;
         const d = down; down = null;
-        if (d.moved) { this.goal.a = Math.round(this.goal.a); this.dirty = true; return; }
+        // Standing back, settle squarely on a bookcase; up close, stay where the drag left off.
+        if (d.moved) { if (this.goal.dist > 2) this.goal.a = Math.round(this.goal.a); this.dirty = true; return; }
         const { book, desk } = this.pick(e.clientX, e.clientY);
         if (desk) { this.cb.onDesk?.(); return; }
         if (book < 0) { this.select(-1); return; }
@@ -404,7 +408,7 @@ export class Room {
         else { this.select(book); this.hover(book); }
       },
       leave: () => { if (!down) this.hover(-1); },
-      wheel: e => { e.preventDefault(); if (e.ctrlKey || Math.abs(e.deltaY) >= Math.abs(e.deltaX)) this.zoom(Math.exp(e.deltaY * 0.0012)); else { this.goal.a += e.deltaX * 0.003; this.dirty = true; clearTimeout(this.snapT); this.snapT = setTimeout(() => { this.goal.a = Math.round(this.goal.a); this.dirty = true; }, 220); } },
+      wheel: e => { e.preventDefault(); if (e.ctrlKey || Math.abs(e.deltaY) >= Math.abs(e.deltaX)) this.zoom(Math.exp(e.deltaY * 0.0012)); else { this.goal.a += e.deltaX * 0.003; this.dirty = true; clearTimeout(this.snapT); this.snapT = setTimeout(() => { if (this.goal.dist > 2) this.goal.a = Math.round(this.goal.a); this.dirty = true; }, 220); } },
       resize: () => this.resize(),
       lost: e => { e.preventDefault(); this.cb.onContextLost?.(); },
     };

@@ -59,6 +59,7 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 .btn.ghost { background: transparent; box-shadow: none; border-color: rgba(196, 154, 82, .45); }
 .btn.small { min-height: 32px; padding: 4px 12px; font-size: 15px; }
 .btn .ico { font-size: 20px; line-height: 0; }
+.short { display: none; }
 
 /* ---- Loading / fault --------------------------------------------------------------------------------------- */
 .loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; font-style: italic; color: #cdbb97; grid-auto-flow: column; align-items: center; z-index: 2; }
@@ -74,7 +75,7 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 .reading .room-canvas { filter: blur(4px) brightness(.45) saturate(.8); }
 
 .slip {
-  position: absolute; left: 0; top: 0; z-index: 4; min-width: 180px; max-width: 280px;
+  position: absolute; left: 0; top: 0; z-index: 6; min-width: 180px; max-width: 280px;
   padding: 12px 14px 10px; background: var(--paper); color: var(--ink);
   border-top: 3px solid var(--oxblood); box-shadow: 0 10px 24px rgba(0, 0, 0, .45), 0 1px 0 var(--paper-edge);
   background-image: repeating-linear-gradient(transparent 0 23px, rgba(34, 54, 90, .14) 23px 24px);
@@ -335,11 +336,14 @@ table { border-collapse: collapse; font-variant-numeric: lining-nums tabular-num
   .wordmark { font-size: 24px; }
   .wm-the { font-size: 16px; }
   .tagline { font-size: 13px; }
-  .tools { grid-column: 1 / -1; grid-row: auto; justify-content: flex-start; }
-  .tools .btn { min-height: 36px; padding: 4px 10px; font-size: 15px; }
+  .tools { grid-column: 2; grid-row: 1 / span 2; flex-wrap: nowrap; gap: 6px; }
+  .tools .btn { min-height: 38px; padding: 4px 10px; font-size: 15px; }
+  .long { display: none; }
+  .short { display: inline; }
   .hint { display: none; }
-  .zoom { bottom: auto; top: 50%; right: 10px; }
-  .az { gap: 0; padding: 2px 4px; }
+  .zoom { bottom: auto; top: 46%; right: 10px; }
+  .wordmark { white-space: normal; }
+  .az { gap: 0; padding: 2px 4px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; max-width: 100%; scrollbar-width: none; }
   .az button { min-width: 24px; min-height: 32px; font-size: 15px; }
   .plaque { min-width: 170px; }
   .listview { padding-top: 140px; }

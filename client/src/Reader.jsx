@@ -162,6 +162,7 @@ function recordSpan(book) {
 
 function TitlePage({ book, player, shelf, go }) {
   const [img, setImg] = useState(book.headshot ? 'loading' : 'none');
+  // ESPN lists headshot URLs for some legends that return 404; the image's own error handler covers that.
   const initials = book.name.split(/\s+/).map(s => s[0]).slice(0, 2).join('');
   const start = book.debut || (book.regular ? book.regular.first - 1 : null);
   const years = book.regular && start ? `${start}–${book.active ? 'now' : book.regular.last}` : start ? `from ${start}` : spanOf(player || {});
@@ -182,7 +183,7 @@ function TitlePage({ book, player, shelf, go }) {
         {shelf && <><br />Shelved in bookcase {shelf.cs.label}, shelf {shelf.s}.</>}
       </p>
       <button className="btn" onClick={() => go(1)}>Begin reading ›</button>
-      {img === 'none' && <p className="note small">No portrait: ESPN holds no headshot for {book.last || book.name}.</p>}
+      {img === 'none' && <p className="note small">{book.headshot ? 'The ESPN portrait could not be loaded.' : `No portrait: ESPN holds no headshot for ${book.last || book.name}.`}</p>}
     </div>
   );
 }

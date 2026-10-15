@@ -5,6 +5,7 @@ import React, { useMemo, useRef, useState } from 'react';
 // statistical record chapter as a table.
 
 const INK = 'var(--ink-chart)';
+const narrow = () => typeof innerWidth === 'number' && innerWidth < 600;
 const ACCENT = 'var(--oxblood)';
 
 function niceMax(v) {
@@ -18,7 +19,7 @@ function niceMax(v) {
 export function SeasonColumns({ data, format = v => v, caption, height = 200 }) {
   const [hi, setHi] = useState(-1);
   const box = useRef(null);
-  const W = 640, H = height, L = 34, B = 26, T = 18;
+  const W = narrow() ? 400 : 640, H = narrow() ? height * 0.8 : height, L = 34, B = 26, T = 18;
   const vals = data.map(d => d.value).filter(v => v != null);
   const max = niceMax(Math.max(...vals, 0));
   const peak = vals.length ? data.findIndex(d => d.value === Math.max(...vals)) : -1;
@@ -26,7 +27,7 @@ export function SeasonColumns({ data, format = v => v, caption, height = 200 }) 
   const bw = Math.max(2, Math.min(28, step - 2));
   const y = v => T + (H - T - B) * (1 - v / max);
   const ticks = [0, max / 2, max];
-  const every = Math.ceil(data.length / 8);
+  const every = Math.ceil(data.length / (narrow() ? 5 : 8));
   const tip = hi >= 0 ? data[hi] : null;
   return (
     <figure className="chart" ref={box}>
@@ -70,13 +71,13 @@ function bar(x, y, w, h) {
 // A running total over seasons, drawn as a stepped line with a light fill.
 export function Accumulation({ data, format = v => v, caption, height = 180 }) {
   const [hi, setHi] = useState(-1);
-  const W = 640, H = height, L = 46, B = 26, T = 18;
+  const W = narrow() ? 400 : 640, H = narrow() ? height * 0.8 : height, L = 46, B = 26, T = 18;
   const pts = useMemo(() => { let s = 0; return data.map(d => ({ ...d, total: (s += d.value || 0) })); }, [data]);
   const max = niceMax(pts.length ? pts[pts.length - 1].total : 1);
   const x = k => L + (pts.length < 2 ? (W - L) / 2 : (k / (pts.length - 1)) * (W - L - 8));
   const y = v => T + (H - T - B) * (1 - v / max);
   const line = pts.map((p, k) => `${k ? 'L' : 'M'}${x(k)},${y(p.total)}`).join('');
-  const every = Math.ceil(pts.length / 8);
+  const every = Math.ceil(pts.length / (narrow() ? 5 : 8));
   const tip = hi >= 0 ? pts[hi] : null;
   return (
     <figure className="chart">
