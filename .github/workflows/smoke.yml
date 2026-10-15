@@ -1,0 +1,27 @@
+name: Smoke test (live site)
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Site to check
+        default: https://total-nba-ja9d.vercel.app
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pages, API, database, ping endpoint and badges respond
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          set -e
+          check() { code=$(curl -s -o body.txt -w '%{http_code}' "$URL$1"); echo "$1 -> $code $(head -c 160 body.txt | tr '\n' ' ')"; [ "$code" = "$2" ] || { echo "expected $2"; exit 1; }; grep -q "$3" body.txt || { echo "expected body to contain: $3"; exit 1; }; }
+          check /                       200 'Nightjar'
+          check /app/checks/abc         200 'Nightjar'
+          check /api/auth               200 '"user":null'
+          check '/api/public?slug=nobody-here' 404 'not found'
+          check /p/notarealkey1234567   404 'Not found'
+          check /b/notreal1.svg         200 '<svg'
+          check /docs                   200 'Nightjar'
