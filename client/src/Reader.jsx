@@ -70,6 +70,16 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
               </li>
             ))}
           </ol>
+          {shelf && (
+            <div className="bookplate" aria-label="Bookplate">
+              <p className="bp-ex">Ex libris</p>
+              <p className="bp-lib">The Player Library</p>
+              <dl>
+                <dt>Shelf mark</dt><dd>{shelf.cs.label} · {shelf.s}</dd>
+                <dt>ESPN no.</dt><dd>{id}</dd>
+              </dl>
+            </div>
+          )}
           <button className="btn back" onClick={onClose}>← Return to the shelves <kbd>Esc</kbd></button>
         </nav>
 
@@ -153,7 +163,8 @@ function recordSpan(book) {
 function TitlePage({ book, player, shelf, go }) {
   const [img, setImg] = useState(book.headshot ? 'loading' : 'none');
   const initials = book.name.split(/\s+/).map(s => s[0]).slice(0, 2).join('');
-  const years = player?.y0 ? spanOf(player) : book.regular ? `${book.regular.first - 1}–${book.active ? 'now' : book.regular.last}` : '';
+  const start = book.debut || (book.regular ? book.regular.first - 1 : null);
+  const years = book.regular && start ? `${start}–${book.active ? 'now' : book.regular.last}` : start ? `from ${start}` : spanOf(player || {});
   return (
     <div className="title-page">
       <p className="imprint">The Player Library</p>
@@ -189,8 +200,11 @@ function ThePlayer({ book }) {
   const intro = [];
   if (reg) {
     intro.push(`${book.name}${book.posName ? `, a ${book.posName.toLowerCase()},` : ''} ${verb} ${plural(reg.seasons, 'regular season')} on ESPN's record, ${reg.first === reg.last ? `in ${seasonLabel(reg.first)}` : `from ${seasonLabel(reg.first)} to ${seasonLabel(reg.last)}`}${names.length ? `, for ${list(names.length ? names : teams)}` : ''}.`);
-    const c = reg.career.avg;
-    if (c?.avgPoints != null) intro.push(`Across those seasons ${surname} averaged ${n1(c.avgPoints)} points, ${n1(c.avgRebounds)} rebounds and ${n1(c.avgAssists)} assists a game in ${n0(c.gamesPlayed)} games.`);
+    const c = reg.career.avg || {};
+    const parts = [['avgPoints', 'points'], ['avgRebounds', 'rebounds'], ['avgAssists', 'assists']].filter(([k]) => c[k] != null).map(([k, w]) => `${n1(c[k])} ${w}`);
+    if (parts.length && c.gamesPlayed) intro.push(`Across those seasons ${surname} averaged ${list(parts)} a game in ${n0(c.gamesPlayed)} games.`);
+    const missing = [['avgRebounds', 'rebounds'], ['avgSteals', 'steals'], ['avgBlocks', 'blocks']].filter(([k]) => c[k] == null).map(([, w]) => w);
+    if (missing.length) intro.push(`ESPN's record has no complete ${list(missing)} figures for this career${reg.first < 1974 ? ' (the league only began counting steals and blocks in 1973-74)' : ''}, so they are left blank rather than guessed.`);
   } else {
     intro.push(`ESPN holds no season-by-season statistics for ${book.name}. This book carries what ESPN does record${book.honors.length ? ': biography and honors' : ': the biography'}.`);
   }
@@ -244,7 +258,7 @@ function Career({ book }) {
         <Segmented label="Season type" value={kind} set={setKind} options={[['regular', 'Regular season'], ...(book.playoffs ? [['playoffs', 'Playoffs']] : [])]} />
         <Segmented label="Measure" value={m} set={setM} options={METRICS.map(([, l], k) => [k, l])} />
       </div>
-      {stats ? (
+      {stats && data.every(d => d.value == null) ? <p>ESPN has no {label.toLowerCase()} figures for {book.last || book.name}'s seasons.</p> : stats ? (
         <SeasonColumns data={data} format={fmt} caption={`${label} ${key === 'gamesPlayed' ? 'played' : 'per game'}, by ${kind === 'playoffs' ? 'playoff run' : 'season'}. The highest is marked in red.`} />
       ) : <p>No playoff appearances on ESPN's record.</p>}
       <h3>The stints</h3>
@@ -512,7 +526,8 @@ function Legacy({ book }) {
   const lines = [];
   if (reg) {
     const t = reg.career.tot || {};
-    lines.push(`${n0(t.points)} points, ${n0(t.totalRebounds)} rebounds and ${n0(t.assists)} assists in ${n0(reg.career.avg?.gamesPlayed)} regular-season games.`);
+    const parts = [['points', 'points'], ['totalRebounds', 'rebounds'], ['assists', 'assists']].filter(([k]) => t[k] != null).map(([k, w]) => `${n0(t[k])} ${w}`);
+    if (parts.length) lines.push(`${list(parts)} in ${n0(reg.career.avg?.gamesPlayed)} regular-season games.`.replace(/^./, c => c.toUpperCase()));
   }
   if (post) lines.push(`${n0(post.career.tot?.points)} more points in ${n0(post.career.avg?.gamesPlayed)} playoff games across ${plural(post.seasons, 'postseason')}.`);
   if (honors) lines.push(`${plural(honors, 'NBA honor')} on ESPN's award lists${book.honors[0] ? `, led by ${book.honors[0].count > 1 ? `${book.honors[0].count} × ` : ''}${book.honors[0].name}` : ''}.`);

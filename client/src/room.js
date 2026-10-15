@@ -7,7 +7,7 @@
 //    plain leather. Atlases are built one per idle frame and disposed when the camera moves away.
 //  - The scene renders on demand: when nothing moves, nothing is drawn.
 import * as THREE from 'three';
-import { CASE } from './shelves.js';
+import { CASE, shelfY } from './shelves.js';
 import { paintCase, paintCover } from './spines.js';
 import { eraOf } from './shelves.js';
 
@@ -32,7 +32,7 @@ function bookMaterial(atlas) {
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform sampler2D uAtlas;\nuniform float uHas;\nvarying vec2 vSpineUv;\nvarying float vFace;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        if (vFace > 1.5) diffuseColor.rgb = vec3(0.86, 0.80, 0.66);
+        if (vFace > 1.5) diffuseColor.rgb = vec3(0.60, 0.54, 0.43);
         else if (vFace > 0.5 && uHas > 0.5) diffuseColor.rgb = texture2D(uAtlas, vSpineUv).rgb;`);
   };
   return m;
@@ -100,7 +100,7 @@ export class Room {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 0.95;
     this.maxAniso = this.renderer.capabilities.getMaxAnisotropy();
 
     this.scene = new THREE.Scene();
@@ -130,9 +130,9 @@ export class Room {
   build() {
     const { scene, layout, players } = this;
     // Light: a warm hemisphere, a high key light, and a reading lamp that follows the camera.
-    scene.add(new THREE.HemisphereLight('#ffe2b8', '#2a1810', 0.85));
-    const key = new THREE.DirectionalLight('#ffd9a0', 0.9); key.position.set(0, 9, 0); scene.add(key);
-    this.lamp = new THREE.PointLight('#ffc879', 9, 7, 1.6); scene.add(this.lamp);
+    scene.add(new THREE.HemisphereLight('#ffe2b8', '#2a1810', 0.6));
+    const key = new THREE.DirectionalLight('#ffd9a0', 0.55); key.position.set(0, 9, 0); scene.add(key);
+    this.lamp = new THREE.PointLight('#ffc879', 5, 7, 1.6); scene.add(this.lamp);
 
     // Floor, rug, dome.
     const ft = floorTexture(); this.disposables.push(ft);
@@ -225,7 +225,7 @@ export class Room {
 
   bookLocal(n, pull = 0) {
     const b = this.layout.books[n];
-    const y = 0.1 + b.s * CASE.shelfGap + b.h / 2;
+    const y = shelfY(b.s) + b.h / 2;
     const z = CASE.depth / 2 - b.d / 2 - 0.01 + pull;
     return new THREE.Matrix4().makeTranslation(b.x, y, z).multiply(new THREE.Matrix4().makeScale(b.w, b.h, b.d));
   }
@@ -294,7 +294,7 @@ export class Room {
   showBook(n, { instant = false } = {}) {
     const b = this.layout.books[n];
     const close = this.mobile ? 1.5 : 1.25;
-    this.goTo(b.c, { y: 0.1 + b.s * CASE.shelfGap + 0.2, dist: Math.min(this.goal.dist, close), instant });
+    this.goTo(b.c, { y: shelfY(b.s) + 0.2, dist: Math.min(this.goal.dist, close), instant });
     this.select(n);
   }
 
@@ -462,7 +462,7 @@ export class Room {
     }
     // Spine-out on the shelf: the hero's +z is the spine, matching the shelf book.
     const mesh = this.caseMeshes[b.c];
-    const start = new THREE.Matrix4().multiplyMatrices(mesh.matrixWorld, new THREE.Matrix4().makeTranslation(b.x, 0.1 + b.s * CASE.shelfGap + b.h / 2, CASE.depth / 2 - b.d / 2 - 0.01));
+    const start = new THREE.Matrix4().multiplyMatrices(mesh.matrixWorld, new THREE.Matrix4().makeTranslation(b.x, shelfY(b.s) + b.h / 2, CASE.depth / 2 - b.d / 2 - 0.01));
     const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
     start.decompose(pos, quat, scl);
     g.position.copy(pos); g.quaternion.copy(quat); g.scale.set(b.w / T, b.h / H, b.d / W);
@@ -554,7 +554,8 @@ export class Room {
     this.raf = requestAnimationFrame(this.loop);
     if (this.paused) return;
     const v = this.view, g = this.goal;
-    const k = this.reducedMotion ? 1 : 0.12;
+    const dt = Math.min(0.1, Math.max(0.001, ((now - (this.lastNow || now)) || 16) / 1000)); this.lastNow = now;
+    const k = this.reducedMotion ? 1 : 1 - Math.exp(-dt * 7);
     let moving = false;
     for (const key of ['a', 'dist', 'y']) {
       const d = g[key] - v[key];
@@ -564,7 +565,7 @@ export class Room {
     for (const n of new Set([...this.pull.keys(), this.hovered, this.selected])) {
       if (n < 0 || this.hero?.n === n) continue;
       const want = n === this.selected ? 0.07 : n === this.hovered ? 0.035 : 0;
-      const cur = this.pull.get(n) || 0, next = this.reducedMotion ? want : cur + (want - cur) * 0.25;
+      const cur = this.pull.get(n) || 0, next = this.reducedMotion ? want : cur + (want - cur) * (1 - Math.exp(-dt * 16));
       if (Math.abs(next - cur) > 0.0002 || (want === 0 && cur !== 0)) {
         const val = Math.abs(next - want) < 0.0005 ? want : next;
         this.setBookMatrix(this.caseMeshes[this.caseOfBook(n)], n, val);

@@ -6,15 +6,17 @@
 
 export const CASE = { width: 1.9, shelves: 7, shelfGap: 0.42, depth: 0.34, board: 0.035, side: 0.05 };
 CASE.height = CASE.shelves * CASE.shelfGap + CASE.board + 0.12;
+// Height of the board a shelf's books stand on; shelf 0 is the top shelf (books read top to bottom).
+export const shelfY = s => 0.1 + (CASE.shelves - 1 - s) * CASE.shelfGap;
 
 export const ERAS = [
   { from: 0, to: 1959, name: 'Before 1960', leather: '#2f4630' },
   { from: 1960, to: 1969, name: '1960s', leather: '#6a2620' },
-  { from: 1970, to: 1979, name: '1970s', leather: '#7a5426' },
+  { from: 1970, to: 1979, name: '1970s', leather: '#5f4a2e' },
   { from: 1980, to: 1989, name: '1980s', leather: '#22365a' },
   { from: 1990, to: 1999, name: '1990s', leather: '#4b2c46' },
   { from: 2000, to: 2009, name: '2000s', leather: '#1f4a47' },
-  { from: 2010, to: 2019, name: '2010s', leather: '#6b3b1c' },
+  { from: 2010, to: 2019, name: '2010s', leather: '#5b3322' },
   { from: 2020, to: 9999, name: '2020s', leather: '#33415f' },
 ];
 export const UNKNOWN_ERA = { name: 'Debut not on record', leather: '#4d4237' };

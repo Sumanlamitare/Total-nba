@@ -88,7 +88,7 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 
 .stacks {
   position: absolute; z-index: 3; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-  display: grid; justify-items: center; gap: 10px; width: min(760px, calc(100% - 24px));
+  display: grid; justify-items: center; gap: 10px; width: min(980px, calc(100% - 24px));
 }
 .case-nav { display: flex; align-items: center; gap: 10px; }
 .arrow {
@@ -188,11 +188,11 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 .reader { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 18px; background: radial-gradient(ellipse at center, rgba(20, 13, 8, .35), rgba(10, 6, 3, .85)); animation: fadeIn .35s var(--ease); }
 @keyframes fadeIn { from { opacity: 0; } }
 .spread {
-  width: min(1260px, 100%); height: min(880px, 100%); display: grid; grid-template-columns: minmax(250px, 32%) 1fr;
+  width: min(1260px, 100%); height: min(880px, 100%); display: grid; grid-template-columns: minmax(250px, 32%) minmax(0, 1fr);
   padding: 12px; border-radius: 6px; perspective: 2000px;
   background: radial-gradient(ellipse at 30% 20%, #7a3127, #4c1b14 70%); box-shadow: 0 30px 80px rgba(0, 0, 0, .7), inset 0 0 0 1px #2a0d08;
 }
-.page { position: relative; background: var(--paper); color: var(--ink); min-height: 0; }
+.page { position: relative; background: var(--paper); color: var(--ink); min-height: 0; min-width: 0; }
 .page.left {
   padding: 34px 26px 22px 34px; display: flex; flex-direction: column; overflow: auto;
   background: linear-gradient(90deg, var(--paper) 80%, #e9dcbc 97%, #d7c69e), var(--paper); border-radius: 3px 0 0 3px;
@@ -208,7 +208,13 @@ kbd { font: 12px/1 var(--serif); border: 1px solid currentColor; border-radius: 
 .contents button.on .ttl { font-weight: 600; }
 .contents button.on { background: rgba(138, 47, 36, .08); }
 .contents button:hover .ttl { text-decoration: underline; text-decoration-color: var(--oxblood); }
-.back { margin-top: auto; align-self: flex-start; }
+.back { margin-top: 18px; align-self: flex-start; }
+.bookplate { margin-top: auto; align-self: center; width: 220px; padding: 14px 16px 10px; text-align: center; border: 1px solid var(--brass-lo); outline: 3px double rgba(141, 106, 51, .5); outline-offset: 3px; background: #f9f2e1; }
+.bp-ex { margin: 0; font: italic 15px var(--serif); color: var(--oxblood); }
+.bp-lib { margin: 0 0 8px; font: 19px var(--face); }
+.bookplate dl { display: grid; grid-template-columns: auto auto; justify-content: center; gap: 0 10px; margin: 0; font-size: 14px; }
+.bookplate dt { color: var(--ink-soft); text-align: right; }
+.bookplate dd { margin: 0; text-align: left; }
 .page.left .btn, .page-foot .btn { background: var(--walnut); }
 
 .leaf { flex: 1; overflow-y: auto; padding: 38px 56px 24px 64px; transform-origin: left center; font-size: 19px; line-height: 1.6; }
