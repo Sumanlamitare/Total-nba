@@ -203,7 +203,9 @@ function ThePlayer({ book }) {
     intro.push(`${book.name}${book.posName ? `, a ${book.posName.toLowerCase()},` : ''} ${verb} ${plural(reg.seasons, 'regular season')} on ESPN's record, ${reg.first === reg.last ? `in ${seasonLabel(reg.first)}` : `from ${seasonLabel(reg.first)} to ${seasonLabel(reg.last)}`}${names.length ? `, for ${list(names.length ? names : teams)}` : ''}.`);
     const c = reg.career.avg || {};
     const parts = [['avgPoints', 'points'], ['avgRebounds', 'rebounds'], ['avgAssists', 'assists']].filter(([k]) => c[k] != null).map(([k, w]) => `${n1(c[k])} ${w}`);
-    if (parts.length && c.gamesPlayed) intro.push(`Across those seasons ${surname} averaged ${list(parts)} a game in ${n0(c.gamesPlayed)} games.`);
+    if (parts.length && c.gamesPlayed) intro.push(reg.careerBeyondRows
+      ? `ESPN's career line for ${surname}, which reaches back before its season-by-season record, reads ${list(parts)} a game over ${n0(c.gamesPlayed)} games.`
+      : `Across those seasons ${surname} averaged ${list(parts)} a game in ${n0(c.gamesPlayed)} games.`);
     const missing = [['avgRebounds', 'rebounds'], ['avgSteals', 'steals'], ['avgBlocks', 'blocks']].filter(([k]) => c[k] == null).map(([, w]) => w);
     if (missing.length) intro.push(`ESPN's record has no complete ${list(missing)} figures for this career${reg.first < 1974 ? ' (the league only began counting steals and blocks in 1973-74)' : ''}, so they are left blank rather than guessed.`);
   } else {
@@ -512,7 +514,9 @@ function StatRecord({ book }) {
         </div>
       )}
       {hasCombined && <Note>In seasons split by a trade, each team's line is indented and followed by the season total.</Note>}
-      {coverageGap(book) && <Note>Seasons before {coverageGap(book).recordLabel} are not in ESPN's record, so the career line covers {recordSpan(book)} only.</Note>}
+      {coverageGap(book) && (stats?.careerBeyondRows
+        ? <Note>Seasons before {coverageGap(book).recordLabel} have no rows in ESPN's record, but its career line covers the whole career ({n0(stats.career.avg?.gamesPlayed)} games against {n0(stats.rowGames)} in the rows above).</Note>
+        : <Note>Seasons before {coverageGap(book).recordLabel} are not in ESPN's record, so the career line covers {recordSpan(book)} only.</Note>)}
     </>
   );
 }
@@ -527,6 +531,7 @@ function Legacy({ book }) {
   const lines = [];
   if (reg) {
     const t = reg.career.tot || {};
+    if (reg.careerBeyondRows) lines.push(`ESPN's career line reaches back before its season rows; the totals below are the whole career as ESPN gives it.`);
     const parts = [['points', 'points'], ['totalRebounds', 'rebounds'], ['assists', 'assists']].filter(([k]) => t[k] != null).map(([k, w]) => `${n0(t[k])} ${w}`);
     if (parts.length) lines.push(`${list(parts)} in ${n0(reg.career.avg?.gamesPlayed)} regular-season games.`.replace(/^./, c => c.toUpperCase()));
   }

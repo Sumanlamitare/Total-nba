@@ -1,24 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { searchPlayers } from './api.js';
 import { span } from './shelves.js';
+import { localSearch } from './search.js';
 
 const POS = { G: 'Guard', F: 'Forward', C: 'Center', PG: 'Point guard', SG: 'Shooting guard', SF: 'Small forward', PF: 'Power forward' };
-const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, '');
-
-// Every word typed must start a word of the name. Longer careers first when the match is equally good.
-export function localSearch(players, q, limit = 30) {
-  const words = norm(q).split(/\s+/).filter(Boolean);
-  if (!words.length) return [];
-  const out = [];
-  for (const p of players) {
-    const name = ` ${norm(p.n)}`;
-    if (!words.every(w => name.includes(` ${w}`))) continue;
-    const exact = norm(p.n) === words.join(' ') ? 2 : norm(p.l).startsWith(words[words.length - 1]) ? 1 : 0;
-    out.push({ p, score: exact * 1e6 + (p.g || 0) + Object.values(p.h || {}).reduce((a, b) => a + b, 0) * 200 });
-  }
-  return out.sort((a, b) => b.score - a.score).slice(0, limit).map(x => x.p);
-}
-
 // The card catalogue: search by name; choosing a card walks you to the book's shelf.
 export default function Catalogue({ players, layout, indexOf, onClose, onGo, onOpen, onAdded }) {
   const [q, setQ] = useState('');

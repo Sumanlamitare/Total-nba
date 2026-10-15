@@ -5,7 +5,7 @@ import path from 'node:path';
 import { createServer } from 'vite';
 
 process.env.NODE_ENV ||= 'development';
-const vite = process.env.NO_VITE || process.env.STATIC_DIR ? null : await createServer({ server: { middlewareMode: true } });
+const vite = process.env.NO_VITE || process.env.STATIC_DIR ? null : await createServer({ server: { middlewareMode: true, hmr: { port: (+process.env.PORT || 5173) + 20000 } } });
 // STATIC_DIR serves a prebuilt single-page app (used to test the mobile app's web build against this API)
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.ttf': 'font/ttf', '.ico': 'image/x-icon', '.json': 'application/json' };
 function serveStatic(req, res) {

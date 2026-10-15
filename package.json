@@ -3,16 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "NBA Player Library — every player a book on the shelves of a 3D reading room. Data from ESPN.",
+  "description": "NBA Player Library \u2014 every player a book on the shelves of a 3D reading room. Data from ESPN.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "dev:fixtures": "MOCK_API=test/fixtures node scripts/dev.mjs",
     "build": "vite build",
     "test": "node --test test/unit.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs",
-    "ingest": "node scripts/ingest.mjs"
+    "test:ui": "node --test test/ui.test.mjs",
+    "ingest": "node scripts/ingest.mjs --scan 8000"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
