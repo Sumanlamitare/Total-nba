@@ -9,16 +9,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    services:
-      mongo:
-        image: mongo:7
-        ports: ['27017:27017']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      - name: Start MongoDB
+        run: docker run -d --name mongo -p 27017:27017 mongo:7 --quiet
       - run: npm ci
       - run: npm test
       - run: npm run test:e2e
