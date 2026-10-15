@@ -35,7 +35,7 @@ async function findInBook(p, make, turns = 4) {
 async function page(opts = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, ignoreHTTPSErrors: true, ...opts });
   // Fonts come from Google; the tests don't need them.
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com|espncdn\.com/, r => r.abort());
+  await ctx.route(/espncdn\.com/, r => r.abort()); // portraits; the web fonts load as they do for real
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
@@ -122,7 +122,7 @@ test('records chapter loads career highs and says where they come from', async (
 
 test('without WebGL the library is a shelf list that works by keyboard', async () => {
   const ctx = await browser.newContext({ viewport: { width: 1100, height: 800 } });
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com|espncdn\.com/, r => r.abort());
+  await ctx.route(/espncdn\.com/, r => r.abort()); // portraits; the web fonts load as they do for real
   await ctx.addInitScript(() => { HTMLCanvasElement.prototype.getContext = function (t) { return /webgl/.test(t) ? null : CanvasRenderingContext2D && null; }; });
   const p = await ctx.newPage();
   await p.goto(base + '/');

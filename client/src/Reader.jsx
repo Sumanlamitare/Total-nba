@@ -85,6 +85,8 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     if (paged && JSON.stringify(paged.chapterPages) !== JSON.stringify(chapterPages)) setChapterPages(paged.chapterPages);
   }, [paged]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const pagedRef = useRef(null), blocksRef = useRef([]);
+  pagedRef.current = paged; blocksRef.current = blocks;
   const n = paged?.pages.length || 0;
   const spread = !!geo?.spread;
   const last = spread ? Math.floor(n / 2) : Math.max(0, n - 1);
@@ -92,7 +94,25 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   // What sits on each side of a spread: 'front'/'back' are the marbled pastedowns inside the covers.
   const leftOf = s => (s === 0 ? 'front' : 2 * s - 1 < n ? 2 * s - 1 : 'back');
   const rightOf = s => (2 * s < n ? 2 * s : 'back');
+  const firstPageOf = s => (spread ? [leftOf(s), rightOf(s)] : [s]).find(x => typeof x === 'number');
 
+  // Keep the reader on the same text when the book re-paginates (fonts arriving, game logs loading, a resize):
+  // remember the first block on the visible page and find it again in the new pagination.
+  const anchor = useRef(null);
+  useLayoutEffect(() => {
+    if (!paged || anchor.current == null) return;
+    const k = blocks.findIndex(b => b.key === anchor.current);
+    if (k < 0) return;
+    const p = paged.pages.findIndex(pg => pg.blocks.includes(k));
+    if (p < 0) return;
+    const want = spread ? spreadOf(p) : p;
+    if (want !== pos && !anim.current.turn) setPos(want);
+  }, [paged]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!paged) return;
+    const p = firstPageOf(pos);
+    if (p != null && paged.pages[p]) anchor.current = blocks[paged.pages[p].blocks[0]].key;
+  }, [pos]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (pos > last && n) setPos(last); }, [last, n, pos]);
 
   // ---- turning ----------------------------------------------------------------------------------------------
@@ -115,9 +135,13 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     anim.current.turn = null;
     setTurn(null);
     if (complete && t) {
+      // If the pages re-flowed mid-turn, land on the text the turn was heading for, not the old page number.
+      const latest = pagedRef.current, k = t.anchorKey ? blocksRef.current.findIndex(b => b.key === t.anchorKey) : -1;
+      const p = k >= 0 && latest ? latest.pages.findIndex(x => x.blocks.includes(k)) : -1;
+      if (p >= 0) t.to = spread ? spreadOf(p) : p;
       setPos(t.to);
       const pg = spread ? [leftOf(t.to), rightOf(t.to)].filter(x => typeof x === 'number') : [t.to];
-      const ch = pg.length ? paged.pages[pg[pg.length - 1]].ch : 0;
+      const ch = pg.length ? (pagedRef.current || paged).pages[pg[pg.length - 1]]?.ch ?? 0 : 0;
       setAnnounce(`${pg.length === 2 ? `Pages ${pg[0] + 1} and ${pg[1] + 1}` : pg.length ? `Page ${pg[0] + 1}` : 'Endpaper'}${ch > 1 ? `: Chapter ${ROMAN[ch]}, ${CHAPTERS[ch]}` : ch === 1 ? ': Contents' : ''}.`);
     }
   }, [spread, paged]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -137,13 +161,14 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
 
   const startTurn = useCallback((to, { drag = false } = {}) => {
     if (anim.current.turn || to === pos || to < 0 || to > last) return false;
-    const t = { dir: to > pos ? 1 : -1, from: pos, to };
+    const fp = firstPageOf(to);
+    const t = { dir: to > pos ? 1 : -1, from: pos, to, anchorKey: fp != null && paged?.pages[fp] ? blocks[paged.pages[fp].blocks[0]].key : null };
     if (!motion) { anim.current.turn = t; finish(true); return true; }
     anim.current.turn = t; anim.current.p = 0;
     setTurn(t);
     if (!drag) requestAnimationFrame(() => animateTo(1));
     return true;
-  }, [pos, last, motion, animateTo, finish]);
+  }, [pos, last, motion, animateTo, finish, paged, blocks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useLayoutEffect(() => { if (turn) setP(anim.current.p); }); // place a freshly rendered leaf
 
