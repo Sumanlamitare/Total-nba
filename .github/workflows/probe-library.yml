@@ -26,7 +26,7 @@ jobs:
       - if: inputs.task != 'probe'
         run: |
           npm ci --no-audit --no-fund
-          node scripts/ingest.mjs 2>&1 | tee probe/report.txt
+          node scripts/ingest.mjs --scan 8000 2>&1 | tee probe/report.txt
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - name: Push results to the probe branch
