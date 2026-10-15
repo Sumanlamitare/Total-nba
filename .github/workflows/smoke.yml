@@ -26,4 +26,7 @@ jobs:
           check '/api/groups?invite=notreal1'  404 'invite link'
           check /privacy                       200 'Turnout'
           check /support                       200 'Turnout'
+          check /preview                       200 '/preview/_expo/static/js/web/'
+          check /preview/home                  200 '/preview/_expo/static/js/web/'
+          js=$(grep -o '/preview/_expo/static/js/web/[^"]*\.js' body.txt | head -1); code=$(curl -s -o app.js -w '%{http_code}' "$URL$js"); echo "$js -> $code $(wc -c < app.js) bytes"; [ "$code" = 200 ] && [ $(wc -c < app.js) -gt 100000 ]
           code=$(curl -s -o /dev/null -w '%{http_code}' -H 'authorization: Bearer bad.1.0.token' "$URL/api/groups"); echo "bearer -> $code"; [ "$code" = 401 ]
