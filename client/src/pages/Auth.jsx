@@ -32,6 +32,7 @@ export default function Auth({ mode }) {
           {err && <p className="formerr" role="alert">{err}</p>}
           <Button type="submit" loading={busy} className="block lg">{signup ? 'Create account' : 'Log in'}</Button>
         </form>
+        {signup && <p className="fine">By creating an account you agree to the <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy Policy</Link>.</p>}
         <p className="switch">{signup
           ? <>Already have an account? <Link to={'/login' + location.search}>Log in</Link></>
           : <>New here? <Link to={'/signup' + location.search}>Create an account</Link></>}</p>

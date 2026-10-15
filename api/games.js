@@ -2,7 +2,7 @@
 // GET    /api/games?id=                              -> one game with roster, teams, result, comments
 // POST   /api/games {groupId, startsAt, duration, capacity, minPlayers, location, notes, cost}   (organizers)
 // POST   /api/games?id=&action=rsvp {want, guests}
-// POST   /api/games?id=&action=comment {text} | uncomment {commentId}
+// POST   /api/games?id=&action=comment {text} | uncomment {commentId} | report {commentId, reason}
 // POST   /api/games?id=&action=teams {n} | clearteams | result {score?, noShows} | cancel | reopen   (organizers)
 // PATCH  /api/games?id= {...}                        (organizers)
 // DELETE /api/games?id=                              (organizers)
@@ -13,6 +13,14 @@ import { requireUser } from '../lib/auth.js';
 import { loadGroup, loadGame, isAdmin, oid } from '../lib/access.js';
 import { cleanGame, answer, balance, teamPool, roster } from '../lib/turnout.js';
 import { gameSummary, gameDetail } from '../lib/views.js';
+import { notify } from '../lib/push.js';
+
+const confirmedIds = g => roster(g).confirmed.map(r => r.userId);
+// tell people who just moved from the waitlist into the game
+async function announcePromotions(before, after, group, actor) {
+  const was = new Set(before), promoted = confirmedIds(after).filter(id => !was.has(id) && id !== actor);
+  if (promoted.length) await notify(promoted, { title: 'You\'re in! 🎉', body: f => `A spot opened up — ${group.name}, ${f(after.startsAt)}`, url: `/game/${after._id}` });
+}
 
 const MAX_UPCOMING = 60;
 
@@ -54,6 +62,8 @@ export default route({
         status: 'scheduled', rsvps: [], comments: [], lateDrops: [], teams: null, final: null, v: 0, createdBy: uid, createdAt: new Date() };
       if (body.imIn) g.rsvps = answer(g, { id: uid, name: user.name }, 'in').rsvps; // the organizer usually plays too
       g._id = (await col.insertOne(g)).insertedId;
+      await notify(group.members.map(m => m.userId).filter(x => x !== uid), {
+        title: group.name, body: f => `New game ${f(g.startsAt)}${g.location ? ` at ${g.location}` : ''} — are you in?`, url: `/game/${g._id}` });
       return { id: String(g._id) };
     }
 
@@ -65,10 +75,13 @@ export default route({
     if (a === 'rsvp') {
       if (game.status === 'canceled') fail(409, 'This game was canceled');
       if (game.status === 'played') fail(409, 'This game has already been played');
+      let before = [];
       after = await mutate(game._id, g => {
+        before = confirmedIds(g);
         const { rsvps, lateDrop } = answer(g, { id: uid, name: user.name }, String(body.want), body.guests);
         return { $set: { rsvps }, ...(lateDrop ? { $push: { lateDrops: { userId: uid, at: new Date() } } } : {}) };
       });
+      await announcePromotions(before, after, group, uid);
     } else if (a === 'comment') {
       const text = typeof body.text === 'string' ? body.text.trim().slice(0, 500) : '';
       if (!text) fail(400, 'Write something first');
@@ -78,6 +91,12 @@ export default route({
       if (!c) fail(404, 'Comment not found');
       if (c.userId !== uid && !admin) fail(403, 'You can only delete your own comments');
       await col.updateOne({ _id: game._id }, { $pull: { comments: { id: c.id } } });
+    } else if (a === 'report') {
+      const c = (game.comments || []).find(x => x.id === body.commentId);
+      if (!c) fail(404, 'Comment not found');
+      await (await db()).collection('reports').insertOne({ gameId: game._id, groupId: group._id, commentId: c.id, text: c.text, authorId: c.userId, authorName: c.name,
+        reporterId: uid, reason: String(body.reason || '').slice(0, 300), at: new Date() });
+      return { ok: true };
     } else if (a === 'teams' && organizer()) {
       const skills = Object.fromEntries(group.members.map(m => [m.userId, m.skill ?? 3]));
       after = await mutate(game._id, g => {
@@ -103,6 +122,10 @@ export default route({
       await col.updateOne({ _id: game._id }, { $set: { status: 'played', final: { players, noShows, teams, score, at: new Date(), by: uid } } });
     } else if (a === 'cancel' && organizer()) {
       await col.updateOne({ _id: game._id }, { $set: { status: 'canceled' } });
+      if (game.status === 'scheduled') {
+        const r = roster(game);
+        await notify([...r.confirmed, ...r.waitlist].map(x => x.userId).filter(x => x !== uid), { title: `${group.name}: game canceled`, body: f => `${f(game.startsAt)} is off.`, url: `/game/${game._id}` });
+      }
     } else if (a === 'reopen' && organizer()) {
       await col.updateOne({ _id: game._id }, { $set: { status: 'scheduled', final: null } });
     } else fail(400, 'Unknown action');
@@ -117,7 +140,9 @@ export default route({
     const set = cleanGame(body, true);
     const cap = set.capacity ?? game.capacity, min = set.minPlayers ?? game.minPlayers ?? 0;
     if (min > cap) fail(400, 'Players needed can’t be more than the spots');
-    const after = await mutate(game._id, () => ({ $set: set }));
+    let before = [];
+    const after = await mutate(game._id, g => { before = confirmedIds(g); return { $set: set }; });
+    await announcePromotions(before, after, group, String(user._id));
     return { game: gameDetail(after, group, me, user) };
   },
 

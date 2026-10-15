@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "functions": { "api/*.js": { "maxDuration": 30 } },
   "rewrites": [
-    { "source": "/((?!api/|assets/|favicon|logo).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|favicon|logo|\\.well-known/).*)", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [

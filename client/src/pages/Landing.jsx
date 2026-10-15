@@ -90,7 +90,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="sitefoot"><div className="wrap"><Logo /><small>Made for the people who bring the ball.</small></div></footer>
+      <footer className="sitefoot"><div className="wrap"><Logo /><nav className="footlinks"><Link to="/support">Support</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav><small>Made for the people who bring the ball.</small></div></footer>
     </div>
   );
 }

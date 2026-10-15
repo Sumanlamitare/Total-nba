@@ -8,6 +8,7 @@ import Home from './pages/Home.jsx';
 import Group from './pages/Group.jsx';
 import Game from './pages/Game.jsx';
 import Account from './pages/Account.jsx';
+import { Terms, Privacy, Support } from './pages/Legal.jsx';
 
 const UserCtx = createContext(null);
 export const useUser = () => useContext(UserCtx);
@@ -42,6 +43,9 @@ export default function App() {
   else if ((m = path.match(new RegExp(`^/g/${ID}$`)))) page = needsUser(<Group id={m[1]} key={m[1]} />);
   else if ((m = path.match(new RegExp(`^/game/${ID}$`)))) page = needsUser(<Game id={m[1]} key={m[1]} />);
   else if (path === '/account') page = needsUser(<Account />);
+  else if (path === '/terms') page = <Terms />;
+  else if (path === '/privacy') page = <Privacy />;
+  else if (path === '/support') page = <Support />;
   else page = (
     <div className="center-page"><div className="card narrow"><Logo /><h1>Out of bounds</h1><p className="muted">That page doesn't exist.</p><Link to="/" className="btn primary">Go home</Link></div></div>
   );
