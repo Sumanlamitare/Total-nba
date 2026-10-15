@@ -57,14 +57,17 @@ test('tokens, notifications, report and block', async () => {
 
   // a new game notifies everyone else in the group, in their own time zone
   const start = new Date(Date.UTC(2031, 5, 3, 17, 0)); // 1:00 PM in New York, 6:00 PM in London
-  const id = (await olivia('POST', '/api/games', { groupId: gid, startsAt: start.toISOString(), capacity: 1, imIn: true, location: 'Gym 2' })).json.id;
+  const created = await olivia('POST', '/api/games', { groupId: gid, startsAt: start.toISOString(), capacity: 2, imIn: true, location: 'Gym 2' });
+  assert.equal(created.status, 200, JSON.stringify(created.json));
+  const id = created.json.id;
   assert.equal(to(olivia).length, 0, 'the organizer is not notified about their own game');
   assert.equal(to(marcus).length, 1);
   assert.equal(to(marcus)[0].title, 'Lunch Hoops');
   assert.match(to(marcus)[0].body, /New game Tue, Jun 3, 6:00 PM at Gym 2 — are you in\?/);
   assert.equal(to(marcus)[0].data.url, `/game/${id}`);
 
-  // waitlist promotion is pushed to the promoted player only
+  // waitlist promotion is pushed to the promoted player only (Olivia + her guest fill both spots)
+  assert.equal((await olivia('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in', guests: 1 })).json.game.taken, 2);
   assert.equal((await marcus('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' })).json.game.me, 'waitlist');
   await olivia('POST', `/api/games?id=${id}&action=rsvp`, { want: 'out' });
   assert.equal(to(marcus).length, 2);
@@ -72,9 +75,10 @@ test('tokens, notifications, report and block', async () => {
   assert.equal(to(olivia).length, 0);
 
   // raising the spots also promotes
-  await olivia('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in' });
+  await olivia('POST', `/api/games?id=${id}&action=rsvp`, { want: 'in', guests: 1 });
   assert.equal((await olivia('GET', `/api/games?id=${id}`)).json.game.me, 'waitlist');
-  await olivia('PATCH', `/api/games?id=${id}`, { capacity: 2 });
+  await olivia('PATCH', `/api/games?id=${id}`, { capacity: 3 });
+  assert.equal((await olivia('GET', `/api/games?id=${id}`)).json.game.me, 'in');
   assert.equal(to(olivia).length, 0, 'not notified about a change you made yourself');
 
   // report and block
