@@ -19,7 +19,7 @@ async function person(name) {
   const c = client();
   const r = await c('POST', '/api/auth', { action: 'signup', name, email: `${name.toLowerCase()}@example.com`, password: 'hoops-forever' });
   assert.equal(r.status, 200, JSON.stringify(r.json));
-  c.id = r.json.user.id; c.name = name;
+  c.id = r.json.user.id; c.who = name;
   return c;
 }
 
