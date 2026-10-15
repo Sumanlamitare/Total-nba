@@ -1,9 +1,9 @@
 {
-  "name": "turnout",
+  "name": "nba-player-library",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Turnout \u2014 run pickup games without the group-chat chaos: RSVPs, waitlists, fair teams, results.",
+  "description": "NBA Player Library \u2014 every player a book on the shelves of a 3D reading room. Data from ESPN.",
   "engines": {
     "node": ">=20"
   },
@@ -11,8 +11,8 @@
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
     "test": "node --test test/unit.test.mjs",
-    "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs test/app.test.mjs",
-    "build:preview": "cd mobile && npm ci --no-audit --no-fund && EXPO_BASE_URL=/preview EXPO_OFFLINE=1 CI=1 npx expo export --platform web --clear --output-dir ../dist/preview"
+    "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs",
+    "ingest": "node scripts/ingest.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",

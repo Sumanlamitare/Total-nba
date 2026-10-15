@@ -26,4 +26,4 @@ http.createServer(async (req, res) => {
     req.query = Object.fromEntries(url.searchParams);
     await fn(req, res);
   } catch (e) { console.error(e); res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); }
-}).listen(port, () => console.log(`Turnout dev on http://localhost:${port}`));
+}).listen(port, () => console.log(`Library dev on http://localhost:${port}`));

@@ -1,0 +1,21 @@
+name: Build the library catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * 1'   # Mondays: pick up new players, trades and awards
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/ingest.mjs
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
