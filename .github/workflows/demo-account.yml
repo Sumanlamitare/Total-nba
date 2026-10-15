@@ -1,0 +1,30 @@
+name: App Review demo account
+
+# Creates (or resets) a demo login with a sample group for Apple's reviewers. Run before each submission.
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: Demo login email (put it in App Store Connect → App Review Information)
+        default: appreview@turnout.example
+      password:
+        description: Demo password (8+ characters)
+        required: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --omit=dev
+      - run: |
+          echo "::add-mask::${{ inputs.password }}"
+          node scripts/seed-demo.mjs
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          DEMO_EMAIL: ${{ inputs.email }}
+          DEMO_PASSWORD: ${{ inputs.password }}

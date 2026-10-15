@@ -107,3 +107,18 @@ test('tokens, notifications, report and block', async () => {
   await olivia('POST', '/api/auth', { action: 'logout', device: olivia.push });
   assert.equal(await devices().countDocuments({ token: olivia.push }), 0);
 });
+
+test('the App Review demo account can be created, re-created and used', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const env = { ...process.env, TURNOUT_DB: DB, DEMO_EMAIL: 'review@example.com', DEMO_PASSWORD: 'review-pass-1' };
+  execFileSync(process.execPath, ['scripts/seed-demo.mjs'], { env });
+  execFileSync(process.execPath, ['scripts/seed-demo.mjs'], { env }); // re-running replaces it
+  const c = app();
+  const r = await c('POST', '/api/auth', { action: 'login', app: true, email: 'review@example.com', password: 'review-pass-1' });
+  assert.equal(r.status, 200); c.token = r.json.token;
+  const groups = (await c('GET', '/api/groups')).json.groups;
+  assert.equal(groups.length, 1); assert.equal(groups[0].role, 'owner'); assert.equal(groups[0].members, 9);
+  const g = (await c('GET', `/api/groups?id=${groups[0].id}`)).json;
+  assert.equal(g.upcoming.length, 1); assert.equal(g.past.length, 1); assert.ok(g.stats.length >= 8);
+  assert.equal(await mongo.db(DB).collection('groups').countDocuments({ demo: true }), 1);
+});

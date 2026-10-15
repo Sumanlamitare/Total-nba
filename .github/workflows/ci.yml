@@ -30,3 +30,21 @@ jobs:
           node --test test/ui.test.mjs
         env:
           MONGODB_URI: mongodb://localhost:27017
+      - name: Mobile app — install
+        working-directory: mobile
+        run: npm ci
+      - name: Mobile app — iOS bundle compiles
+        working-directory: mobile
+        run: npx expo export --platform ios --output-dir dist-ios
+        env:
+          CI: 1
+      - name: Mobile app — web build for testing
+        working-directory: mobile
+        run: npx expo export --platform web --output-dir dist-web
+        env:
+          CI: 1
+          EXPO_PUBLIC_API_URL: http://localhost:5693
+      - name: Mobile app — two people use it against the real API
+        run: node --test test/mobile.test.mjs
+        env:
+          MONGODB_URI: mongodb://localhost:27017

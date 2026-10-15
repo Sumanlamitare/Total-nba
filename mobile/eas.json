@@ -1,0 +1,10 @@
+{
+  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "build": {
+    "preview": { "distribution": "internal", "ios": { "simulator": false } },
+    "production": { "autoIncrement": true, "env": { "EXPO_PUBLIC_API_URL": "https://total-nba-ja9d.vercel.app" } }
+  },
+  "submit": {
+    "production": { "ios": { "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID" } }
+  }
+}

@@ -14,7 +14,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export default route({
   async GET({ req }) {
     const u = await currentUser(req);
-    return { user: u ? publicUser(u) : null };
+    if (!u) return { user: null };
+    const ids = (u.blocked || []).filter(id => ObjectId.isValid(id)).map(id => new ObjectId(id));
+    const blockedPeople = ids.length ? (await (await db()).collection('users').find({ _id: { $in: ids } }, { projection: { name: 1 } }).toArray()).map(b => ({ userId: String(b._id), name: b.name })) : [];
+    return { user: { ...publicUser(u), blockedPeople } };
   },
   async POST({ req, res, body }) {
     const users = (await db()).collection('users');
