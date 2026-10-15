@@ -205,7 +205,7 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .skill { display: flex; gap: 4px; }
 .skill button { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--line2); background: var(--panel); padding: 0; }
 .skill button.on { background: var(--brand); border-color: var(--brand); }
-.mmenu { width: auto; min-height: 34px; padding: 4px 8px; font-weight: 700; }
+.mmenu { width: 44px; flex: none; min-height: 34px; padding: 4px; font-weight: 800; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; border-radius: 999px; cursor: pointer; }
 .danger { border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); }
 .danger h3, .card h3 { font-size: 16px; }
 
@@ -268,8 +268,10 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
   .section { padding: 56px 0; } .steps { grid-template-columns: 1fr; }
   .grid2 { grid-template-columns: 1fr; }
   .sportpick { grid-template-columns: repeat(3, 1fr); }
-  .gc-when { min-width: 70px; }
-  .members li { flex-wrap: wrap; } .members .skill { order: 3; margin-left: 48px; }
+  .gamecard { display: grid; grid-template-columns: 86px minmax(0, 1fr); grid-template-areas: 'when main' 'when chip'; gap: 4px 12px; align-items: start; }
+  .gc-when { grid-area: when; min-width: 0; } .gc-main { grid-area: main; } .gamecard > .chip { grid-area: chip; justify-self: start; margin-top: 4px; }
+  .tabs button { flex: none; }
+  .members li { flex-wrap: wrap; } .members .skill { order: 3; flex-basis: 100%; padding-left: 48px; }
   .card.narrow { padding: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::after { animation: none !important; transition: none !important; } }

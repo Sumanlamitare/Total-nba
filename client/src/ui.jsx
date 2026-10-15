@@ -50,7 +50,7 @@ export function relDay(d, now = new Date()) {
   const a = new Date(d); a.setHours(0, 0, 0, 0);
   const b = new Date(now); b.setHours(0, 0, 0, 0);
   const n = Math.round((a - b) / 864e5);
-  return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : n === -1 ? 'Yesterday' : n > 1 && n < 7 ? new Date(d).toLocaleDateString(undefined, { weekday: 'long' }) : day(d);
+  return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : n === -1 ? 'Yesterday' : n > 1 && n < 7 ? new Date(d).toLocaleDateString(undefined, { weekday: 'short' }) + ' ' + new Date(d).getDate() : day(d);
 }
 export function ago(d) {
   const s = (Date.now() - new Date(d)) / 1000;
