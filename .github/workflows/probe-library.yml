@@ -1,0 +1,27 @@
+name: Probe ESPN for the player library
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/probe-library.mjs
+      - name: Push results to the probe branch
+        if: always()
+        run: |
+          cd probe
+          git init -q && git checkout -q -b probe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "probe"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" probe:probe
