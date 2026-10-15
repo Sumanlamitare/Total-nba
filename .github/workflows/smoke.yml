@@ -24,3 +24,6 @@ jobs:
           check /api/auth                      200 '"user":null'
           check /api/games                     401 'log in'
           check '/api/groups?invite=notreal1'  404 'invite link'
+          check /privacy                       200 'Turnout'
+          check /support                       200 'Turnout'
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'authorization: Bearer bad.1.0.token' "$URL/api/groups"); echo "bearer -> $code"; [ "$code" = 401 ]
