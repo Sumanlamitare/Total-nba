@@ -23,9 +23,10 @@ export const UNKNOWN_ERA = { name: 'Debut not on record', leather: '#4d4237' };
 export const seasonLabel = y => `${y - 1}-${String(y % 100).padStart(2, '0')}`;
 export const span = p => {
   if (!p.y0) return '';
-  if (!p.y1) return `${seasonLabel(p.y0)} –`;
+  if (!p.y1) return `from ${p.y0 - 1}`;
   if (p.y0 === p.y1) return seasonLabel(p.y0);
-  return `${p.y0 - 1}–${p.a ? 'now' : p.y1m ? `${p.y1}+` : p.y1}`;
+  if (p.y1m) return `from ${p.y0 - 1}`;
+  return `${p.y0 - 1}–${p.a ? 'now' : p.y1}`;
 };
 
 export const eraOf = p => (p.y0 ? ERAS.find(e => p.y0 - 1 >= e.from && p.y0 - 1 <= e.to) : null) || UNKNOWN_ERA;

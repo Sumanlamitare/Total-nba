@@ -17,9 +17,29 @@ function serveStatic(req, res) {
 }
 const port = +process.env.PORT || 5173;
 
+// MOCK_API=dir serves saved API responses (dir/catalog.json, dir/books/{id}.json, dir/books/{id}.highs.json) so
+// the interface can be worked on and tested without MongoDB or ESPN.
+function mockApi(name, url, res) {
+  const dir = path.resolve(process.env.MOCK_API);
+  const send = (code, body) => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.end(typeof body === 'string' ? body : JSON.stringify(body)); };
+  const file = f => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null);
+  const delay = +process.env.MOCK_DELAY || 0;
+  setTimeout(() => {
+    if (name === 'catalog') return send(200, file(path.join(dir, 'catalog.json')));
+    if (name === 'book') {
+      const id = (url.searchParams.get('id') || '').replace(/\D/g, '');
+      const body = file(path.join(dir, 'books', `${id}${url.searchParams.get('part') === 'highs' ? '.highs' : ''}.json`));
+      return body ? send(200, body) : send(404, { error: 'ESPN has no record of this player' });
+    }
+    if (name === 'search') return send(200, { results: [], added: [] });
+    send(404, { error: 'Not found' });
+  }, delay);
+}
+
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const a = url.pathname.match(/^\/api\/([a-z]+)$/);
+  if (a && process.env.MOCK_API) return mockApi(a[1], url, res);
   if (!a) return process.env.STATIC_DIR ? serveStatic(req, res) : vite ? vite.middlewares(req, res) : (res.statusCode = 404, res.end());
   try {
     const { default: fn } = await import(`../api/${a[1]}.js`);

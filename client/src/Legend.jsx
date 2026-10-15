@@ -17,7 +17,7 @@ export default function Legend({ onClose, motion, setMotion, meta, noGL }) {
       <p>Books are shelved by surname, A to Z, left to right and top to bottom.</p>
       <dl className="key">
         <dt><span className="k-thick" aria-hidden><i style={{ width: 6 }} /><i style={{ width: 12 }} /><i style={{ width: 20 }} /></span>Thickness</dt>
-        <dd>Seasons on ESPN's record: a long career is a thick book.</dd>
+        <dd>Length of the career as far as ESPN's records show it: a long career is a thick book.</dd>
         <dt><span className="k-band" aria-hidden style={{ '--g': GOLD }}><i /><i /><i /></span>Gold bands</dt>
         <dd>One band per MVP award.</dd>
         <dt><span className="k-star" aria-hidden style={{ color: GOLD }}>★★</span>Gilt stars</dt>
