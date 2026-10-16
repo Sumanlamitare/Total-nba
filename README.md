@@ -1,16 +1,25 @@
 # The Player Library
 
-Every NBA player ESPN has on record gets a book, shelved with their team in a 3D reading room. Walk the shelves, pull a book, and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
+Every NBA player ESPN has on record gets a book, shelved with their team in a library you walk through. Walk the shelves, pull a book, and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
 
 Live: https://total-nba-ja9d.vercel.app
 
 ## Using it
 
-- **Walk the room.** Every franchise has its own bookcase, its plaque banded in the team's colours. Drag (or use `[` `]`, or the brass arrows) to move between bookcases. Scroll or pinch to step closer. The team strip jumps to a team.
-- **Find a player.** Use the card catalogue (`/`). Enter takes you to the book's shelf, and Shift+Enter opens it. If the shelves don't hold a player, the catalogue asks ESPN's search and shelves any NBA player it finds.
-- **Open a book.** Click a book; on touch, tap once to select it and again to open. The book slides off the shelf, the cover opens onto marbled endpapers, and the endpaper and half-title leaves turn over to the title page. Any click or key skips the animation; closing plays it in reverse and puts the book back.
-- **Read.** The book is paginated into real pages: a two-page spread on wide screens, one page on phones. Pages turn as leaves hinged at the spine. Drag a page, swipe, click the dog-eared corner, or use ← →. The contents page lists real page numbers and turns to any chapter. Esc goes back to the shelf you came from. Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
-- **Without 3D.** The *Shelf list* shows the same shelves as plain buttons, fully keyboard-operable. Browsers without WebGL get it automatically. *Reading the spines* explains the spines and has a switch that turns animation off (the system reduced-motion setting is honored too).
+- **Walk the library.** You start at the entrance of a bright hall of double-sided shelving rows. The end of each row is signed with the teams down each side, and every team's section is signed in its colours.
+  - Drag to look around.
+  - Walk with W A S D (Shift to hurry, Q and E to turn), scroll to step forward or back, or click the floor to walk there.
+  - On a phone, use the thumb-stick.
+  - The floor plan in the corner shows where you are; click it to go somewhere.
+- **Find a team or a player.**
+  - *Teams* opens a grid of every section and walks you there.
+  - *Search* (`/`) finds a player and walks you to the shelf (Shift+Enter opens the book). Players the catalogue doesn't hold are found through ESPN's search and shelved.
+- **Open a book.** Click a book; on touch, tap once to select it and again to open. It slides off the shelf, the cover opens and the first leaves turn to the title page. Any click or key skips the animation, and closing reverses it, putting the book back.
+- **Read.** The book has real pages: a two-page spread on wide screens, one page on phones, turned as leaves hinged at the spine. Drag a page, swipe, click the turned-down corner, or use ← →.
+  - The contents page lists real page numbers.
+  - Esc takes you back to the shelf.
+  - Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
+- **Without 3D.** *List* shows the same sections as rows of spine buttons, usable entirely by keyboard. Browsers without WebGL get it automatically. The *?* panel explains the spines and has a switch that turns animation off (the system reduced-motion setting is honored too).
 
 ## What a spine tells you
 
@@ -18,8 +27,8 @@ Live: https://total-nba-ja9d.vercel.app
 |---|---|
 | Thickness | Length of the career as far as ESPN's records show it |
 | Gold bands | One per MVP award |
-| Gilt stars | One per Finals MVP award |
-| Leather | Decade of the first season |
+| Stars | One per Finals MVP award |
+| Colour | The team's colour; a darker shade for an earlier first season |
 | Height | Decoration only |
 
 **Which team's bookcase.** A book sits with the franchise the player played the most games for in ESPN's career statistics. When those aren't recorded, it falls back to the team on the player's award records, then to ESPN's last-team field. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics sit with Oklahoma City. About a third of the books, mostly early players, have no team on ESPN's record and share a final bay. Inside a bookcase, books run A to Z by surname, spread evenly over the shelves.
@@ -62,12 +71,14 @@ The result is about 5,240 players. Anyone else ESPN knows is added the first tim
 ## How it's built
 
 - **Client** (`client/`): React 18 + Vite and plain three.js.
-  - Each bookcase is one `InstancedMesh`, about 400 books in one draw call, and all the woodwork in the room is one more.
-  - Spine text is painted into a canvas atlas per bookcase, only for the cases near the camera, one per frame. Atlases are freed when the camera leaves. A small shader maps each book's spine face to its rectangle in the atlas.
+  - The hall is laid out from the catalogue: each team gets one or more 1-metre bays, a team never splits across two faces of a row, and rows are added as needed.
+  - Each bay is one `InstancedMesh`, so its books are one draw call, and all the woodwork in the hall is one more.
+  - Walking is first person: collision keeps you in the aisles, and the opened book draws in its own pass so it never clips into a shelf.
+  - Spine lettering is painted into a canvas atlas per bay, only for the nearest bays in view, one per frame. Atlases are freed when you walk away. A small shader maps each book's spine face to its rectangle in the atlas.
   - The scene renders only when something moves.
   - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page is a 3D-transformed leaf whose two faces are the outgoing and incoming pages, with shading and a cast shadow driven by the turn angle.
   - three.js loads as a separate chunk, so the shelf list and reader don't wait for it.
-  - All textures (wood, parquet, leather, brass plaques, covers) are drawn in code. No image assets.
+  - All textures (oak, floor, cloth, signs, covers) are drawn in code. No image assets.
 - **API** (`api/`, Vercel functions):
   - `catalog` is every book, cached at the edge for an hour.
   - `book?id=` is a composed book and `book?id=&part=highs` the career highs.
@@ -96,8 +107,8 @@ npm run test:ui        # Chromium: room, search, opening, chapters, deep links, 
 | [React](https://react.dev) 18 | Interface | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
-| [EB Garamond](https://fonts.google.com/specimen/EB+Garamond) (Georg Duffner, Octavio Pardo) | Body text | SIL Open Font License 1.1 |
-| [IM Fell English SC](https://fonts.google.com/specimen/IM+Fell+English+SC) (Igino Marini) | Titles, spines, plaques | SIL Open Font License 1.1 |
+| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface, spines, signs, headings | SIL Open Font License 1.1 |
+| [Literata](https://fonts.google.com/specimen/Literata) (TypeTogether) | Book text | SIL Open Font License 1.1 |
 | ESPN public API and headshots | All player data and portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
 
 Every texture, the favicon and all other artwork are original and drawn in code.

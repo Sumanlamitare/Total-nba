@@ -1,28 +1,28 @@
-// The reading room: a rotunda of walnut bookcases, one book per player, rendered with three.js.
+// The library: a bright hall of double-sided shelving rows, one book per player, walked in first person.
 //
 // Performance model
-//  - Each bookcase draws its books with one InstancedMesh (≈400 books → 1 draw call); all woodwork in the room
-//    is a single InstancedMesh.
-//  - Spines are painted into one canvas atlas per bookcase, only for the cases near the camera; far cases show
-//    plain leather. Atlases are built one per idle frame and disposed when the camera moves away.
-//  - The scene renders on demand: when nothing moves, nothing is drawn.
+//  - Each bay (bookcase) draws its books with one InstancedMesh; all woodwork in the hall is one InstancedMesh.
+//  - Spines are painted into one canvas atlas per bay, only for the nearest bays in view; the rest show plain
+//    cloth in the team colour. Atlases are built one per frame and freed when you walk away.
+//  - The scene renders only when something moves.
 import * as THREE from 'three';
-import { CASE, shelfY } from './shelves.js';
-import { paintCase, paintCover, paintMarble, paintHalfTitle, paintBookplate, paintTitlePage } from './spines.js';
-import { eraOf } from './shelves.js';
+import { CASE, shelfY, HALL, hallPlan, spineColor, teamCloth } from './shelves.js';
+import { paintCase, paintCover, paintEndpaper, paintHalfTitle, paintBookplate, paintTitlePage } from './spines.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const lerp = (a, b, t) => a + (b - a) * t;
+const COND = '"Barlow Condensed", "Arial Narrow", sans-serif';
+const SANS = 'Barlow, "Helvetica Neue", Arial, sans-serif';
+const angleTo = (from, to) => { let d = to - from; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return from + d; };
 
-// Shared book material: the spine face (+z) samples the case atlas at the book's rectangle, the top shows
-// cream page edges, everything else is plain leather (instance colour).
-function bookMaterial(atlas) {
-  const m = new THREE.MeshStandardMaterial({ roughness: 0.62, metalness: 0.05 });
-  m.userData.atlas = { value: atlas };
-  m.userData.has = { value: atlas ? 1 : 0 };
-  m.customProgramCacheKey = () => 'book-v1';
+// Book material: the spine face (+z) samples the bay atlas at the book's rectangle, the top shows page edges,
+// everything else is plain cloth (instance colour).
+function bookMaterial() {
+  const m = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.02 });
+  m.userData.atlas = { value: null };
+  m.userData.has = { value: 0 };
+  m.customProgramCacheKey = () => 'book-v2';
   m.onBeforeCompile = sh => {
     sh.uniforms.uAtlas = m.userData.atlas;
     sh.uniforms.uHas = m.userData.has;
@@ -32,92 +32,113 @@ function bookMaterial(atlas) {
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform sampler2D uAtlas;\nuniform float uHas;\nvarying vec2 vSpineUv;\nvarying float vFace;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        if (vFace > 1.5) diffuseColor.rgb = vec3(0.60, 0.54, 0.43);
+        if (vFace > 1.5) diffuseColor.rgb = vec3(0.86, 0.84, 0.78);
         else if (vFace > 0.5 && uHas > 0.5) diffuseColor.rgb = texture2D(uAtlas, vSpineUv).rgb;`);
   };
   return m;
 }
 
-function woodTexture() {
+function canvasTexture(c, repeat) {
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); }
+  return t;
+}
+
+function oakTexture() {
   const c = document.createElement('canvas'); c.width = 256; c.height = 512;
   const g = c.getContext('2d');
-  g.fillStyle = '#5a3a22'; g.fillRect(0, 0, 256, 512);
-  for (let i = 0; i < 140; i++) {
-    const x = Math.random() * 256, w = 0.6 + Math.random() * 2.2;
-    g.strokeStyle = `rgba(${Math.random() < 0.5 ? '30,16,8' : '120,80,48'},${0.08 + Math.random() * 0.16})`;
-    g.lineWidth = w; g.beginPath(); g.moveTo(x, 0);
-    for (let y = 0; y <= 512; y += 32) g.lineTo(x + Math.sin(y / 60 + i) * 4, y);
+  g.fillStyle = '#c9a57c'; g.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random() * 256;
+    g.strokeStyle = `rgba(${Math.random() < 0.5 ? '120,84,48' : '235,210,170'},${0.08 + Math.random() * 0.12})`;
+    g.lineWidth = 0.6 + Math.random() * 1.8; g.beginPath(); g.moveTo(x, 0);
+    for (let y = 0; y <= 512; y += 32) g.lineTo(x + Math.sin(y / 70 + i) * 3, y);
     g.stroke();
   }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  return t;
+  return canvasTexture(c);
 }
 
 function floorTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 512;
   const g = c.getContext('2d');
-  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
-    const l = 30 + Math.random() * 10;
-    g.fillStyle = `hsl(28, 38%, ${l}%)`; g.fillRect(x * 64, y * 64, 64, 64);
-    g.strokeStyle = 'rgba(20,10,4,0.5)'; g.strokeRect(x * 64 + 0.5, y * 64 + 0.5, 63, 63);
-    g.strokeStyle = 'rgba(20,10,4,0.18)';
-    for (let k = 1; k < 4; k++) { g.beginPath(); if ((x + y) % 2) { g.moveTo(x * 64 + k * 16, y * 64); g.lineTo(x * 64 + k * 16, y * 64 + 64); } else { g.moveTo(x * 64, y * 64 + k * 16); g.lineTo(x * 64 + 64, y * 64 + k * 16); } g.stroke(); }
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 10);
-  return t;
+  g.fillStyle = '#d9d5ce'; g.fillRect(0, 0, 512, 512);
+  for (let k = 0; k < 9000; k++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '0,0,0' : '255,255,255'},0.035)`; g.fillRect(Math.random() * 512, Math.random() * 512, 2, 2); }
+  g.strokeStyle = 'rgba(80,74,66,0.22)'; g.lineWidth = 2;
+  for (let k = 0; k <= 512; k += 256) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, 512); g.stroke(); g.beginPath(); g.moveTo(0, k); g.lineTo(512, k); g.stroke(); }
+  return canvasTexture(c, [12, 12]);
 }
 
-// A brass plaque naming the team, with enamel bands in the team's colours at either end.
-function plaqueTexture(text, sub, color, alt) {
-  const c = document.createElement('canvas'); c.width = 1024; c.height = 192;
+// A modern bay sign: dark panel, a stripe in the team colour, the name in white condensed capitals.
+function signTexture(text, sub, color) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 224;
   const g = c.getContext('2d');
-  const grd = g.createLinearGradient(0, 0, 0, 192);
-  grd.addColorStop(0, '#e2c27c'); grd.addColorStop(0.5, '#b38a45'); grd.addColorStop(1, '#8a6630');
-  g.fillStyle = grd; g.fillRect(0, 0, 1024, 192);
-  if (color) {
-    for (const x of [22, 1024 - 22 - 46]) { g.fillStyle = color; g.fillRect(x, 22, 46, 148); if (alt) { g.fillStyle = alt; g.fillRect(x + 17, 22, 12, 148); } }
-  }
-  g.strokeStyle = '#5e4320'; g.lineWidth = 8; g.strokeRect(10, 10, 1004, 172);
-  g.fillStyle = '#2a1c0c'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  let size = 84; g.font = `${size}px "IM Fell English SC", Georgia, serif`;
-  while (g.measureText(text).width > 820 && size > 40) { size -= 4; g.font = `${size}px "IM Fell English SC", Georgia, serif`; }
-  g.fillText(text, 512, sub ? 80 : 98);
-  if (sub) { g.font = 'italic 38px "EB Garamond", Georgia, serif'; g.fillStyle = '#3d2a12'; g.fillText(sub, 512, 146); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  return t;
+  g.fillStyle = '#1f2125'; g.fillRect(0, 0, 1024, 224);
+  g.fillStyle = color || '#888'; g.fillRect(0, 0, 22, 224);
+  g.fillStyle = '#ffffff'; g.textAlign = 'left'; g.textBaseline = 'middle';
+  let size = 104; g.font = `700 ${size}px ${COND}`;
+  const t = text.toUpperCase();
+  while (g.measureText(t).width > 940 && size > 44) { size -= 4; g.font = `700 ${size}px ${COND}`; }
+  g.fillText(t, 58, sub ? 90 : 112);
+  if (sub) { g.font = `500 44px ${SANS}`; g.fillStyle = 'rgba(255,255,255,0.65)'; g.fillText(sub, 60, 172); }
+  return canvasTexture(c);
+}
+
+// The sign on the end of each shelving row: row number and the teams down each side.
+function rowSignTexture(row, left, right) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 1024;
+  const g = c.getContext('2d');
+  g.fillStyle = '#1f2125'; g.fillRect(0, 0, 512, 1024);
+  g.fillStyle = '#ffffff'; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.font = `500 40px ${SANS}`; g.fillStyle = 'rgba(255,255,255,0.6)'; g.fillText('ROW', 44, 92);
+  g.font = `700 170px ${COND}`; g.fillStyle = '#ffffff'; g.fillText(String(row), 40, 250);
+  const list = (title, teams, y) => {
+    g.font = `600 30px ${SANS}`; g.fillStyle = 'rgba(255,255,255,0.55)'; g.fillText(title, 44, y);
+    y += 20;
+    for (const t of teams) {
+      y += 58;
+      g.fillStyle = teamCloth(t); g.fillRect(44, y - 34, 10, 40);
+      g.fillStyle = '#ffffff'; g.font = `600 46px ${COND}`; g.fillText((t.short || t.name).toUpperCase(), 72, y);
+    }
+    return y + 40;
+  };
+  let y = list('◀ LEFT', left, 340);
+  list('RIGHT ▶', right, y + 10);
+  return canvasTexture(c);
 }
 
 export class Room {
-  constructor(canvas, { players, layout, mobile = false, reducedMotion = false, onHover, onSelect, onOpenRequest, onOpened, onStation, onDesk, onFrame, onContextLost }) {
+  constructor(canvas, { players, layout, mobile = false, reducedMotion = false, onHover, onSelect, onOpenRequest, onOpened, onStation, onFrame, onContextLost }) {
     this.canvas = canvas; this.players = players; this.layout = layout;
     this.mobile = mobile; this.reducedMotion = reducedMotion;
-    this.cb = { onHover, onSelect, onOpenRequest, onOpened, onStation, onDesk, onFrame, onContextLost };
+    this.cb = { onHover, onSelect, onOpenRequest, onOpened, onStation, onFrame, onContextLost };
     this.disposables = [];
-    this.atlases = new Map(); // case index -> { texture, rects }
-    this.ppm = mobile ? 460 : 720;
-    this.hovered = -1; this.selected = -1; this.pull = new Map(); // book index -> current pull-out
+    this.atlases = new Map(); // bay index -> { texture }
+    this.ppm = mobile ? 460 : 700;
+    this.maxAtlases = mobile ? 6 : 12;
+    this.hovered = -1; this.selected = -1; this.pull = new Map();
     this.anim = null; this.dirty = true;
-
-    const n = layout.cases.length;
-    this.n = n;
-    this.step = (Math.PI * 2) / Math.max(n, 8);
-    this.R = Math.max(4.2, (Math.max(n, 8) * (CASE.width + 0.3)) / (Math.PI * 2));
+    this.plan = hallPlan(layout);
+    this.keys = new Set();
+    this.stick = { x: 0, y: 0 };
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.95;
+    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.autoClear = false;
     this.maxAniso = this.renderer.capabilities.getMaxAnisotropy();
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('#140d08');
-    this.scene.fog = new THREE.Fog('#140d08', 6, this.R * 2.4);
-    this.camera = new THREE.PerspectiveCamera(50, 1, 0.05, 80);
+    this.scene.background = new THREE.Color('#e9e6e0');
+    this.scene.fog = new THREE.Fog('#e9e6e0', 16, 42);
+    this.heroScene = new THREE.Scene(); // the opened book draws on top, so it never clips into a shelf
+    this.camera = new THREE.PerspectiveCamera(58, 1, 0.05, 90);
 
-    // Camera rig state: angle (in bookcase units), distance from the case front, look height.
-    this.view = { a: 0, dist: 3.4, y: 1.55 };
-    this.goal = { a: 0, dist: 3.4, y: 1.55 };
+    // First-person rig: position on the floor, yaw (0 = looking down the hall, -z) and pitch.
+    const start = { x: 0, z: HALL.front - 1.2, yaw: 0, pitch: -0.04 };
+    this.view = { ...start };
+    this.goal = { ...start };
 
     this.build();
     this.resize();
@@ -128,223 +149,254 @@ export class Room {
 
   // ---- construction -----------------------------------------------------------------------------------------
 
-  caseFrame(i) {
-    const phi = -i * this.step;
-    const m = new THREE.Matrix4().makeRotationY(phi).multiply(new THREE.Matrix4().makeTranslation(0, 0, -this.R));
-    return m;
+  bayFrame(i) {
+    const b = this.plan.bays[i];
+    return new THREE.Matrix4().makeTranslation(b.x, 0, b.z).multiply(new THREE.Matrix4().makeRotationY(b.rot));
   }
 
   build() {
-    const { scene, layout, players } = this;
-    // Light: a warm hemisphere, a high key light, and a reading lamp that follows the camera.
-    scene.add(new THREE.HemisphereLight('#ffe2b8', '#2a1810', 0.6));
-    const key = new THREE.DirectionalLight('#ffd9a0', 0.55); key.position.set(0, 9, 0); scene.add(key);
-    this.lamp = new THREE.PointLight('#ffc879', 5, 7, 1.6); scene.add(this.lamp);
+    const { scene, layout, players, plan } = this;
+    const sky = new THREE.HemisphereLight('#ffffff', '#b8b0a3', 1.25);
+    const sun = new THREE.DirectionalLight('#fff4e2', 1.1); sun.position.set(-6, 12, 8);
+    scene.add(sky, sun);
+    this.heroScene.add(sky.clone(), sun.clone());
 
-    // Floor, rug, dome.
+    // The hall: floor, walls with tall windows, a ceiling with light strips over each aisle.
+    const W = plan.W + 2, D = plan.z1 - plan.z0, cz = (plan.z1 + plan.z0) / 2;
     const ft = floorTexture(); this.disposables.push(ft);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(this.R + 1, 64), new THREE.MeshStandardMaterial({ map: ft, roughness: 0.8 }));
-    floor.rotation.x = -Math.PI / 2; scene.add(floor);
-    const rug = new THREE.Mesh(new THREE.RingGeometry(0, this.R * 0.55, 64), new THREE.MeshStandardMaterial({ color: '#1d2a44', roughness: 1 }));
-    rug.rotation.x = -Math.PI / 2; rug.position.y = 0.005; scene.add(rug);
-    const rugEdge = new THREE.Mesh(new THREE.RingGeometry(this.R * 0.53, this.R * 0.55, 64), new THREE.MeshStandardMaterial({ color: '#b08a4a', roughness: 0.6, metalness: 0.4 }));
-    rugEdge.rotation.x = -Math.PI / 2; rugEdge.position.y = 0.007; scene.add(rugEdge);
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(this.R + 1.2, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#2a1b12', side: THREE.BackSide, roughness: 1 }));
-    dome.position.y = CASE.height + 0.2; dome.scale.y = 0.55; scene.add(dome);
-    const wall = new THREE.Mesh(new THREE.CylinderGeometry(this.R + 1.2, this.R + 1.2, CASE.height + 0.25, 64, 1, true), new THREE.MeshStandardMaterial({ color: '#24170f', side: THREE.BackSide, roughness: 1 }));
-    wall.position.y = (CASE.height + 0.25) / 2; scene.add(wall);
-    for (const m of [floor, rug, rugEdge, dome, wall]) this.disposables.push(m.geometry, m.material);
-
-    // The librarian's desk with its card catalogue and lamp — the search point.
-    this.desk = new THREE.Group();
-    const wood = new THREE.MeshStandardMaterial({ color: '#4a2d18', roughness: 0.55 });
-    const leather = new THREE.MeshStandardMaterial({ color: '#23402f', roughness: 0.75 });
-    const brass = new THREE.MeshStandardMaterial({ color: '#c49a52', roughness: 0.35, metalness: 0.8 });
-    const deskTop = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.06, 0.8), wood); deskTop.position.y = 0.76;
-    const deskBody = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.72, 0.7), wood); deskBody.position.y = 0.37;
-    const pad = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.01, 0.5), leather); pad.position.y = 0.795;
-    const drawers = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.42), wood); drawers.position.set(0.5, 1.04, -0.12);
-    const pulls = [];
-    for (let r = 0; r < 4; r++) for (let k = 0; k < 3; k++) { const pull = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), brass); pull.position.set(0.32 + k * 0.18, 0.86 + r * 0.115, 0.1); pulls.push(pull); }
-    const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.16, 0.14, 24, 1, true), new THREE.MeshStandardMaterial({ color: '#2f5a3c', emissive: '#ffcf80', emissiveIntensity: 0.35, side: THREE.DoubleSide }));
-    shade.position.set(-0.55, 1.2, -0.1);
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.4, 8), brass); stem.position.set(-0.55, 0.99, -0.1);
-    this.desk.add(deskTop, deskBody, pad, drawers, shade, stem, ...pulls);
-    const deskLight = new THREE.PointLight('#ffcf80', 2.2, 3, 2); deskLight.position.set(-0.55, 1.1, -0.1); this.desk.add(deskLight);
-    this.desk.traverse(o => { if (o.isMesh) { this.disposables.push(o.geometry); o.userData.desk = true; } });
-    this.disposables.push(wood, leather, brass, shade.material);
-    scene.add(this.desk);
-
-    // Woodwork: every board of every case in one instanced mesh.
-    const boards = [];
-    const W = CASE.width, H = CASE.height, D = CASE.depth, b = CASE.board, s = CASE.side;
-    for (let i = 0; i < layout.cases.length; i++) {
-      const F = this.caseFrame(i);
-      const add = (x, y, z, sx, sy, sz, tone = 1) => boards.push({ m: F.clone().multiply(new THREE.Matrix4().makeTranslation(x, y, z).multiply(new THREE.Matrix4().makeScale(sx, sy, sz))), tone });
-      add(-W / 2 - s / 2, H / 2, 0, s, H, D + 0.04); add(W / 2 + s / 2, H / 2, 0, s, H, D + 0.04);
-      add(0, H + 0.04, 0.01, W + 2 * s + 0.12, 0.08, D + 0.12); add(0, 0.05, 0, W + 2 * s, 0.1, D + 0.04);
-      add(0, H / 2, -D / 2 - 0.01, W, H, 0.02, 0.55);
-      for (let k = 0; k < CASE.shelves; k++) add(0, 0.1 + k * CASE.shelfGap - b / 2, 0, W, b, D);
+    const mk = (geo, mat) => { const m = new THREE.Mesh(geo, mat); this.disposables.push(geo, mat); return m; };
+    const floor = mk(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ map: ft, roughness: 0.55, metalness: 0.05 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, cz); floor.userData.floor = true; scene.add(floor);
+    this.floor = floor;
+    const wallMat = new THREE.MeshStandardMaterial({ color: '#f1eee8', roughness: 0.95 });
+    const wall = (w, x, z, ry) => { const m = mk(new THREE.PlaneGeometry(w, HALL.ceiling), wallMat.clone()); m.position.set(x, HALL.ceiling / 2, z); m.rotation.y = ry; scene.add(m); };
+    wall(W, 0, plan.z0, 0); wall(W, 0, plan.z1, Math.PI); wall(D, -W / 2, cz, Math.PI / 2); wall(D, W / 2, cz, -Math.PI / 2);
+    const glass = new THREE.MeshStandardMaterial({ color: '#dfe9f2', emissive: '#e8f1fa', emissiveIntensity: 0.85, roughness: 0.2 });
+    for (const side of [-1, 1]) for (let z = plan.z0 + 2.5; z < plan.z1 - 1.5; z += 3.2) {
+      const win = mk(new THREE.PlaneGeometry(1.8, 3.4), glass.clone());
+      win.position.set(side * (W / 2 - 0.01), 2.3, z); win.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; scene.add(win);
     }
-    const wt = woodTexture(); this.disposables.push(wt);
-    const boardGeo = new THREE.BoxGeometry(1, 1, 1);
-    const boardMat = new THREE.MeshStandardMaterial({ map: wt, roughness: 0.6, color: '#c79a72' });
+    const ceil = mk(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: '#f6f4f0', roughness: 1 }));
+    ceil.rotation.x = Math.PI / 2; ceil.position.set(0, HALL.ceiling, cz); scene.add(ceil);
+    const stripMat = new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#fff7ea', emissiveIntensity: 1.4 });
+    for (let r = 0; r <= plan.rows; r++) {
+      const x = plan.rowX(r) - HALL.pitch / 2;
+      const strip = mk(new THREE.BoxGeometry(0.12, 0.04, D - 2), stripMat.clone()); strip.position.set(x, HALL.ceiling - 0.02, cz); scene.add(strip);
+    }
+
+    // Woodwork: every board of every bay, plus the end panels of the rows, in one instanced mesh.
+    const boards = [];
+    const Wb = CASE.width, H = CASE.height, Dd = CASE.depth, bd = CASE.board, s = CASE.side;
+    layout.cases.forEach((cs, i) => {
+      const F = this.bayFrame(i);
+      const add = (x, y, z, sx, sy, sz, tone = 1) => boards.push({ m: F.clone().multiply(new THREE.Matrix4().makeTranslation(x, y, z).multiply(new THREE.Matrix4().makeScale(sx, sy, sz))), tone });
+      add(-Wb / 2 - s / 2, H / 2, 0, s, H, Dd); add(Wb / 2 + s / 2, H / 2, 0, s, H, Dd);
+      add(0, H + 0.03, 0, Wb + 2 * s, 0.06, Dd); add(0, 0.05, 0, Wb + 2 * s, 0.1, Dd + 0.01, 0.8);
+      add(0, H / 2, -Dd / 2 + 0.01, Wb, H, 0.02, 0.85);
+      for (let k = 0; k < CASE.shelves; k++) add(0, 0.1 + k * CASE.shelfGap - bd / 2, 0, Wb, bd, Dd);
+    });
+    for (let r = 0; r < plan.rows; r++) for (const z of [0.03, -HALL.rowLen - 0.03]) {
+      boards.push({ m: new THREE.Matrix4().makeTranslation(plan.rowX(r), H / 2 + 0.03, z).multiply(new THREE.Matrix4().makeScale(HALL.rowT + 0.04, H + 0.06, 0.06)), tone: 0.95 });
+    }
+    const ot = oakTexture(); this.disposables.push(ot);
+    const boardGeo = new THREE.BoxGeometry(1, 1, 1), boardMat = new THREE.MeshStandardMaterial({ map: ot, roughness: 0.55 });
     const woodwork = new THREE.InstancedMesh(boardGeo, boardMat, boards.length);
-    boards.forEach((bd, k) => { woodwork.setMatrixAt(k, bd.m); woodwork.setColorAt(k, new THREE.Color(bd.tone < 1 ? '#5e4636' : '#ffffff')); });
+    boards.forEach((bd2, k) => { woodwork.setMatrixAt(k, bd2.m); woodwork.setColorAt(k, new THREE.Color().setScalar(bd2.tone)); });
+    woodwork.userData.solid = true;
     scene.add(woodwork); this.disposables.push(boardGeo, boardMat);
 
-    // Brass plaques with each case's letter range.
-    this.plaques = [];
-    const plaqueGeo = new THREE.PlaneGeometry(0.94, 0.176); this.disposables.push(plaqueGeo);
+    // Signs: one above each bay, one on the entrance end of each row.
+    const signGeo = new THREE.PlaneGeometry(Wb + 0.06, 0.23); this.disposables.push(signGeo);
     layout.cases.forEach((cs, i) => {
-      const t = plaqueTexture(cs.label, cs.team.cases > 1 ? cs.range : `${cs.team.count.toLocaleString('en-US')} books`, cs.team.color, cs.team.alt);
-      const mat = new THREE.MeshStandardMaterial({ map: t, roughness: 0.35, metalness: 0.6 });
-      const pl = new THREE.Mesh(plaqueGeo, mat);
-      pl.applyMatrix4(this.caseFrame(i).multiply(new THREE.Matrix4().makeTranslation(0, H + 0.04, D / 2 + 0.071)));
-      scene.add(pl); this.disposables.push(t, mat); this.plaques.push(pl);
+      const sub = cs.team.cases > 1 ? cs.range : `${cs.team.count.toLocaleString('en-US')} players`;
+      const t = signTexture(cs.team.cases > 1 ? cs.label : cs.team.name, sub, teamCloth(cs.team));
+      const mat = new THREE.MeshStandardMaterial({ map: t, roughness: 0.6, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: 0.35 });
+      const sign = new THREE.Mesh(signGeo, mat);
+      sign.applyMatrix4(this.bayFrame(i).multiply(new THREE.Matrix4().makeTranslation(0, H + 0.2, Dd / 2 - 0.02)));
+      scene.add(sign); this.disposables.push(t, mat);
     });
+    const rowGeo = new THREE.PlaneGeometry(HALL.rowT - 0.04, (HALL.rowT - 0.04) * 2); this.disposables.push(rowGeo);
+    for (let r = 0; r < plan.rows; r++) {
+      const left = plan.faces[r * 2]?.teams || [], right = plan.faces[r * 2 + 1]?.teams || [];
+      const t = rowSignTexture(r + 1, left, right);
+      const mat = new THREE.MeshStandardMaterial({ map: t, emissive: '#ffffff', emissiveMap: t, emissiveIntensity: 0.3, roughness: 0.6 });
+      const sign = new THREE.Mesh(rowGeo, mat);
+      sign.position.set(plan.rowX(r), 1.95, 0.07); scene.add(sign); this.disposables.push(t, mat);
+    }
 
-    // Brass bookends at the end of each shelf's run of books.
-    const ends = layout.cases.flatMap((cs, i) => cs.ends.map(e => ({ i, ...e })));
-    const endGeo = new THREE.BoxGeometry(0.012, 0.2, 0.16), endMat = new THREE.MeshStandardMaterial({ color: '#b48a46', roughness: 0.35, metalness: 0.75 });
-    const bookends = new THREE.InstancedMesh(endGeo, endMat, Math.max(1, ends.length));
-    ends.forEach((e, k) => bookends.setMatrixAt(k, this.caseFrame(e.i).multiply(new THREE.Matrix4().makeTranslation(e.x + 0.012, shelfY(e.s) + 0.1, CASE.depth / 2 - 0.1))));
-    bookends.count = ends.length;
-    scene.add(bookends); this.disposables.push(endGeo, endMat);
-
-    // Books: one instanced mesh per case.
+    // Books: one instanced mesh per bay.
     this.bookGeo = new THREE.BoxGeometry(1, 1, 1); this.disposables.push(this.bookGeo);
     this.caseMeshes = layout.cases.map((cs, i) => {
       const count = cs.last - cs.first + 1;
-      const mat = bookMaterial(null);
+      const mat = bookMaterial();
       const mesh = new THREE.InstancedMesh(this.bookGeo, mat, Math.max(count, 1));
       mesh.count = count;
-      const rect = new Float32Array(count * 4);
-      mesh.geometry = this.bookGeo.clone(); // own geometry so each case carries its own spine rectangles
-      mesh.geometry.setAttribute('spineRect', new THREE.InstancedBufferAttribute(rect, 4));
-      const F = this.caseFrame(i);
-      mesh.applyMatrix4(F); mesh.userData = { caseIndex: i, first: cs.first };
+      mesh.geometry = this.bookGeo.clone();
+      mesh.geometry.setAttribute('spineRect', new THREE.InstancedBufferAttribute(new Float32Array(Math.max(count, 1) * 4), 4));
+      mesh.applyMatrix4(this.bayFrame(i)); mesh.userData = { caseIndex: i, first: cs.first };
       for (let n = cs.first; n <= cs.last; n++) {
         this.setBookMatrix(mesh, n, 0);
-        mesh.setColorAt(n - cs.first, new THREE.Color(eraOf(players[layout.books[n].i]).leather));
+        mesh.setColorAt(n - cs.first, new THREE.Color(spineColor(players[layout.books[n].i], cs.team)));
       }
-      mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
       scene.add(mesh); this.disposables.push(mesh.geometry, mat);
       return mesh;
     });
 
-    // The hero book (the one being opened) is built on demand.
+    // Bookends, dark steel.
+    const ends = layout.cases.flatMap((cs, i) => cs.ends.map(e => ({ i, ...e })));
+    const endGeo = new THREE.BoxGeometry(0.01, 0.19, 0.15), endMat = new THREE.MeshStandardMaterial({ color: '#2b2d31', roughness: 0.4, metalness: 0.6 });
+    const bookends = new THREE.InstancedMesh(endGeo, endMat, Math.max(1, ends.length));
+    ends.forEach((e, k) => bookends.setMatrixAt(k, this.bayFrame(e.i).multiply(new THREE.Matrix4().makeTranslation(e.x + 0.012, shelfY(e.s) + 0.095, CASE.depth / 2 - 0.1))));
+    bookends.count = ends.length;
+    scene.add(bookends); this.disposables.push(endGeo, endMat);
+
+    // A ring on the floor where a click would walk to.
+    this.ring = mk(new THREE.RingGeometry(0.16, 0.2, 40), new THREE.MeshBasicMaterial({ color: '#2b6fd6', transparent: true, opacity: 0.7 }));
+    this.ring.rotation.x = -Math.PI / 2; this.ring.visible = false; scene.add(this.ring);
+
     this.hero = null;
   }
 
   bookLocal(n, pull = 0) {
     const b = this.layout.books[n];
-    const y = shelfY(b.s) + b.h / 2;
     const z = CASE.depth / 2 - b.d / 2 - 0.01 + pull;
-    return new THREE.Matrix4().makeTranslation(b.x, y, z).multiply(new THREE.Matrix4().makeScale(b.w, b.h, b.d));
+    return new THREE.Matrix4().makeTranslation(b.x, shelfY(b.s) + b.h / 2, z).multiply(new THREE.Matrix4().makeScale(b.w, b.h, b.d));
   }
 
   setBookMatrix(mesh, n, pull) {
-    const k = n - mesh.userData.first;
-    mesh.setMatrixAt(k, pull < 0 ? new THREE.Matrix4().makeScale(0, 0, 0) : this.bookLocal(n, pull));
+    mesh.setMatrixAt(n - mesh.userData.first, pull < 0 ? new THREE.Matrix4().makeScale(0, 0, 0) : this.bookLocal(n, pull));
     mesh.instanceMatrix.needsUpdate = true;
   }
 
-  // ---- atlases (spine text) ---------------------------------------------------------------------------------
+  caseOfBook(n) { return this.layout.books[n].c; }
 
-  wantedAtlases() {
-    const c = Math.round(this.view.a);
-    const want = new Set();
-    const reach = this.view.dist > 5 ? 2 : 1;
-    for (let d = -reach; d <= reach; d++) want.add(((c + d) % this.n + this.n) % this.n);
-    return want;
+  // ---- atlases (spine lettering) ----------------------------------------------------------------------------
+
+  // The nearest bays that are in front of you.
+  nearBays(limit = this.maxAtlases, range = 10) {
+    const v = this.view, fx = -Math.sin(v.yaw), fz = -Math.cos(v.yaw);
+    const out = [];
+    this.plan.bays.forEach((b, i) => {
+      const dx = b.x - v.x, dz = b.z - v.z, d = Math.hypot(dx, dz);
+      if (d > range) return;
+      const front = (dx * fx + dz * fz) / (d || 1);
+      if (d > 2.2 && front < -0.1) return;
+      out.push({ i, d: d - front * 1.5 });
+    });
+    return out.sort((a, b) => a.d - b.d).slice(0, limit).map(x => x.i);
   }
 
   updateAtlases() {
-    const want = this.wantedAtlases();
+    const want = new Set(this.nearBays());
     for (const [i, at] of this.atlases) {
-      if (!want.has(i)) {
-        at.texture.dispose(); this.atlases.delete(i);
-        const m = this.caseMeshes[i].material; m.userData.atlas.value = null; m.userData.has.value = 0; this.dirty = true;
-      }
+      if (want.has(i)) continue;
+      at.texture.dispose(); this.atlases.delete(i);
+      const m = this.caseMeshes[i].material; m.userData.atlas.value = null; m.userData.has.value = 0; this.dirty = true;
     }
-    // Paint at most one atlas per frame to keep frames smooth.
-    for (const i of [Math.round(this.view.a) % this.n, ...want]) {
-      const idx = ((i % this.n) + this.n) % this.n;
-      if (this.atlases.has(idx) || !want.has(idx)) continue;
-      const { canvas, rects } = paintCase(this.players, this.layout, idx, this.ppm);
+    for (const i of want) {
+      if (this.atlases.has(i)) continue;
+      const { canvas, rects } = paintCase(this.players, this.layout, i, this.ppm);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(8, this.maxAniso);
-      const mesh = this.caseMeshes[idx];
+      const mesh = this.caseMeshes[i];
       const attr = mesh.geometry.getAttribute('spineRect');
       rects.forEach((r, k) => attr.array.set(r, k * 4));
       attr.needsUpdate = true;
       mesh.material.userData.atlas.value = texture; mesh.material.userData.has.value = 1;
-      this.atlases.set(idx, { texture });
+      this.atlases.set(i, { texture });
       this.dirty = true;
-      break;
+      return; // one per frame keeps walking smooth
     }
   }
 
-  // ---- camera -----------------------------------------------------------------------------------------------
+  // ---- moving about -----------------------------------------------------------------------------------------
 
-  caseOfBook(n) { return this.layout.books[n].c; }
+  // Keep a point out of the shelving rows and inside the walls.
+  resolve(p) {
+    const m = 0.32, plan = this.plan;
+    p.x = clamp(p.x, plan.x0 - 0.6 + m, plan.x1 + 0.6 - m);
+    p.z = clamp(p.z, plan.z0 + m, plan.z1 - m);
+    for (let r = 0; r < plan.rows; r++) {
+      const x0 = plan.rowX(r) - HALL.rowT / 2 - m, x1 = plan.rowX(r) + HALL.rowT / 2 + m, z0 = -HALL.rowLen - m, z1 = m;
+      if (p.x > x0 && p.x < x1 && p.z > z0 && p.z < z1) {
+        const opts = [[p.x - x0, 'x', x0], [x1 - p.x, 'x', x1], [p.z - z0, 'z', z0], [z1 - p.z, 'z', z1]].sort((a, b) => a[0] - b[0]);
+        p[opts[0][1]] = opts[0][2];
+      }
+    }
+    return p;
+  }
 
-  // Move to a case (and optionally a shelf height and distance).
-  goTo(caseIndex, { y, dist, instant = false } = {}) {
-    // Choose the equivalent angle nearest to where we are, so the camera takes the short way round.
-    const cur = this.goal.a;
-    let a = caseIndex;
-    while (a - cur > this.n / 2) a -= this.n;
-    while (cur - a > this.n / 2) a += this.n;
-    this.goal.a = a;
-    if (y != null) this.goal.y = y;
-    if (dist != null) this.goal.dist = dist;
+  walkTo(x, z, { yaw, pitch, instant = false } = {}) {
+    const p = this.resolve({ x, z });
+    this.goal.x = p.x; this.goal.z = p.z;
+    if (yaw != null) this.goal.yaw = angleTo(this.view.yaw, yaw);
+    if (pitch != null) this.goal.pitch = pitch;
     if (instant || this.reducedMotion) Object.assign(this.view, this.goal);
     this.dirty = true;
+  }
+
+  // Stand in front of a bay, looking at it.
+  goToBay(i, { instant = false, dist = 2.1 } = {}) {
+    const b = this.plan.bays[i]; if (!b) return;
+    const nx = Math.sin(b.rot), nz = Math.cos(b.rot);
+    this.walkTo(b.x + nx * dist, b.z + nz * dist, { yaw: Math.atan2(nx, nz), pitch: 0.08, instant });
   }
 
   // Bring a book into view and mark it (search results land here).
   showBook(n, { instant = false } = {}) {
     const b = this.layout.books[n];
-    const close = this.mobile ? 1.5 : 1.25;
-    this.goTo(b.c, { y: shelfY(b.s) + 0.2, dist: Math.min(this.goal.dist, close), instant });
-    // Slide along the arc so the book itself, not the middle of its case, is in front of the camera.
-    this.goal.a += b.x / (this.step * this.R);
-    if (instant || this.reducedMotion) this.view.a = this.goal.a;
+    const world = new THREE.Vector3().setFromMatrixPosition(this.bookLocal(n)).applyMatrix4(this.bayFrame(b.c));
+    const bay = this.plan.bays[b.c];
+    const nx = Math.sin(bay.rot), nz = Math.cos(bay.rot), d = 1.25;
+    this.walkTo(world.x + nx * d, world.z + nz * d, { yaw: Math.atan2(nx, nz), pitch: Math.atan2(world.y - HALL.eye, d), instant });
     this.select(n);
   }
 
-  nudge(dx) { this.goTo(((Math.round(this.goal.a) + dx) % this.n + this.n) % this.n); }
-  zoom(f) { this.goal.dist = clamp(this.goal.dist * f, 0.9, this.R * 0.9); this.dirty = true; }
-  lift(dy) { this.goal.y = clamp(this.goal.y + dy, 0.35, CASE.height - 0.25); this.dirty = true; }
+  nextBay(dir) {
+    const cur = this.station >= 0 ? this.station : 0;
+    this.goToBay(clamp(cur + dir, 0, this.layout.cases.length - 1));
+  }
+
+  forward() { return new THREE.Vector3(-Math.sin(this.view.yaw) * Math.cos(this.view.pitch), Math.sin(this.view.pitch), -Math.cos(this.view.yaw) * Math.cos(this.view.pitch)); }
 
   applyCamera() {
     const v = this.view;
-    const phi = -v.a * this.step;
-    const out = new THREE.Vector3(-Math.sin(phi), 0, -Math.cos(phi)); // from centre towards the case
-    const front = out.clone().multiplyScalar(this.R - CASE.depth / 2);
-    const dist = Math.min(v.dist, this.R * 0.95);
-    // Far away, look a little lower and from a little higher, like standing in the room.
-    const far = clamp((dist - 1.2) / 4, 0, 1);
-    const camY = lerp(v.y + 0.05, 1.7, far);
-    const lookY = lerp(v.y, 1.45, far * 0.6);
-    this.camera.position.copy(front).addScaledVector(out, -dist).setY(camY);
-    this.camera.lookAt(front.x, lookY, front.z);
-    this.lamp.position.copy(front).addScaledVector(out, -0.9).setY(clamp(v.y + 0.6, 1.2, 2.8));
+    this.camera.position.set(v.x, HALL.eye, v.z);
+    this.camera.lookAt(this.camera.position.clone().add(this.forward()));
+  }
+
+  // Which bay you're looking at (for the location label).
+  lookedAt() {
+    const v = this.view, fx = -Math.sin(v.yaw), fz = -Math.cos(v.yaw);
+    let best = -1, bd = Infinity;
+    this.plan.bays.forEach((b, i) => {
+      const dx = b.x - v.x, dz = b.z - v.z, d = Math.hypot(dx, dz);
+      if (d > 7) return;
+      const cos = (dx * fx + dz * fz) / (d || 1);
+      const nx = Math.sin(b.rot), nz = Math.cos(b.rot);
+      if (cos < 0.7 || -(dx * nx + dz * nz) / (d || 1) < 0.35) return; // in front of you, and facing you
+      const score = d * (1.6 - cos);
+      if (score < bd) { bd = score; best = i; }
+    });
+    return best;
   }
 
   // ---- picking ----------------------------------------------------------------------------------------------
 
-  pick(clientX, clientY) {
+  ray(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect();
     const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
     const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.camera);
-    const near = [...this.wantedAtlases()].map(i => this.caseMeshes[i]);
-    const hit = ray.intersectObjects([...near, this.desk], true)[0];
+    return ray;
+  }
+
+  pick(clientX, clientY) {
+    const ray = this.ray(clientX, clientY);
+    const near = this.nearBays(16, 9).map(i => this.caseMeshes[i]);
+    const hit = ray.intersectObjects([...near, this.floor], false)[0];
     if (!hit) return { book: -1 };
-    if (hit.object.userData.desk) return { desk: true, book: -1 };
+    if (hit.object.userData.floor) return { book: -1, floor: hit.point };
     if (hit.instanceId == null) return { book: -1 };
     return { book: hit.object.userData.first + hit.instanceId };
   }
@@ -352,78 +404,70 @@ export class Room {
   screenOf(n) {
     const mesh = this.caseMeshes[this.caseOfBook(n)];
     const p = new THREE.Vector3().setFromMatrixPosition(this.bookLocal(n, this.pull.get(n) || 0)).applyMatrix4(mesh.matrixWorld);
-    const b = this.layout.books[n];
-    p.y += b.h / 2;
+    p.y += this.layout.books[n].h / 2;
     p.project(this.camera);
     const r = this.canvas.getBoundingClientRect();
     return { x: r.left + ((p.x + 1) / 2) * r.width, y: r.top + ((1 - p.y) / 2) * r.height, visible: p.z < 1 && Math.abs(p.x) < 1.1 && Math.abs(p.y) < 1.1 };
   }
 
-  hover(n) {
-    if (n === this.hovered) return;
-    this.hovered = n; this.dirty = true;
-    this.cb.onHover?.(n);
-  }
-
-  select(n) {
-    this.selected = n; this.dirty = true;
-    this.cb.onSelect?.(n);
-  }
+  hover(n) { if (n === this.hovered) return; this.hovered = n; this.dirty = true; this.cb.onHover?.(n); }
+  select(n) { this.selected = n; this.dirty = true; this.cb.onSelect?.(n); }
 
   // ---- input ------------------------------------------------------------------------------------------------
 
+  key(code, down) {
+    if (down) this.keys.add(code); else this.keys.delete(code);
+    this.dirty = true;
+  }
+  setStick(x, y) { this.stick = { x, y }; this.dirty = true; }
+
   bind() {
     const c = this.canvas;
-    let down = null, pinch = null;
-    const pointers = new Map();
+    let down = null;
     this.on = {
       down: e => {
         c.setPointerCapture?.(e.pointerId);
-        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (pointers.size === 2) { const [p, q] = [...pointers.values()]; pinch = { d: Math.hypot(p.x - q.x, p.y - q.y), dist: this.goal.dist }; down = null; return; }
-        down = { x: e.clientX, y: e.clientY, a: this.goal.a, yy: this.goal.y, moved: false, t: performance.now(), type: e.pointerType };
+        down = { x: e.clientX, y: e.clientY, yaw: this.goal.yaw, pitch: this.goal.pitch, moved: false, type: e.pointerType };
         if (this.anim) this.skip();
       },
       move: e => {
-        if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (pinch && pointers.size === 2) {
-          const [p, q] = [...pointers.values()];
-          this.goal.dist = clamp(pinch.dist * (pinch.d / Math.max(20, Math.hypot(p.x - q.x, p.y - q.y))), 0.9, this.R * 0.9);
-          this.dirty = true; return;
-        }
         if (down) {
           const dx = e.clientX - down.x, dy = e.clientY - down.y;
-          if (!down.moved && Math.hypot(dx, dy) > 6) down.moved = true;
+          if (!down.moved && Math.hypot(dx, dy) > 6) { down.moved = true; this.ring.visible = false; this.hover(-1); }
           if (down.moved) {
-            const w = c.clientWidth || 1;
-            this.goal.a = down.a - (dx / w) * (this.goal.dist < 2 ? 0.9 : 1.8);
-            this.goal.y = clamp(down.yy + (dy / (c.clientHeight || 1)) * 2.2, 0.35, CASE.height - 0.25);
+            const k = (this.camera.fov * Math.PI / 180) / (c.clientHeight || 1);
+            this.goal.yaw = down.yaw + dx * k * 1.1;
+            this.goal.pitch = clamp(down.pitch + dy * k * 1.1, -1.1, 1.1);
             this.dirty = true;
-            this.hover(-1);
           }
           return;
         }
-        if (e.pointerType === 'mouse' && !this.anim) {
-          const { book, desk } = this.pick(e.clientX, e.clientY);
-          this.hover(book); c.style.cursor = book >= 0 || desk ? 'pointer' : 'grab';
-        }
+        if (e.pointerType !== 'mouse' || this.anim) return;
+        const { book, floor } = this.pick(e.clientX, e.clientY);
+        this.hover(book);
+        if (floor && book < 0) { this.ring.position.set(floor.x, 0.012, floor.z); this.ring.visible = true; } else this.ring.visible = false;
+        c.style.cursor = book >= 0 || floor ? 'pointer' : 'grab';
+        this.dirty = true;
       },
       up: e => {
-        pointers.delete(e.pointerId);
-        if (pointers.size < 2) pinch = null;
         if (!down) return;
         const d = down; down = null;
-        // Standing back, settle squarely on a bookcase; up close, stay where the drag left off.
-        if (d.moved) { if (this.goal.dist > 2) this.goal.a = Math.round(this.goal.a); this.dirty = true; return; }
-        const { book, desk } = this.pick(e.clientX, e.clientY);
-        if (desk) { this.cb.onDesk?.(); return; }
-        if (book < 0) { this.select(-1); return; }
-        // Mouse: a click opens. Touch: the first tap selects (shows the label), the second opens.
-        if (d.type === 'mouse' || this.selected === book) this.cb.onOpenRequest?.(book);
-        else { this.select(book); this.hover(book); }
+        if (d.moved) return;
+        const { book, floor } = this.pick(e.clientX, e.clientY);
+        if (book >= 0) {
+          // Mouse: a click opens. Touch: the first tap selects (shows the label), the second opens.
+          if (d.type === 'mouse' || this.selected === book) this.cb.onOpenRequest?.(book);
+          else { this.select(book); this.hover(book); }
+          return;
+        }
+        if (floor) { this.select(-1); this.walkTo(floor.x, floor.z); }
       },
-      leave: () => { if (!down) this.hover(-1); },
-      wheel: e => { e.preventDefault(); if (e.ctrlKey || Math.abs(e.deltaY) >= Math.abs(e.deltaX)) this.zoom(Math.exp(e.deltaY * 0.0012)); else { this.goal.a += e.deltaX * 0.003; this.dirty = true; clearTimeout(this.snapT); this.snapT = setTimeout(() => { if (this.goal.dist > 2) this.goal.a = Math.round(this.goal.a); this.dirty = true; }, 220); } },
+      leave: () => { if (!down) { this.hover(-1); this.ring.visible = false; this.dirty = true; } },
+      wheel: e => {
+        e.preventDefault();
+        const step = clamp(-e.deltaY * 0.004, -0.8, 0.8);
+        this.walkTo(this.goal.x - Math.sin(this.goal.yaw) * step, this.goal.z - Math.cos(this.goal.yaw) * step);
+      },
       resize: () => this.resize(),
       lost: e => { e.preventDefault(); this.cb.onContextLost?.(); },
     };
@@ -441,7 +485,7 @@ export class Room {
     const w = this.canvas.clientWidth || 1, h = this.canvas.clientHeight || 1;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.camera.fov = w / h < 0.8 ? 62 : 50;
+    this.camera.fov = w / h < 0.8 ? 72 : 58;
     this.camera.updateProjectionMatrix();
     this.dirty = true;
   }
@@ -451,52 +495,47 @@ export class Room {
   async buildHero(n, portraitUrl) {
     const p = this.players[this.layout.books[n].i];
     const b = this.layout.books[n];
+    const team = this.layout.cases[b.c].team;
     const tex = c => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(8, this.maxAniso); return t; };
     const mat = t => new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
-    const shelfMark = `Shelf ${this.layout.cases[b.c].label} · ${b.s + 1}`;
-    const coverTex = tex(paintCover(p)), marbleTex = tex(paintMarble(512, 720, 11)), halfTex = tex(paintHalfTitle(p));
-    const plateTex = tex(paintBookplate(p, shelfMark)), titleTex = tex(paintTitlePage(p)), backTex = tex(paintMarble(512, 720, 4));
-    const leather = new THREE.MeshStandardMaterial({ color: eraOf(p).leather, roughness: 0.6 });
-    const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.55 });
-    const pages = new THREE.MeshStandardMaterial({ color: '#efe6cf', roughness: 0.9 });
-    const marble = mat(marbleTex), half = mat(halfTex), plate = mat(plateTex), title = mat(titleTex), endBack = mat(backTex);
-    // Real books are not this thick in proportion; open a "reading copy" at a pleasant size (its proportions
-    // match the reader's pages).
+    const shelfMark = `${this.layout.cases[b.c].label} · shelf ${b.s + 1}`;
+    const coverTex = tex(paintCover(p, team)), endTex = tex(paintEndpaper(team)), halfTex = tex(paintHalfTitle(p));
+    const plateTex = tex(paintBookplate(p, shelfMark, team)), titleTex = tex(paintTitlePage(p, team)), backTex = tex(paintEndpaper(team));
+    const clothMat = new THREE.MeshStandardMaterial({ color: teamCloth(team), roughness: 0.75 });
+    const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.7 });
+    const pages = new THREE.MeshStandardMaterial({ color: '#f4f1ea', roughness: 0.9 });
+    const endpaper = mat(endTex), half = mat(halfTex), plate = mat(plateTex), title = mat(titleTex), endBack = mat(backTex);
     const W = 0.24, H = 0.33, T = Math.max(0.03, b.w);
-    const inner = T / 2 - 0.003; // inside surface of the front board
+    const inner = T / 2 - 0.003;
     const g = new THREE.Group();
     const geos = [];
     const box = (w, h, d) => { const geo = new THREE.BoxGeometry(w, h, d); geos.push(geo); return geo; };
-    // The text block: its top page (facing the front cover) is the title page.
     const bt = inner - 0.0032 + (T / 2 - 0.003);
     const block = new THREE.Mesh(box(bt, H * 0.97, W * 0.97), [title, pages, pages, pages, pages, pages]);
     block.position.set(inner - 0.0032 - bt / 2, 0, 0);
-    const back = new THREE.Mesh(box(0.006, H, W), leather); back.position.x = -T / 2;
-    const spine = new THREE.Mesh(box(T, H, 0.006), leather); spine.position.z = W / 2;
-    // Hinged parts, from the outside in: the front board (cover outside, marbled pastedown inside), the free
-    // endpaper (marbled / plain), and the half-title leaf (half-title / bookplate on its back).
+    const back = new THREE.Mesh(box(0.006, H, W), clothMat); back.position.x = -T / 2;
+    const spine = new THREE.Mesh(box(T, H, 0.006), clothMat); spine.position.z = W / 2;
     const leaf = (x, geo, mats) => {
       const hinge = new THREE.Group(); hinge.position.set(x, 0, W / 2);
       const m = new THREE.Mesh(geo, mats); m.position.set(0, 0, -W / 2); hinge.add(m); g.add(hinge);
       return hinge;
     };
-    const board = leaf(T / 2, box(0.006, H, W), [coverMat, marble, leather, leather, leather, leather]);
+    const board = leaf(T / 2, box(0.006, H, W), [coverMat, endpaper, clothMat, clothMat, clothMat, clothMat]);
     const endLeaf = leaf(inner - 0.0007, box(0.0008, H * 0.97, W * 0.97), [endBack, pages, pages, pages, pages, pages]);
     const halfLeaf = leaf(inner - 0.0021, box(0.0008, H * 0.97, W * 0.97), [half, plate, pages, pages, pages, pages]);
     g.add(block, back, spine);
-    this.hero = { group: g, hinges: [board, endLeaf, halfLeaf], n, W, H, mats: [leather, coverMat, pages, marble, half, plate, title, endBack], tex: [coverTex, marbleTex, halfTex, plateTex, titleTex, backTex], geos };
-    this.scene.add(g);
+    this.hero = { group: g, hinges: [board, endLeaf, halfLeaf], n, W, H, mats: [clothMat, coverMat, pages, endpaper, half, plate, title, endBack], tex: [coverTex, endTex, halfTex, plateTex, titleTex, backTex], geos };
+    this.heroScene.add(g);
     if (portraitUrl) {
       const img = new Image(); img.crossOrigin = 'anonymous';
       img.onload = () => {
         if (!this.hero || this.hero.n !== n) return;
-        coverTex.image = paintCover(p, { portrait: img }); coverTex.needsUpdate = true;
-        titleTex.image = paintTitlePage(p, { portrait: img }); titleTex.needsUpdate = true;
+        coverTex.image = paintCover(p, team, { portrait: img }); coverTex.needsUpdate = true;
+        titleTex.image = paintTitlePage(p, team, { portrait: img }); titleTex.needsUpdate = true;
         this.dirty = true;
       };
       img.src = portraitUrl;
     }
-    // Spine-out on the shelf: the hero's +z is the spine, matching the shelf book.
     const mesh = this.caseMeshes[b.c];
     const start = new THREE.Matrix4().multiplyMatrices(mesh.matrixWorld, new THREE.Matrix4().makeTranslation(b.x, shelfY(b.s) + b.h / 2, CASE.depth / 2 - b.d / 2 - 0.01));
     const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
@@ -507,14 +546,12 @@ export class Room {
   }
 
   heroTarget() {
-    // In front of the camera, cover facing it, as a Western book is held: spine (+z) on the reader's left.
     const cam = this.camera;
     const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd);
     const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
     const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
     const pos = cam.position.clone().addScaledVector(fwd, 0.62).addScaledVector(up, -0.01);
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(fwd.clone().negate(), up, right.clone().negate()));
-    // Open, the spine should sit in the middle of the view and the spread should fill it, like the reader.
     const near = 0.33 / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * 0.86);
     return { pos, quat: q, fwd, right, near };
   }
@@ -526,7 +563,6 @@ export class Room {
     const out = seg(0, 0.12), fly = seg(0.1, 0.4), cover = seg(0.4, 0.6), end = seg(0.56, 0.76), half = seg(0.7, 0.9), push = seg(0.42, 1);
     const pos = h.from.pos.clone().lerp(h.outPos, out);
     if (fly > 0) pos.lerp(T.pos, fly);
-    // As it opens, slide so the spine is centred and come close enough for the spread to fill the view.
     pos.addScaledVector(T.right, (h.W / 2) * cover);
     pos.addScaledVector(T.fwd, -(0.62 - T.near) * push);
     h.group.position.copy(pos);
@@ -540,7 +576,7 @@ export class Room {
   open(n, portraitUrl, { instant = false } = {}) {
     return new Promise(async resolve => {
       this.closeHero();
-      this.hover(-1);
+      this.hover(-1); this.ring.visible = false;
       await this.buildHero(n, portraitUrl);
       this.setBookMatrix(this.caseMeshes[this.caseOfBook(n)], n, -1);
       this.applyCamera(); this.camera.updateMatrixWorld();
@@ -553,7 +589,6 @@ export class Room {
     });
   }
 
-  // Close the book (the leaves fall back, the cover shuts) and put it back on its shelf.
   close() {
     const h = this.hero; if (!h) return;
     const n = h.n;
@@ -571,7 +606,7 @@ export class Room {
   closeHero() {
     if (!this.hero) return;
     const h = this.hero; this.hero = null;
-    this.scene.remove(h.group);
+    this.heroScene.remove(h.group);
     h.mats.forEach(m => m.dispose()); h.tex.forEach(t => t.dispose()); h.geos.forEach(g => g.dispose());
     this.dirty = true;
   }
@@ -590,13 +625,27 @@ export class Room {
     if (this.paused) return;
     const v = this.view, g = this.goal;
     const dt = Math.min(0.1, Math.max(0.001, ((now - (this.lastNow || now)) || 16) / 1000)); this.lastNow = now;
-    const k = this.reducedMotion ? 1 : 1 - Math.exp(-dt * 7);
     let moving = false;
-    for (const key of ['a', 'dist', 'y']) {
-      const d = g[key] - v[key];
-      if (Math.abs(d) > 0.0005) { v[key] += d * k; moving = true; } else v[key] = g[key];
+
+    // Walking: keys (WASD / Q E to turn) or the touch stick move the goal directly.
+    const k = this.keys;
+    let fwd = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + -this.stick.y;
+    let side = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.stick.x;
+    const turn = (k.has('KeyE') ? 1 : 0) - (k.has('KeyQ') ? 1 : 0);
+    if (fwd || side || turn) {
+      const speed = (k.has('ShiftLeft') || k.has('ShiftRight') ? 4.2 : 2.3) * dt;
+      const sy = Math.sin(g.yaw), cy = Math.cos(g.yaw);
+      const p = this.resolve({ x: g.x + (-sy * fwd + cy * side) * speed, z: g.z + (-cy * fwd - sy * side) * speed });
+      g.x = p.x; g.z = p.z; g.yaw -= turn * 1.8 * dt;
+      if (fwd || side) { this.ring.visible = false; }
+      moving = true;
     }
-    // Pull-out of the hovered / selected book.
+
+    const kk = this.reducedMotion ? 1 : 1 - Math.exp(-dt * 6);
+    for (const key of ['x', 'z', 'yaw', 'pitch']) {
+      const d = g[key] - v[key];
+      if (Math.abs(d) > 0.0004) { v[key] += d * (key === 'yaw' || key === 'pitch' ? Math.min(1, kk * 2.2) : kk); moving = true; } else v[key] = g[key];
+    }
     for (const n of new Set([...this.pull.keys(), this.hovered, this.selected])) {
       if (n < 0 || this.hero?.n === n) continue;
       const want = n === this.selected ? 0.07 : n === this.hovered ? 0.035 : 0;
@@ -615,13 +664,14 @@ export class Room {
       moving = true;
     }
     if (moving || this.dirty) {
-      const prev = Math.round(v.a);
       this.applyCamera();
       if (!this.hero) this.updateAtlases();
+      this.renderer.clear();
       this.renderer.render(this.scene, this.camera);
+      if (this.hero) { this.renderer.clearDepth(); this.renderer.render(this.heroScene, this.camera); }
       this.dirty = false;
-      const station = ((prev % this.n) + this.n) % this.n;
-      if (station !== this.lastStation) { this.lastStation = station; this.cb.onStation?.(station); }
+      const st = this.lookedAt();
+      if (st !== this.station) { this.station = st; this.cb.onStation?.(st); }
       this.cb.onFrame?.();
     }
   }
@@ -630,7 +680,6 @@ export class Room {
 
   dispose() {
     cancelAnimationFrame(this.raf);
-    clearTimeout(this.snapT);
     const c = this.canvas;
     c.removeEventListener('pointerdown', this.on.down);
     c.removeEventListener('pointermove', this.on.move);

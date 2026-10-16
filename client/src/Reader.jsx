@@ -3,7 +3,7 @@
 // or use the arrow keys.
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { loadBook, loadHighs } from './api.js';
-import { span as spanOf } from './shelves.js';
+import { span as spanOf, teamCloth } from './shelves.js';
 import { buildBlocks, paginate, CHAPTERS, ROMAN, UI_DEFAULTS } from './chapters.jsx';
 
 const ASPECT = 0.7; // page width / height
@@ -264,10 +264,10 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const bookW = geo ? (spread ? geo.pageW * 2 : geo.pageW) : 0;
 
   return (
-    <div className="reader" role="dialog" aria-modal="true" aria-labelledby="book-title">
+    <div className="reader" role="dialog" aria-modal="true" aria-labelledby="book-title" style={{ '--accent': shelf ? teamCloth(shelf.cs.team) : '#2b6fd6' }}>
       <h1 id="book-title" className="sr-only" tabIndex={-1} ref={head}>{name}</h1>
       <div className="reader-bar">
-        <button className="btn small" onClick={onClose}>← <span className="long">Return to the shelves</span><span className="short">Shelves</span> <kbd className="long">Esc</kbd></button>
+        <button className="btn" onClick={onClose}>← <span className="long">Back to the shelves</span><span className="short">Shelves</span></button>
         {paged && (
           <label className="chapter-pick">
             <span className="sr-only">Chapter</span>
@@ -321,41 +321,19 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
 
 // Before the title page: the back of the half-title leaf, with the bookplate. After the last page: the marbled
 // endpaper inside the back cover.
-function Marbling({ seed }) {
-  // Combed stripes pushed around by turbulence: the look of hand-marbled endpaper.
-  const colors = ['#5c1f18', '#1f3355', '#b88c45', '#e8dcc0', '#24453f', '#7a2a20', '#2a2f52', '#c9a25a'];
-  const fid = `marble-${seed}`;
-  return (
-    <svg className="marble" viewBox="0 0 400 560" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <pattern id={`${fid}-p`} width="400" height="48" patternUnits="userSpaceOnUse">
-          {colors.map((c, k) => <rect key={c} x="0" y={k * 6} width="400" height="6" fill={c} />)}
-        </pattern>
-        <filter id={fid} x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.018" numOctaves="3" seed={seed} result="t" />
-          <feDisplacementMap in="SourceGraphic" in2="t" scale="190" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </defs>
-      <rect x="-60" y="-60" width="520" height="680" fill={`url(#${fid}-p)`} filter={`url(#${fid})`} transform="rotate(-8 200 280)" />
-    </svg>
-  );
-}
-
 function Endpaper({ side, shelf, id, name, onClose }) {
   return (
     <div className={`pg ${side === 'front' ? 'flyleaf left' : 'endpaper'} ${side}`}>
-      {side === 'back' && <Marbling seed={4} />}
       {side === 'front' ? (
         <div className="bookplate">
-          <p className="bp-ex">Ex libris</p>
-          <p className="bp-lib">The Player Library</p>
+          <p className="bp-ex">From the Player Library</p>
           <p className="bp-name">{name}</p>
           {shelf && <dl><dt>Shelf mark</dt><dd>{shelf.cs.label} · {shelf.s}</dd><dt>Team</dt><dd>{shelf.cs.team.abbr}</dd><dt>ESPN no.</dt><dd>{id}</dd></dl>}
         </div>
       ) : (
         <div className="bookplate end">
-          <p className="bp-lib">Finis</p>
-          <button className="btn small" onClick={onClose}>Return the book to its shelf</button>
+          <p className="bp-name">The end</p>
+          <button className="btn primary small" onClick={onClose}>Put the book back</button>
         </div>
       )}
     </div>

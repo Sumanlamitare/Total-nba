@@ -74,7 +74,7 @@ function titlePage(book, { player, shelf }, add) {
   const years = book.regular && start ? `${start}–${book.active ? 'now' : book.regular.last}` : start ? `from ${start}` : spanOf(player || {});
   add(0, 'title', (
     <div className="title-page">
-      <p className="imprint">The Player Library</p>
+      <p className="imprint">Player Library</p>
       <Portrait book={book} />
       <h2 className="display">{book.name}</h2>
       <p className="lede">{[book.posName, years].filter(Boolean).join(' · ')}</p>

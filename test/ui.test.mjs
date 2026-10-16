@@ -49,12 +49,17 @@ async function page(opts = {}) {
 test('the reading room: search guides to the shelf, a book opens, chapters turn, Esc returns', async () => {
   const p = await page();
   await p.goto(base + '/');
-  await p.getByText(/bookcase 1 of \d+/i).waitFor({ timeout: 30000 });
-  assert.match(await p.locator('.tagline').innerText(), /5,2\d\d NBA players/);
+  await p.locator('.where').waitFor({ timeout: 30000 });
+  await p.locator('.room .loading').waitFor({ state: 'detached', timeout: 30000 });
+  assert.match(await p.locator('.brand-count').textContent(), /5,2\d\d players/);
   await p.waitForTimeout(1500);
+  // The Teams button walks you to a team's section.
+  await p.getByRole('button', { name: 'Teams' }).click();
+  await p.getByRole('dialog', { name: 'Teams' }).getByRole('button', { name: /Boston Celtics/ }).click();
+  await p.locator('.where', { hasText: 'Boston Celtics' }).waitFor({ timeout: 20000 });
   await p.keyboard.press('/');
   await p.getByRole('combobox').fill('bill russell');
-  assert.equal(await p.locator('.card-name').first().innerText(), 'Bill Russell');
+  assert.equal(await p.locator('.card-name').first().textContent(), 'Bill Russell');
   await p.keyboard.press('Enter');
   await p.locator('.slip.chosen', { hasText: 'Bill Russell' }).waitFor();
   await p.keyboard.press('Enter'); // opens the selected book (the slip's button does the same)
@@ -96,7 +101,7 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
 test('a link straight to a book opens it on its own', async () => {
   const p = await page();
   await p.goto(base + '/');
-  await p.getByText(/bookcase 1 of/i).waitFor({ timeout: 30000 });
+  await p.locator('.where').waitFor({ timeout: 30000 });
   await p.goto(base + '/book/4142/wilt-chamberlain');
   const reader = p.getByRole('dialog', { name: /Wilt Chamberlain/ });
   await reader.waitFor({ timeout: 30000 });
@@ -131,7 +136,7 @@ test('without WebGL the library is a shelf list that works by keyboard', async (
   await p.goto(base + '/');
   await p.getByRole('region', { name: 'Shelf list' }).waitFor({ timeout: 20000 }).catch(() => {});
   await p.locator('.listview').waitFor();
-  assert.equal(await p.getByRole('button', { name: /Shelf list|Reading room/ }).count(), 0, 'no 3D toggle offered');
+  assert.equal(await p.getByRole('button', { name: /List view|Walk the library/ }).count(), 0, 'no 3D toggle offered');
   const first = p.locator('.spine').first();
   await first.focus();
   await p.keyboard.press('ArrowRight');

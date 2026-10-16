@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { searchPlayers } from './api.js';
-import { span } from './shelves.js';
+import { span, teamCloth } from './shelves.js';
 import { localSearch } from './search.js';
 
 const POS = { G: 'Guard', F: 'Forward', C: 'Center', PG: 'Point guard', SG: 'Shooting guard', SF: 'Small forward', PF: 'Power forward' };
@@ -46,8 +46,8 @@ export default function Catalogue({ players, layout, indexOf, onClose, onGo, onO
     <div className="drawer-wrap" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="drawer" role="dialog" aria-modal="true" aria-labelledby="cat-title" ref={dialog} onKeyDown={onKey}>
         <div className="drawer-head">
-          <h2 id="cat-title">Card catalogue</h2>
-          <button className="close" onClick={onClose} aria-label="Close the catalogue">×</button>
+          <h2 id="cat-title">Search players</h2>
+          <button className="icon-btn" onClick={onClose} aria-label="Close search">✕</button>
         </div>
         <label className="search-field">
           <span className="sr-only">Player name</span>
@@ -62,7 +62,7 @@ export default function Catalogue({ players, layout, indexOf, onClose, onGo, onO
                 <button className="card-main" onClick={() => onGo(p.i)}>
                   <span className="card-name">{p.n}</span>
                   <span className="card-meta">{[span(p), POS[p.p] || p.p, (p.t || []).slice(0, 4).join(' · ')].filter(Boolean).join(' — ')}</span>
-                  {b && <span className="card-loc">{layout.cases[b.c].label} bookcase · shelf {b.s + 1}</span>}
+                  {b && <span className="card-loc"><i className="dot" style={{ background: teamCloth(layout.cases[b.c].team) }} aria-hidden />{layout.cases[b.c].label} · shelf {b.s + 1}</span>}
                 </button>
                 <button className="btn small" onClick={() => onOpen(p.i)} aria-label={`Open ${p.n}`}>Open</button>
               </li>
@@ -70,7 +70,7 @@ export default function Catalogue({ players, layout, indexOf, onClose, onGo, onO
           })}
         </ul>
         <p className="cat-foot" role="status">
-          {q.trim().length < 2 ? `${players.length.toLocaleString('en-US')} players on the shelves. Enter takes you to the shelf; Shift+Enter opens the book.` :
+          {q.trim().length < 2 ? `${players.length.toLocaleString('en-US')} players. Enter walks you to the shelf; Shift+Enter opens the book.` :
             remote.state === 'busy' ? 'Asking ESPN about players not yet shelved…' :
             remote.state === 'error' ? `ESPN search failed: ${remote.msg}` :
             !results.length && remote.state === 'done' ? `No NBA player called “${q.trim()}” on ESPN's record.` :

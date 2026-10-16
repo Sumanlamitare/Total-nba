@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseStats, compose, foldGamelog, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
 import { foldSeason, awardRows, countHonors, finishSpans, foldCareer, publicRecord, entry, sortKey, currentSeason, leaderOf } from '../lib/catalog.js';
-import { pack, span, seasonLabel, bookSize, CASE } from '../client/src/shelves.js';
+import { pack, span, seasonLabel, bookSize, CASE, hallPlan, HALL, spineColor, inkOn, luminance } from '../client/src/shelves.js';
 import { assignTeam } from '../lib/catalog.js';
 import { localSearch } from '../client/src/search.js';
 import { perSeason, byTeam, best, coverageGap } from '../client/src/bookdata.js';
@@ -178,6 +178,32 @@ test('team assignment: most games first, then season lists, awards, last team', 
   assert.equal(assignTeam({ cg: {}, sg: {}, ag: { 2: 3 }, lt: '13' }, fr), '2');
   const q = { cg: {}, sg: {}, ag: {}, lt: '13' }; assert.equal(assignTeam(q, fr), '13'); assert.equal(q.tms, 'last');
   assert.equal(assignTeam({ cg: { 99: 50 }, sg: {}, ag: {}, lt: null }, fr), null, 'unknown team ids are not shelved under a franchise');
+});
+
+test('the hall: every bay has a place, no two overlap, a team stays on one face when it fits', () => {
+  const layout = pack(catalog.players, catalog.meta.teams || []);
+  const plan = hallPlan(layout);
+  assert.equal(plan.bays.filter(Boolean).length, layout.cases.length);
+  const seen = new Set();
+  for (const b of plan.bays) {
+    const key = `${b.x.toFixed(2)},${b.z.toFixed(2)}`;
+    assert.ok(!seen.has(key), 'overlap'); seen.add(key);
+    assert.ok(b.z < 0 && b.z > -HALL.rowLen, 'inside its row');
+  }
+  for (const t of layout.teams) {
+    if (t.cases > HALL.perFace) continue;
+    const faces = new Set(Array.from({ length: t.cases }, (_, k) => plan.bays[t.first + k].face));
+    assert.equal(faces.size, 1, `${t.name} split across faces`);
+  }
+  assert.equal(plan.faces.length, Math.ceil(plan.faces.length / 2) * 2 - (plan.faces.length % 2));
+});
+
+test('spine colours: the team colour, darker for earlier decades, with readable lettering', () => {
+  const celtics = { color: '#008348', alt: '#ffffff' };
+  const old = spineColor({ i: '1', y0: 1960 }, celtics), recent = spineColor({ i: '1', y0: 2020 }, celtics);
+  assert.ok(luminance(old) < luminance(recent));
+  assert.equal(inkOn('#fdb927'), '#15161a');
+  assert.equal(inkOn('#0e2240'), '#f6f4ef');
 });
 
 test('thickness follows career length', () => {

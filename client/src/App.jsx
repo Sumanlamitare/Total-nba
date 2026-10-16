@@ -7,6 +7,7 @@ import ListView from './ListView.jsx';
 import Catalogue from './Catalogue.jsx';
 import Reader from './Reader.jsx';
 import Legend from './Legend.jsx';
+import TeamPicker from './TeamPicker.jsx';
 
 const Library3D = lazy(() => import('./Library3D.jsx'));
 
@@ -22,6 +23,8 @@ export default function App() {
   const [readerShown, setReaderShown] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
+  const [teamsOpen, setTeamsOpen] = useState(false);
+  const [listCase, setListCase] = useState(null);
   const [focus, setFocus] = useState(-1);
   const [motion, setMotion] = useState(() => store.get('library.motion') ?? !media('(prefers-reduced-motion: reduce)'));
   const [announce, setAnnounce] = useState('');
@@ -54,7 +57,7 @@ export default function App() {
     loadBook(p.i).catch(() => {});
     if (push && bookFromPath() !== p.i) { history.pushState({ book: p.i }, '', `/book/${p.i}/${slug(p.n)}`); pushed.current = true; }
     setOpenId(p.i); setFocus(n); setSearchOpen(false); setLegendOpen(false);
-    document.title = `${p.n} — The Player Library`;
+    document.title = `${p.n} · Player Library`;
     const room = roomRef.current;
     if (mode === 'room' && room) {
       if (instant) room.showBook(n, { instant: true });
@@ -64,7 +67,7 @@ export default function App() {
 
   const finishClose = useCallback(() => {
     setReaderShown(false); setOpenId(null);
-    document.title = 'The Player Library';
+    document.title = 'Player Library';
     roomRef.current?.close();
   }, []);
 
@@ -132,7 +135,7 @@ export default function App() {
   if (error && !catalog) {
     return (
       <main className="fault">
-        <h1>The library is closed for a moment</h1>
+        <h1>The library can't open right now</h1>
         <p>{error}</p>
         <button className="btn" onClick={() => location.reload()}>Try again</button>
       </main>
@@ -141,39 +144,52 @@ export default function App() {
 
   return (
     <div className={`app mode-${mode}${readerShown ? ' reading' : ''}`}>
-      <header className="masthead" aria-hidden={readerShown || undefined}>
-        <a className="wordmark" href="/" onClick={e => { e.preventDefault(); if (openId) closeBook(); }}>
-          <span className="wm-the">The</span> Player Library
+      <header className="topbar" aria-hidden={readerShown || undefined}>
+        <a className="brand" href="/" onClick={e => { e.preventDefault(); if (openId) closeBook(); }}>
+          <span className="brand-mark" aria-hidden><i /><i /><i /></span>
+          <span className="brand-name">Player Library</span>
+          <span className="brand-count">{players ? `${players.length.toLocaleString('en-US')} players` : 'Opening…'}</span>
         </a>
-        <p className="tagline">{players ? `${players.length.toLocaleString('en-US')} NBA players, one book each` : 'Opening the doors…'}</p>
         <nav className="tools" aria-label="Library tools">
-          <button className="btn" onClick={() => setSearchOpen(true)} aria-keyshortcuts="/" aria-label="Search the card catalogue"><span className="ico" aria-hidden>⌕</span> <span className="long">Card catalogue</span><span className="short">Search</span></button>
+          <button className="btn primary" onClick={() => setSearchOpen(true)} aria-keyshortcuts="/" aria-label="Search players">
+            <svg viewBox="0 0 24 24" aria-hidden><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21" /></svg>
+            <span className="long">Search players</span><span className="short">Search</span>
+          </button>
+          {layout && <button className="btn" onClick={() => setTeamsOpen(true)} aria-haspopup="dialog">Teams</button>}
           {!noGL && (
-            <button className="btn ghost" onClick={() => setMode(m => (m === 'room' ? 'list' : 'room'))} aria-label={mode === 'room' ? 'Shelf list' : 'Reading room'}>
-              {mode === 'room' ? <><span className="long">Shelf list</span><span className="short">List</span></> : <><span className="long">Reading room</span><span className="short">Room</span></>}
+            <button className="btn" onClick={() => setMode(m => (m === 'room' ? 'list' : 'room'))} aria-label={mode === 'room' ? 'List view' : 'Walk the library'}>
+              {mode === 'room' ? 'List' : 'Walk'}
             </button>
           )}
-          <button className="btn ghost" onClick={() => setLegendOpen(o => !o)} aria-expanded={legendOpen} aria-label="Key: reading the spines"><span className="long">Reading the spines</span><span className="short">Key</span></button>
+          <button className="btn icon" onClick={() => setLegendOpen(o => !o)} aria-expanded={legendOpen} aria-label="How the library works">?</button>
         </nav>
       </header>
 
       {!layout && <div className="loading" role="status"><span className="spinner" aria-hidden /> Shelving the books…</div>}
 
       {layout && mode === 'room' && (
-        <Suspense fallback={<div className="loading" role="status"><span className="spinner" aria-hidden /> Lighting the lamps…</div>}>
+        <Suspense fallback={<div className="loading" role="status"><span className="spinner" aria-hidden /> Opening the library…</div>}>
         <Library3D
           ref={roomRef} players={players} layout={layout} focus={focus} setFocus={setFocus}
-          motion={motion} blocked={!!openId || searchOpen} reading={readerShown}
-          onOpen={n => openBook(n)} onReady={onRoomReady} onDesk={() => setSearchOpen(true)}
+          motion={motion} blocked={!!openId || searchOpen || teamsOpen} reading={readerShown}
+          onOpen={n => openBook(n)} onReady={onRoomReady}
           onFail={() => setMode('list')} announce={setAnnounce}
         />
         </Suspense>
       )}
       {layout && mode === 'list' && (
-        <ListView players={players} layout={layout} focus={focus} setFocus={setFocus} onOpen={n => openBook(n)} hidden={readerShown} />
+        <ListView players={players} layout={layout} focus={focus} setFocus={setFocus} onOpen={n => openBook(n)} hidden={readerShown} caseRequest={listCase} />
       )}
 
       {legendOpen && <Legend onClose={() => setLegendOpen(false)} motion={motion} setMotion={setMotion} meta={catalog?.meta} noGL={noGL} />}
+
+      {teamsOpen && layout && (
+        <TeamPicker teams={layout.teams} onClose={() => setTeamsOpen(false)} onPick={t => {
+          setTeamsOpen(false); setFocus(-1);
+          if (mode === 'room') roomRef.current?.goToBay(t.first); else setListCase({ c: t.first, k: Date.now() });
+          setAnnounce(`${t.name}: ${t.count} players.`);
+        }} />
+      )}
 
       {searchOpen && layout && (
         <Catalogue players={players} layout={layout} indexOf={indexOf} onClose={() => setSearchOpen(false)}
