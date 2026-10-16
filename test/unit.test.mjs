@@ -147,24 +147,27 @@ test('shelving: active players on their team\'s shelf, every retired player on o
   const players = catalog.players, teams = catalog.meta.teams || [];
   assert.ok(players.length > 5000);
   const lib = shelve(players, teams);
-  const all = [...lib.retired, ...lib.teams.flatMap(t => t.books)];
+  const all = [...lib.retired, ...lib.active];
   assert.equal(all.length, players.length, 'one book per player');
   assert.equal(new Set(all).size, players.length);
+  assert.ok(lib.active.every(i => players[i].a), '"All teams" holds every active player');
+  const onTeams = lib.teams.flatMap(t => t.books);
+  assert.equal(new Set(onTeams).size, onTeams.length, 'no one on two team shelves');
+  assert.ok(lib.active.filter(i => !onTeams.includes(i)).every(i => !lib.teamById.has(players[i].tm)), 'only players with no team are missing from the team shelves');
   assert.ok(lib.retired.every(i => !players[i].a), 'the retired shelf holds only retired players');
   for (const t of lib.teams) {
     assert.ok(t.books.every(i => players[i].a), 'team shelves hold only active players');
-    if (t.id !== 'none') assert.ok(t.books.every(i => players[i].tm === t.id), `${t.name}: its own players`);
+    assert.ok(t.books.every(i => players[i].tm === t.id), `${t.name}: its own players`);
   }
-  for (const list of [lib.retired, ...lib.teams.map(t => t.books)]) {
+  for (const list of [lib.retired, lib.active, ...lib.teams.map(t => t.books)]) {
     for (let n = 1; n < list.length; n++) assert.ok(players[list[n - 1]].k <= players[list[n]].k, 'A to Z');
   }
-  const named = lib.teams.filter(t => t.id !== 'none');
-  assert.deepEqual(named.map(t => t.name), [...named.map(t => t.name)].sort((x, y) => x.localeCompare(y)));
+  assert.deepEqual(lib.teams.map(t => t.name), [...lib.teams.map(t => t.name)].sort((x, y) => x.localeCompare(y)));
   const russell = players.find(p => p.n === 'Bill Russell');
   assert.equal(lib.placeOf.get(russell.i).shelf, RETIRED);
   // Without team data every active player still has a place.
   const flat = shelve(players.slice(0, 500), []);
-  assert.equal(flat.retired.length + flat.teams.reduce((n, t) => n + t.books.length, 0), 500);
+  assert.equal(flat.retired.length + flat.active.length, 500);
 });
 
 test('team assignment: the latest team — current roster, then latest season, last-team field, latest award', () => {

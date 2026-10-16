@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { loadCatalog, loadBook, store } from './api.js';
-import { shelve, teamCloth, spineOf, letterOf, luminance, contrast, mix, RETIRED } from './shelves.js';
+import { shelve, teamCloth, spineOf, letterOf, luminance, contrast, mix, RETIRED, ALL } from './shelves.js';
 import { slug } from './format.js';
 import Shelf from './Shelf.jsx';
 import SearchBox from './SearchBox.jsx';
@@ -24,7 +24,7 @@ export default function App() {
   const [catalog, setCatalog] = useState(null);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState(() => (store.get('library.tab') === RETIRED ? RETIRED : 'active'));
-  const [teamId, setTeamId] = useState(() => store.get('library.team'));
+  const [teamId, setTeamId] = useState(() => store.get('library.team') || ALL);
   const [open, setOpen] = useState(() => (bookFromPath() ? { id: bookFromPath(), phase: 'open', deep: true } : null));
   const [returning, setReturning] = useState(null);
   const [target, setTarget] = useState(null);
@@ -43,13 +43,23 @@ export default function App() {
   const players = catalog?.players || null;
   const lib = useMemo(() => (players ? shelve(players, catalog?.meta?.teams || []) : null), [players, catalog?.meta?.teams]);
   const byId = useMemo(() => new Map((players || []).map(p => [p.i, p])), [players]);
-  const team = lib && tab !== RETIRED ? lib.teams.find(t => t.id === teamId) || lib.teams[0] : null;
-  const books = !lib ? [] : tab === RETIRED ? lib.retired : team?.books || [];
-  const shelfKey = tab === RETIRED ? RETIRED : team?.id || '';
+  // Active players: "All teams" (the default) or one team.
+  const team = lib && tab !== RETIRED && teamId !== ALL ? lib.teams.find(t => t.id === teamId) || null : null;
+  const books = !lib ? [] : tab === RETIRED ? lib.retired : team ? team.books : lib.active;
+  const shelfKey = tab === RETIRED ? RETIRED : team?.id || ALL;
   const teamOf = useCallback(p => lib?.teamById.get(p.tm), [lib]);
 
   useEffect(() => { store.set('library.tab', tab); }, [tab]);
-  useEffect(() => { if (team) store.set('library.team', team.id); }, [team]);
+  useEffect(() => { if (lib) store.set('library.team', team ? team.id : ALL); }, [team, lib]);
+
+  // Which shelf shows a player's book, and where on it: the shelf in view if the book is on it, else its own.
+  const placeFor = useCallback(id => {
+    const pl = lib?.placeOf.get(id); if (!pl) return null;
+    if (pl.shelf === RETIRED) return { tab: RETIRED, teamId, at: pl.at };
+    if (tab !== RETIRED && !team) return { tab: 'active', teamId: ALL, at: pl.allAt };
+    return pl.shelf === ALL ? { tab: 'active', teamId: ALL, at: pl.allAt } : { tab: 'active', teamId: pl.shelf, at: pl.at };
+  }, [lib, tab, team, teamId]);
+  const goTo = pf => { setTab(pf.tab); setTeamId(pf.teamId); };
   useEffect(() => { store.set('library.wall', wall); document.documentElement.style.setProperty('--wall', wall); }, [wall]);
 
   // Which shelf a book is on, for the reader's title page and endpapers.
@@ -61,14 +71,14 @@ export default function App() {
 
   // Bring a player's book to the pointer on its shelf.
   const goToPlayer = useCallback((id, { openIt = false } = {}) => {
-    const pl = lib?.placeOf.get(id); if (!pl) return false;
-    if (pl.shelf === RETIRED) setTab(RETIRED); else { setTab('active'); setTeamId(pl.shelf); }
-    setTarget({ at: pl.at, flash: true, focus: !openIt, smooth: false, n: Date.now() });
+    const pl = lib?.placeOf.get(id), pf = placeFor(id); if (!pf) return false;
+    goTo(pf);
+    setTarget({ at: pf.at, flash: true, focus: !openIt, smooth: false, n: Date.now() });
     if (openIt) wantOpen.current = id;
     const p = byId.get(id);
-    setAnnounce(`${p.n}: on the ${pl.shelf === RETIRED ? 'retired players' : lib.teamById.get(pl.shelf)?.name || 'no current team'} shelf. Press Enter to open.`);
+    setAnnounce(`${p.n}: on the ${pl.shelf === RETIRED ? 'retired players' : pf.teamId === ALL ? 'active players' : lib.teamById.get(pf.teamId)?.name} shelf. Press Enter to open.`);
     return true;
-  }, [lib, byId]);
+  }, [lib, byId, placeFor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Take a book down: the reader mounts unseen (so its cover's place is known), the book flies there, the reader shows.
   const openFromShelf = useCallback((p, spineEl) => {
@@ -115,19 +125,19 @@ export default function App() {
     setOpen(null); document.title = 'Player Library';
     const pr = pull.current?.id === was.id ? pull.current.pr : null;
     pull.current = null;
-    const pl = lib?.placeOf.get(was.id);
+    const pf = placeFor(was.id);
     if (pr) {
       setReturning(was.id);
       frame().then(() => {
         const el = document.querySelector(`.shelf .vol[data-id="${was.id}"] .spine`);
         return pr.back(el, { instant: !motion });
       }).then(() => { setReturning(null); document.querySelector(`.shelf .vol[data-id="${was.id}"]`)?.focus({ preventScroll: true }); });
-    } else if (pl) {
+    } else if (pf) {
       // Opened from a link: show where the book lives.
-      if (pl.shelf === RETIRED) setTab(RETIRED); else { setTab('active'); setTeamId(pl.shelf); }
-      setTarget({ at: pl.at, flash: true, focus: true, n: Date.now() });
+      goTo(pf);
+      setTarget({ at: pf.at, flash: true, focus: true, n: Date.now() });
     }
-  }, [open, lib, motion]);
+  }, [open, motion, placeFor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeBook = useCallback(() => {
     if (pushed.current && history.state?.book) history.back();
@@ -150,9 +160,8 @@ export default function App() {
   useEffect(() => {
     if (placed.current || !lib || !open?.deep) return;
     placed.current = true;
-    const pl = lib.placeOf.get(open.id); if (!pl) return;
-    if (pl.shelf === RETIRED) setTab(RETIRED); else { setTab('active'); setTeamId(pl.shelf); }
-  }, [lib, open]);
+    const pf = placeFor(open.id); if (pf) goTo(pf);
+  }, [lib, open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Players found through ESPN search join the catalogue (and the shelves) straight away.
   const addPlayers = useCallback(list => {
@@ -173,13 +182,13 @@ export default function App() {
     return () => removeEventListener('keydown', onKey);
   }, [open]);
 
-  // Letters on the retired shelf, for jumping.
+  // Letters along the long shelves (all active players, the retired), for jumping.
   const letters = useMemo(() => {
-    if (!lib) return [];
+    if (!lib || team) return [];
     const out = [];
-    lib.retired.forEach((i, at) => { const L = letterOf(players[i]); if (!out.length || out[out.length - 1].L !== L) out.push({ L, at }); });
+    books.forEach((i, at) => { const L = letterOf(players[i]); if (!out.length || out[out.length - 1].L !== L) out.push({ L, at }); });
     return out;
-  }, [lib, players]);
+  }, [lib, team, books, players]);
 
   const { ghost, dark } = ghostFor(wall);
   const openPlayer = open ? byId.get(open.id) || { i: open.id, n: '', l: '' } : null;
@@ -221,14 +230,15 @@ export default function App() {
             {lib && tab !== RETIRED && (
               <div className="fgroup">
                 <label className="flabel" htmlFor="team-pick">Team</label>
-                <div className="team-select" style={{ '--dot': teamCloth(team) }}>
-                  <select id="team-pick" value={team?.id || ''} onChange={e => setTeamId(e.target.value)}>
+                <div className={`team-select${team ? '' : ' all'}`} style={{ '--dot': teamCloth(team) }}>
+                  <select id="team-pick" value={team?.id || ALL} onChange={e => setTeamId(e.target.value)}>
+                    <option value={ALL}>All teams ({lib.active.length})</option>
                     {lib.teams.map(t => <option key={t.id} value={t.id}>{t.name} ({t.books.length})</option>)}
                   </select>
                 </div>
               </div>
             )}
-            {lib && tab === RETIRED && (
+            {lib && letters.length > 1 && (
               <div className="fgroup wide">
                 <span className="flabel" id="jump-label">Jump to</span>
                 <div className="chips" role="group" aria-labelledby="jump-label">

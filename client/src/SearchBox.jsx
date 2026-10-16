@@ -2,7 +2,7 @@
 // Shift+Enter (or Open) takes the book straight down. Players the catalogue doesn't hold are looked up on ESPN.
 import React, { forwardRef, useEffect, useMemo, useState } from 'react';
 import { searchPlayers } from './api.js';
-import { span, teamCloth, RETIRED } from './shelves.js';
+import { span, teamCloth, RETIRED, ALL } from './shelves.js';
 import { localSearch } from './search.js';
 
 const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, onGo, onOpen, onAdded }, input) {
@@ -38,8 +38,9 @@ const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, on
     const pl = placeOf.get(p.i);
     if (!pl) return { label: 'Not shelved yet' };
     if (pl.shelf === RETIRED) return { label: 'Retired', color: teamCloth(teamById.get(p.tm)) };
+    if (pl.shelf === ALL) return { label: 'Active, not on a team' };
     const t = teamById.get(pl.shelf);
-    return { label: t ? t.name : 'No current team', color: teamCloth(t) };
+    return { label: t.name, color: teamCloth(t) };
   };
   const show = open && q.trim().length > 0;
 

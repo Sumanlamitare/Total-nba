@@ -74,7 +74,8 @@ h1 { margin: 0; font: 600 clamp(26px, 3.2vw, 34px)/1.15 var(--head); letter-spac
 .r-open:hover { border-color: #111; }
 .r-foot { margin: 0; padding: 8px 16px 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
 
-.filters { display: flex; flex-wrap: wrap; gap: 18px 34px; min-height: 64px; }
+.filters { display: flex; flex-wrap: wrap; gap: 18px 34px; min-height: 64px; align-items: flex-end; }
+.filters .fgroup.wide { flex: 1 1 320px; }
 .fgroup { min-width: 0; max-width: 100%; }
 .fgroup.wide { flex: 1 1 100%; }
 .flabel { display: block; margin: 0 0 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--muted); }
@@ -82,6 +83,7 @@ h1 { margin: 0; font: 600 clamp(26px, 3.2vw, 34px)/1.15 var(--head); letter-spac
 .team-select::before { content: ''; position: absolute; left: 16px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--dot); pointer-events: none; }
 .team-select select { height: 40px; min-width: 260px; padding: 0 40px 0 38px; border: 1px solid var(--line); border-radius: 999px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23111' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 16px center; font: 500 15px var(--sans); appearance: none; -webkit-appearance: none; cursor: pointer; }
 .team-select select:hover { border-color: var(--ink); }
+.team-select.all::before { background: conic-gradient(#c8102e, #fdb927, #008348, #1d428a, #552583, #c8102e); }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 3px; margin: -3px; }
 .chips::-webkit-scrollbar { display: none; }
 .chip { appearance: none; flex: none; min-width: 34px; height: 34px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: 500 13px var(--sans); white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }

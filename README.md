@@ -6,7 +6,7 @@ Live: https://total-nba-ja9d.vercel.app
 
 ## Using it
 
-- **One shelf at a time.** *Active players* shows one team's shelf: choose the team from the dropdown. *Retired players* is a single shelf for everyone who has retired, with letters to jump along it. Books run A to Z by surname, and the pointer above the shelf (and the giant letter behind it) shows where you are.
+- **One shelf at a time.** *Active players* starts on *All teams*: every active player on one shelf. The dropdown narrows it to one team's shelf. *Retired players* is a single shelf for everyone who has retired. The long shelves have letters to jump along them. Books run A to Z by surname, and the pointer above the shelf (and the giant letter behind it) shows where you are.
   - Scroll the shelf sideways (trackpad, mouse wheel, the arrow buttons, or a swipe on a phone).
   - With the keyboard, Tab to the shelf and use ← → (Home, End, Page Up/Down).
   - *Shelf back* changes the colour of the wall behind the shelf.
@@ -28,7 +28,7 @@ Live: https://total-nba-ja9d.vercel.app
 | Colour | The player's latest team; a darker shade for an earlier first season |
 | Height, lettering style | Decoration only |
 
-**Which shelf.** A player ESPN lists as active stands with his latest team: the team whose current roster lists him, or failing that the team he finished his latest season with (a traded player goes with the team he was traded to). Active players ESPN lists on no team have a shelf of their own. Everyone else is retired and stands on the retired shelf; the cover still names his last team. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics count as Oklahoma City.
+**Which shelf.** A player ESPN lists as active stands with his latest team: the team whose current roster lists him, or failing that the team he finished his latest season with (a traded player goes with the team he was traded to). Active players ESPN lists on no team (unsigned or between teams) appear under *All teams* only. Everyone else is retired and stands on the retired shelf; the cover still names his last team. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics count as Oklahoma City.
 
 ## Data: ESPN's free public API, nothing invented
 

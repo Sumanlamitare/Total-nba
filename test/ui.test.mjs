@@ -50,7 +50,13 @@ test('the shelves: a team per shelf, one shelf for the retired, search brings a 
   const p = await page();
   await p.goto(base + '/');
   await p.locator('.vol').first().waitFor({ timeout: 30000 });
-  // One team at a time, picked from one dropdown; only active players stand on it.
+  // Active players start on "All teams": every active player, A to Z, with letters to jump along.
+  assert.match(await p.locator('#team-pick option:checked').textContent(), /^All teams \(\d+\)$/);
+  await p.getByRole('heading', { level: 1, name: 'Active players' }).waitFor();
+  assert.equal(await p.locator('.ptag').textContent(), 'A');
+  await p.getByRole('group', { name: 'Jump to' }).getByRole('button', { name: 'W', exact: true }).click();
+  await p.waitForFunction(() => document.querySelector('.ptag')?.textContent === 'W');
+  // One team at a time, picked from the same dropdown.
   await p.getByLabel('Team').selectOption({ label: (await p.locator('#team-pick option', { hasText: 'Boston Celtics' }).textContent()).trim() });
   await p.getByRole('heading', { level: 1, name: 'Boston Celtics' }).waitFor();
   assert.match(await p.locator('.count').textContent(), /^\d+ players?$/);

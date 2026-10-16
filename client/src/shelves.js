@@ -25,34 +25,35 @@ export function hash(s) {
 
 export const seasonsOf = p => (p.y0 && p.y1 ? Math.max(1, p.y1 - p.y0 + 1) : p.y0 && p.a ? Math.max(1, 2027 - p.y0) : 1);
 
-export const NO_TEAM = { id: 'none', abbr: '—', name: 'No current team', short: 'No team', color: '#5d6470', alt: '#c9ccd2' };
 export const RETIRED = 'retired';
+export const ALL = 'all';
 
-// Every book's place. Returns { teams: [{ ...team, books: [player index] }], retired: [player index],
-// placeOf: Map(player id -> { shelf: team id | 'retired', at }) }.
+// Every book's place. Returns { active: [player index] (every active player, A to Z), teams: [{ ...team, books }],
+// retired: [player index], placeOf: Map(player id -> { shelf: team id | 'all' | 'retired', at, allAt }) }.
+// An active player ESPN lists on no team stands only on the "All teams" shelf.
 export function shelve(players, teamList = []) {
   const byId = new Map(teamList.map(t => [t.id, { ...t, books: [] }]));
-  const none = { ...NO_TEAM, books: [] };
-  const retired = [];
+  const active = [], retired = [];
   const order = players.map((p, i) => i).sort((a, b) => (players[a].k < players[b].k ? -1 : players[a].k > players[b].k ? 1 : 0));
   for (const i of order) {
     const p = players[i];
-    if (!p.a) retired.push(i);
-    else (byId.get(p.tm) || none).books.push(i);
+    if (!p.a) { retired.push(i); continue; }
+    active.push(i);
+    byId.get(p.tm)?.books.push(i);
   }
   const teams = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
-  if (none.books.length) teams.push(none);
   const placeOf = new Map();
-  for (const t of teams) t.books.forEach((i, at) => placeOf.set(players[i].i, { shelf: t.id, at }));
+  active.forEach((i, at) => placeOf.set(players[i].i, { shelf: ALL, at, allAt: at }));
+  for (const t of teams) t.books.forEach((i, at) => { placeOf.get(players[i].i).shelf = t.id; placeOf.get(players[i].i).at = at; });
   retired.forEach((i, at) => placeOf.set(players[i].i, { shelf: RETIRED, at }));
-  return { teams, retired, placeOf, teamById: new Map(teamList.map(t => [t.id, t])) };
+  return { active, teams, retired, placeOf, teamById: new Map(teamList.map(t => [t.id, t])) };
 }
 
 // Why a book is where it is, in words.
 export const shelvedBecause = (p, team) => {
   const name = team?.name;
   if (!p?.a) return name ? `with the retired players; ${name} was his last team on ESPN's record` : 'with the retired players';
-  if (!name) return 'with the active players ESPN lists on no team';
+  if (!name) return 'with the active players (ESPN lists him on no team)';
   return p.tms === 'seasons' || p.tms === 'last' || p.tms === 'awards' ? `with the ${name}, the latest team ESPN lists for him` : `with the ${name}, his current team`;
 };
 
