@@ -64,6 +64,11 @@ test('the shelves: a team per shelf, one shelf for the retired, search brings a 
   await p.getByRole('button', { name: /^Retired players/ }).click();
   await p.getByRole('heading', { level: 1, name: 'Retired players' }).waitFor();
   assert.equal(await p.getByLabel('Team').count(), 0);
+  // A new visit starts on All teams again, whatever was picked before.
+  await p.reload();
+  await p.locator('.vol').first().waitFor({ timeout: 30000 });
+  assert.match(await p.locator('#team-pick option:checked').textContent(), /^All teams/);
+  await p.getByRole('button', { name: /^Retired players/ }).click();
   assert.match(await p.locator('.count').textContent(), /^4,\d{3} players$/);
   // Search: Enter brings the book to the pointer on its shelf and focuses it.
   await p.keyboard.press('/');
@@ -137,7 +142,8 @@ test('records chapter loads career highs and says where they come from', async (
   await findInBook(p, b => b.getByText('Led the league'));
   const highs = await findInBook(p, b => b.locator('table.highs tbody tr'), 6);
   assert.ok(await highs.count() >= 5);
-  await findInBook(p, b => b.getByText(/Counted from ESPN's game logs/));
+  await findInBook(p, b => b.getByText(/Counted from the game logs/));
+  assert.equal(await p.locator('.reader').getByText(/ESPN/).count(), 0, 'the book never names its data source');
 });
 
 test('the shelf works by keyboard, and the retired shelf jumps by letter', async () => {

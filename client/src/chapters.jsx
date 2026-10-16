@@ -61,10 +61,10 @@ function Portrait({ book }) {
   return (
     <>
       <div className={`portrait${img === 'ok' ? ' has' : ''}`}>
-        {book.headshot && img !== 'none' && <img src={book.headshot} alt={`${book.name}, ESPN headshot`} onLoad={() => setImg('ok')} onError={() => setImg('none')} />}
+        {book.headshot && img !== 'none' && <img src={book.headshot} alt={`${book.name}`} onLoad={() => setImg('ok')} onError={() => setImg('none')} />}
         {img !== 'ok' && <span className="monogram" aria-hidden>{initials}</span>}
       </div>
-      {img === 'none' && <p className="note small portrait-note">{book.headshot ? 'The ESPN portrait could not be loaded.' : `No portrait: ESPN holds no headshot for ${book.last || book.name}.`}</p>}
+      {img === 'none' && <p className="note small portrait-note">{book.headshot ? 'The portrait could not be loaded.' : `No portrait on record for ${book.last || book.name}.`}</p>}
     </>
   );
 }
@@ -80,7 +80,7 @@ function titlePage(book, { player, shelf }, add) {
       <p className="lede">{[book.posName, years].filter(Boolean).join(' · ')}</p>
       <hr className="rule" />
       <p className="ex-libris">
-        {book.regular ? <>A record of {plural(book.regular.seasons, 'season')} on ESPN's books{book.playoffs ? `, ${plural(book.playoffs.seasons, 'playoff run')}` : ''}.</> : <>ESPN keeps no season statistics for this player; the book holds what it does have.</>}
+        {book.regular ? <>A record of {plural(book.regular.seasons, 'season')} on record{book.playoffs ? `, ${plural(book.playoffs.seasons, 'playoff run')}` : ''}.</> : <>No season statistics are on record for this player; the book holds what there is.</>}
         {shelf && <><br />Shelved {shelvedBecause(player, shelf.team)}.</>}
       </p>
       <p className="turn-hint">Turn the page — drag its corner, swipe, or press →</p>
@@ -118,16 +118,16 @@ function thePlayer(book, ctx, add) {
   const verb = book.active ? 'has played' : 'played';
   const intro = [];
   if (reg) {
-    intro.push(`${book.name}${book.posName ? `, a ${book.posName.toLowerCase()},` : ''} ${verb} ${plural(reg.seasons, 'regular season')} on ESPN's record, ${reg.first === reg.last ? `in ${seasonLabel(reg.first)}` : `from ${seasonLabel(reg.first)} to ${seasonLabel(reg.last)}`}${names.length ? `, for ${list(names)}` : ''}.`);
+    intro.push(`${book.name}${book.posName ? `, a ${book.posName.toLowerCase()},` : ''} ${verb} ${plural(reg.seasons, 'regular season')} on record, ${reg.first === reg.last ? `in ${seasonLabel(reg.first)}` : `from ${seasonLabel(reg.first)} to ${seasonLabel(reg.last)}`}${names.length ? `, for ${list(names)}` : ''}.`);
     const c = reg.career.avg || {};
     const parts = [['avgPoints', 'points'], ['avgRebounds', 'rebounds'], ['avgAssists', 'assists']].filter(([k]) => c[k] != null).map(([k, w]) => `${n1(c[k])} ${w}`);
     if (parts.length && c.gamesPlayed) intro.push(reg.careerBeyondRows
-      ? `ESPN's career line for ${surname}, which reaches back before its season-by-season record, reads ${list(parts)} a game over ${n0(c.gamesPlayed)} games.`
+      ? `The career line for ${surname}, which reaches back before the season-by-season record, reads ${list(parts)} a game over ${n0(c.gamesPlayed)} games.`
       : `Across those seasons ${surname} averaged ${list(parts)} a game in ${n0(c.gamesPlayed)} games.`);
     const missing = [['avgRebounds', 'rebounds'], ['avgSteals', 'steals'], ['avgBlocks', 'blocks']].filter(([k]) => c[k] == null).map(([, w]) => w);
-    if (missing.length) intro.push(`ESPN's record has no complete ${list(missing)} figures for this career${reg.first < 1974 ? ' (the league only began counting steals and blocks in 1973-74)' : ''}, so they are left blank rather than guessed.`);
+    if (missing.length) intro.push(`The record has no complete ${list(missing)} figures for this career${reg.first < 1974 ? ' (the league only began counting steals and blocks in 1973-74)' : ''}, so they are left blank rather than guessed.`);
   } else {
-    intro.push(`ESPN holds no season-by-season statistics for ${book.name}. This book carries what ESPN does record${book.honors.length ? ': biography and honors' : ': the biography'}.`);
+    intro.push(`No season-by-season statistics are on record for ${book.name}. This book carries ${book.honors.length ? 'the biography and honors' : 'the biography'}.`);
   }
   const mvp = book.honors.find(h => h.key === 'mvp');
   if (mvp) intro.push(`${surname} was named the league's Most Valuable Player ${plural(mvp.count, 'time')}.`);
@@ -141,7 +141,7 @@ function thePlayer(book, ctx, add) {
   ];
   add(ch, 'head', <><ChapterHead ch={ch} title="The player" /><p className="opening">{intro[0]}</p></>, { start: true });
   intro.slice(1).forEach((t, k) => add(ch, `p${k}`, <p>{t}</p>));
-  if (gap) add(ch, 'gap', <Note>ESPN's season-by-season record for {surname} begins in {gap.recordLabel}, though the career began in {gap.label}. Those first {plural(gap.missing, 'season')} are missing from every table and total in this book.</Note>);
+  if (gap) add(ch, 'gap', <Note>The season-by-season record for {surname} begins in {gap.recordLabel}, though the career began in {gap.label}. Those first {plural(gap.missing, 'season')} are missing from every table and total in this book.</Note>);
   add(ch, 'facts', (
     <dl className="facts">
       {facts.map(([k, v]) => <React.Fragment key={k}><dt>{k}</dt><dd className={v ? '' : 'missing'}>{v || 'Not on record'}</dd></React.Fragment>)}
@@ -156,7 +156,7 @@ const METRICS = [['avgPoints', 'Points', n1], ['avgRebounds', 'Rebounds', n1], [
 function career(book, { ui, setUi }, add) {
   const ch = 3;
   if (!book.regular) {
-    add(ch, 'head', <><ChapterHead ch={ch} title="Career" /><p>ESPN has no season statistics for {book.name}, so there is no career to chart. The honors chapter lists what ESPN does record.</p></>, { start: true });
+    add(ch, 'head', <><ChapterHead ch={ch} title="Career" /><p>There are no season statistics on record for {book.name}, so there is no career to chart. The honors chapter lists what is on record.</p></>, { start: true });
     return;
   }
   const kind = book[ui.careerKind] ? ui.careerKind : 'regular';
@@ -170,7 +170,7 @@ function career(book, { ui, setUi }, add) {
         <Segmented label="Season type" value={kind} set={v => setUi({ careerKind: v })} options={[['regular', 'Regular season'], ...(book.playoffs ? [['playoffs', 'Playoffs']] : [])]} />
         <Segmented label="Measure" value={ui.careerMetric} set={v => setUi({ careerMetric: v })} options={METRICS.map(([, l], k) => [k, l])} />
       </div>
-      {data.every(d => d.value == null) ? <p>ESPN has no {label.toLowerCase()} figures for {book.last || book.name}'s seasons.</p> : (
+      {data.every(d => d.value == null) ? <p>No {label.toLowerCase()} figures are on record for {book.last || book.name}'s seasons.</p> : (
         <SeasonColumns data={data} format={fmt} caption={`${label} ${key === 'gamesPlayed' ? 'played' : 'per game'}, by ${kind === 'playoffs' ? 'playoff run' : 'season'}. The highest is marked in red.`} />
       )}
     </>
@@ -192,15 +192,15 @@ function career(book, { ui, setUi }, add) {
 function records(book, { highs }, add) {
   const ch = 4;
   const surname = book.last || book.name;
-  add(ch, 'head', <><ChapterHead ch={ch} title="Records" />{!book.regular && <p>ESPN has no season or game statistics for {book.name}, so there are no records to show.</p>}</>, { start: true });
+  add(ch, 'head', <><ChapterHead ch={ch} title="Records" />{!book.regular && <p>There are no season or game statistics on record for {book.name}, so there are no records to show.</p>}</>, { start: true });
   if (!book.regular) return;
   const led = book.leaders || [];
   if (led.length) {
     add(ch, 'led-h', <h3>Led the league</h3>);
     led.forEach(l => add(ch, `led-${l.season}-${l.stat}`, <div className="ledger-row"><span>{l.label}</span><span>{LEADER_PHRASE[l.stat]} per game</span><strong>{n1(l.value)}</strong></div>));
-    if (book.leadersFrom && book.regular.first < book.leadersFrom) add(ch, 'led-n', <Note>ESPN's qualified league leaders are available from {seasonLabel(book.leadersFrom)}; earlier seasons could not be checked.</Note>);
+    if (book.leadersFrom && book.regular.first < book.leadersFrom) add(ch, 'led-n', <Note>Qualified league leaders are on record from {seasonLabel(book.leadersFrom)}; earlier seasons could not be checked.</Note>);
   } else {
-    add(ch, 'led-none', <p>{surname} never finished a season as ESPN's qualified league leader in points, rebounds, assists, steals or blocks per game{book.leadersFrom ? ` (seasons from ${seasonLabel(book.leadersFrom)} checked)` : ''}.</p>);
+    add(ch, 'led-none', <p>{surname} never finished a season as the qualified league leader in points, rebounds, assists, steals or blocks per game{book.leadersFrom ? ` (seasons from ${seasonLabel(book.leadersFrom)} checked)` : ''}.</p>);
   }
   const bests = [['avgPoints', 'Points'], ['avgRebounds', 'Rebounds'], ['avgAssists', 'Assists'], ['avgSteals', 'Steals'], ['avgBlocks', 'Blocks'], ['avgMinutes', 'Minutes']]
     .map(([k, l]) => ({ k, l, b: best(book.regular, k) })).filter(x => x.b);
@@ -216,13 +216,13 @@ function records(book, { highs }, add) {
     </section>
   ));
   add(ch, 'highs-h', <h3>Single-game highs</h3>);
-  if (highs.state === 'loading') add(ch, 'highs-wait', <p role="status"><span className="spinner ink" aria-hidden /> Reading every game log ESPN keeps…</p>);
+  if (highs.state === 'loading') add(ch, 'highs-wait', <p role="status"><span className="spinner ink" aria-hidden /> Reading every game log on record…</p>);
   else if (highs.state === 'error') add(ch, 'highs-err', <p role="alert">The game logs didn't load ({highs.msg}).</p>);
   else if (highs.state === 'ok') highsBlocks(highs.h, surname, ch, add);
 }
 
 function highsBlocks(h, surname, ch, add) {
-  if (!h.covered.length) { add(ch, 'highs-none', <p>ESPN keeps no game-by-game logs for {surname}'s seasons, so single-game highs can't be given.</p>); return; }
+  if (!h.covered.length) { add(ch, 'highs-none', <p>No game-by-game logs are on record for {surname}'s seasons, so single-game highs can't be given.</p>); return; }
   const rows = ['points', 'totalRebounds', 'assists', 'steals', 'blocks', 'threePointFieldGoalsMade'];
   const get = (kind, stat) => h.highs[kind].find(x => x.stat === stat);
   const game = g => `${g.at === '@' ? 'at' : 'vs'} ${g.opp || '?'}, ${shortDate(g.date)}`;
@@ -254,8 +254,8 @@ function highsBlocks(h, surname, ch, add) {
   ));
   add(ch, 'highs-n', (
     <Note>
-      Counted from ESPN's game logs: {plural(h.games.regular, 'regular-season game')} and {plural(h.games.playoffs, 'playoff game')} across {plural(h.covered.length, 'season')} ({seasonLabel(h.covered[0])} to {seasonLabel(h.covered[h.covered.length - 1])}).
-      {missing.length > 0 && ` ESPN has no game log for ${list(missing.map(seasonLabel))}, so games from ${missing.length === 1 ? 'that season' : 'those seasons'} are not counted.`}
+      Counted from the game logs: {plural(h.games.regular, 'regular-season game')} and {plural(h.games.playoffs, 'playoff game')} across {plural(h.covered.length, 'season')} ({seasonLabel(h.covered[0])} to {seasonLabel(h.covered[h.covered.length - 1])}).
+      {missing.length > 0 && ` No game log is on record for ${list(missing.map(seasonLabel))}, so games from ${missing.length === 1 ? 'that season' : 'those seasons'} are not counted.`}
     </Note>
   ));
 }
@@ -264,7 +264,7 @@ function highsBlocks(h, surname, ch, add) {
 
 function honors(book, ctx, add) {
   const ch = 5;
-  add(ch, 'head', <><ChapterHead ch={ch} title="Honors" />{!book.honors.length && <p>ESPN records no NBA awards for {book.last || book.name}.</p>}</>, { start: true });
+  add(ch, 'head', <><ChapterHead ch={ch} title="Honors" />{!book.honors.length && <p>No NBA awards are on record for {book.last || book.name}.</p>}</>, { start: true });
   book.honors.forEach(h => add(ch, `h-${h.name}`, (
     <div className={`honor${h.key === 'mvp' || h.key === 'fmvp' ? ' major' : ''}`}>
       <span className="medal" aria-hidden>{h.count}</span>
@@ -275,7 +275,7 @@ function honors(book, ctx, add) {
     </div>
   )));
   if (book.otherHonors?.length) add(ch, 'other', <><h3>Before the NBA</h3><ul className="plain">{book.otherHonors.map(h => <li key={h.name}>{h.name}{h.count > 1 ? ` × ${h.count}` : ''}</li>)}</ul></>);
-  add(ch, 'note', <Note>ESPN's award records do not include All-Star selections or championships, so neither appears here rather than being guessed.</Note>);
+  add(ch, 'note', <Note>The award records do not include All-Star selections or championships, so neither appears here rather than being guessed.</Note>);
 }
 
 // ---- V. Teams --------------------------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ function teams(book, ctx, add) {
   const ch = 6;
   const sums = byTeam(book.regular);
   const find = name => sums.find(s => s.name === name || (name && s.name && name.endsWith(s.name.split(' ').pop()) && s.name.split(' ').pop().length > 3));
-  add(ch, 'head', <><ChapterHead ch={ch} title="Teams" />{!book.teams.length && !sums.length && <p>ESPN has no team history for {book.name}.</p>}</>, { start: true });
+  add(ch, 'head', <><ChapterHead ch={ch} title="Teams" />{!book.teams.length && !sums.length && <p>No team history is on record for {book.name}.</p>}</>, { start: true });
   const list = book.teams.length ? [...book.teams].reverse() : sums.map(s => ({ name: s.name || s.team, seasons: `${seasonLabel(s.first)} – ${seasonLabel(s.last)}` }));
   list.forEach((t, k) => {
     const s = find(t.name);
@@ -299,8 +299,8 @@ function teams(book, ctx, add) {
       </div>
     ));
   });
-  if (book.teams.some(t => /\*/.test(t.seasons))) add(ch, 'n1', <Note>Years are ESPN's team-history spans; a span that starts or ends mid-season marks a trade.</Note>);
-  if (book.teams.some(t => t.derived)) add(ch, 'n2', <Note>ESPN gives no team history for this player; these stints are read from the season statistics.</Note>);
+  if (book.teams.some(t => /\*/.test(t.seasons))) add(ch, 'n1', <Note>Years are team-history spans; a span that starts or ends mid-season marks a trade.</Note>);
+  if (book.teams.some(t => t.derived)) add(ch, 'n2', <Note>No team history is on record for this player; these stints are read from the season statistics.</Note>);
 }
 
 // ---- VI. Statistical record ------------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ const TOT_COLS = [
 
 function statRecord(book, { ui, setUi }, add) {
   const ch = 7;
-  if (!book.regular) { add(ch, 'head', <><ChapterHead ch={ch} title="Statistical record" /><p>ESPN holds no season statistics for {book.name}.</p></>, { start: true }); return; }
+  if (!book.regular) { add(ch, 'head', <><ChapterHead ch={ch} title="Statistical record" /><p>No season statistics are on record for {book.name}.</p></>, { start: true }); return; }
   const kind = book[ui.statKind] ? ui.statKind : 'regular';
   const stats = book[kind];
   const teamsList = [...new Set(stats.rows.filter(r => !r.combined && r.team).map(r => r.team))];
@@ -376,8 +376,8 @@ function statRecord(book, { ui, setUi }, add) {
   if (hasCombined) add(ch, 'n1', <Note>In seasons split by a trade, each team's line is indented and followed by the season total.</Note>);
   const gap = coverageGap(book);
   if (gap) add(ch, 'n2', stats.careerBeyondRows
-    ? <Note>Seasons before {gap.recordLabel} have no rows in ESPN's record, but its career line covers the whole career ({n0(stats.career.avg?.gamesPlayed)} games against {n0(stats.rowGames)} in the rows above).</Note>
-    : <Note>Seasons before {gap.recordLabel} are not in ESPN's record, so the career line covers {recordSpan(book)} only.</Note>);
+    ? <Note>Seasons before {gap.recordLabel} have no rows in the record, but the career line covers the whole career ({n0(stats.career.avg?.gamesPlayed)} games against {n0(stats.rowGames)} in the rows above).</Note>
+    : <Note>Seasons before {gap.recordLabel} are not in the record, so the career line covers {recordSpan(book)} only.</Note>);
 }
 
 // ---- VII. Legacy -----------------------------------------------------------------------------------------------
@@ -391,28 +391,27 @@ function legacy(book, ctx, add) {
   const lines = [];
   if (reg) {
     const t = reg.career.tot || {};
-    if (reg.careerBeyondRows) lines.push(`ESPN's career line reaches back before its season rows; the totals below are the whole career as ESPN gives it.`);
+    if (reg.careerBeyondRows) lines.push(`The career line reaches back before the season rows; the totals below are the whole career.`);
     const parts = [['points', 'points'], ['totalRebounds', 'rebounds'], ['assists', 'assists']].filter(([k]) => t[k] != null).map(([k, w]) => `${n0(t[k])} ${w}`);
     if (parts.length) lines.push(`${list(parts)} in ${n0(reg.career.avg?.gamesPlayed)} regular-season games.`.replace(/^./, c => c.toUpperCase()));
   }
   if (post) lines.push(`${n0(post.career.tot?.points)} more points in ${n0(post.career.avg?.gamesPlayed)} playoff games across ${plural(post.seasons, 'postseason')}.`);
-  if (total) lines.push(`${plural(total, 'NBA honor')} on ESPN's award lists${book.honors[0] ? `, led by ${book.honors[0].count > 1 ? `${book.honors[0].count} × ` : ''}${book.honors[0].name}` : ''}.`);
+  if (total) lines.push(`${plural(total, 'NBA honor')} on the award lists${book.honors[0] ? `, led by ${book.honors[0].count > 1 ? `${book.honors[0].count} × ` : ''}${book.honors[0].name}` : ''}.`);
   add(ch, 'head', (
     <>
       <ChapterHead ch={ch} title="Legacy" sub="What the record adds up to" />
-      {lines.length ? <ul className="summary">{lines.map((l, k) => <li key={k}>{l}</li>)}</ul> : <p>ESPN's record for {book.name} is too thin to add up.</p>}
+      {lines.length ? <ul className="summary">{lines.map((l, k) => <li key={k}>{l}</li>)}</ul> : <p>The record for {book.name} is too thin to add up.</p>}
     </>
   ), { start: true });
   if (seasons.length > 1) add(ch, 'chart', (
     <Accumulation data={seasons.map(r => ({ key: r.season, label: r.label, short: `’${String(r.season % 100).padStart(2, '0')}`, value: r.tot?.points ?? null }))} format={n0}
       caption={`Career regular-season points, accumulated season by season${book.active ? ' — the book is still being written' : ''}.`} />
   ));
-  if (book.active) add(ch, 'active', <p>{surname} is still playing. This book is rebuilt from ESPN as new games are logged.</p>);
+  if (book.active) add(ch, 'active', <p>{surname} is still playing. This book is updated as new games are played.</p>);
   add(ch, 'colophon', (
     <section className="colophon">
       <h3>Colophon</h3>
-      <p>Every figure in this book comes from ESPN's public data, fetched {longDate(book.at?.slice(0, 10))}. Missing figures are left blank, never estimated. Rankings and opinions are left out because ESPN's data can't support them fairly.</p>
-      <p><a href={book.espn} target="_blank" rel="noopener noreferrer">{book.name} on ESPN ↗</a></p>
+      <p>Figures as of {longDate(book.at?.slice(0, 10))}. Missing figures are left blank, never estimated. Rankings and opinions are left out.</p>
     </section>
   ));
 }

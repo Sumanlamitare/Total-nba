@@ -23,8 +23,9 @@ function ghostFor(wall) {
 export default function App() {
   const [catalog, setCatalog] = useState(null);
   const [error, setError] = useState(null);
-  const [tab, setTab] = useState(() => (store.get('library.tab') === RETIRED ? RETIRED : 'active'));
-  const [teamId, setTeamId] = useState(() => store.get('library.team') || ALL);
+  // Every visit starts on the active players, all teams.
+  const [tab, setTab] = useState('active');
+  const [teamId, setTeamId] = useState(ALL);
   const [open, setOpen] = useState(() => (bookFromPath() ? { id: bookFromPath(), phase: 'open', deep: true } : null));
   const [returning, setReturning] = useState(null);
   const [target, setTarget] = useState(null);
@@ -49,8 +50,7 @@ export default function App() {
   const shelfKey = tab === RETIRED ? RETIRED : team?.id || ALL;
   const teamOf = useCallback(p => lib?.teamById.get(p.tm), [lib]);
 
-  useEffect(() => { store.set('library.tab', tab); }, [tab]);
-  useEffect(() => { if (lib) store.set('library.team', team ? team.id : ALL); }, [team, lib]);
+  useEffect(() => { try { localStorage.removeItem('library.tab'); localStorage.removeItem('library.team'); } catch { /* blocked */ } }, []);
 
   // Which shelf shows a player's book, and where on it: the shelf in view if the book is on it, else its own.
   const placeFor = useCallback(id => {
@@ -212,7 +212,7 @@ export default function App() {
           <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden><rect x="1" y="3" width="6" height="18" rx="1" fill="currentColor" /><rect x="9" y="1" width="6" height="20" rx="1" fill="currentColor" opacity=".7" /><rect x="17" y="5" width="6" height="16" rx="1" fill="currentColor" opacity=".45" /></svg>
           Player Library
         </a>
-        <span className="nav-note">{total ? `${total.toLocaleString('en-US')} NBA players on ESPN's record` : 'Opening…'}</span>
+        <span className="nav-note">{total ? `${total.toLocaleString('en-US')} NBA players` : 'Opening…'}</span>
       </header>
 
       <main {...away}>

@@ -52,9 +52,9 @@ export function shelve(players, teamList = []) {
 // Why a book is where it is, in words.
 export const shelvedBecause = (p, team) => {
   const name = team?.name;
-  if (!p?.a) return name ? `with the retired players; ${name} was his last team on ESPN's record` : 'with the retired players';
-  if (!name) return 'with the active players (ESPN lists him on no team)';
-  return p.tms === 'seasons' || p.tms === 'last' || p.tms === 'awards' ? `with the ${name}, the latest team ESPN lists for him` : `with the ${name}, his current team`;
+  if (!p?.a) return name ? `with the retired players; ${name} was his last team` : 'with the retired players';
+  if (!name) return 'with the active players (he is not on a team right now)';
+  return p.tms === 'seasons' || p.tms === 'last' || p.tms === 'awards' ? `with the ${name}, the latest team he played for` : `with the ${name}, his current team`;
 };
 
 // ---- Colour ------------------------------------------------------------------------------------------------------

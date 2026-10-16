@@ -355,7 +355,7 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
             </select>
           </label>
         )}
-        {!paged && !error && <span className="pg-count" role="status"><span className="spinner small" aria-hidden /> Fetching the pages from ESPN…</span>}
+        {!paged && !error && <span className="pg-count" role="status"><span className="spinner small" aria-hidden /> Fetching the pages…</span>}
         {paged && <span className="pg-count" aria-hidden>{(() => {
           if (pos < 0) return 'Cover';
           if (!spread) return `${pos + 1} / ${n}`;
@@ -366,7 +366,7 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
 
       <div className="book-wrap" ref={wrap}>
         {error ? <div className="pending" role="alert"><h2>This book won't open right now</h2><p>{error}</p><button className="btn" onClick={() => location.reload()}>Try again</button></div>
-          : !geo ? <div className="pending" role="status"><h2 className="display">{name}</h2><p className="lede">{spanOf(player || {})}</p><p><span className="spinner" aria-hidden /> Fetching the pages from ESPN…</p></div>
+          : !geo ? <div className="pending" role="status"><h2 className="display">{name}</h2><p className="lede">{spanOf(player || {})}</p><p><span className="spinner" aria-hidden /> Fetching the pages…</p></div>
           : (
             <div
               ref={bookEl}
@@ -443,7 +443,7 @@ function Endpaper({ side, shelf, id, name, onClose }) {
         <div className="bookplate">
           <p className="bp-ex">From the Player Library</p>
           <p className="bp-name">{name}</p>
-          {shelf && <dl><dt>Shelf</dt><dd>{shelf.label}</dd>{shelf.team && <><dt>{shelf.retired ? 'Last team' : 'Team'}</dt><dd>{shelf.team.abbr}</dd></>}<dt>ESPN no.</dt><dd>{id}</dd></dl>}
+          {shelf && <dl><dt>Shelf</dt><dd>{shelf.label}</dd>{shelf.team && <><dt>{shelf.retired ? 'Last team' : 'Team'}</dt><dd>{shelf.team.abbr}</dd></>}</dl>}
         </div>
       ) : (
         <div className="bookplate end">

@@ -71,9 +71,9 @@ const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, on
             })}
           </ul>
           <p className="r-foot" role="status">
-            {remote.state === 'busy' ? 'Asking ESPN about players not yet shelved…'
-              : remote.state === 'error' ? `ESPN search failed: ${remote.msg}`
-              : !results.length && remote.state === 'done' ? `No NBA player called “${q.trim()}” on ESPN's record.`
+            {remote.state === 'busy' ? 'Looking for players not yet shelved…'
+              : remote.state === 'error' ? `Search failed: ${remote.msg}`
+              : !results.length && remote.state === 'done' ? `No NBA player called “${q.trim()}” on record.`
               : !results.length ? 'No match yet…'
               : 'Enter goes to the shelf · Shift+Enter opens the book'}
           </p>
