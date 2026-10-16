@@ -1,37 +1,34 @@
 # The Player Library
 
-Every NBA player ESPN has on record gets a book, shelved with their team in a library you walk through. Walk the shelves, pull a book, and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
+Every NBA player ESPN has on record gets a book. Active players stand on their current team's shelf; every retired player stands on one long shelf. Pick a team, find a book, take it down and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
 
 Live: https://total-nba-ja9d.vercel.app
 
 ## Using it
 
-- **Walk the library.** You start at the entrance of a bright hall of double-sided shelving rows. The end of each row is signed with the teams down each side, and every team's section is signed in its colours.
-  - Drag to look around.
-  - Walk with W A S D (Shift to hurry, Q and E to turn), scroll to step forward or back, or click the floor to walk there.
-  - On a phone, use the thumb-stick.
-  - The floor plan in the corner shows where you are; click it to go somewhere.
-- **Find a team or a player.**
-  - *Teams* opens a grid of every section and walks you there.
-  - *Search* (`/`) finds a player and walks you to the shelf (Shift+Enter opens the book). Players the catalogue doesn't hold are found through ESPN's search and shelved.
-- **Take a book down.** Click a book; on touch, tap once to select it and again to open. It tips out by the top of its spine, slides off the shelf and is turned round to face you, cover first: the player's photo and name. Any click or key skips the animation, and closing reverses it, putting the book back.
+- **One shelf at a time.** *Active players* shows one team's shelf: choose the team from the dropdown. *Retired players* is a single shelf for everyone who has retired, with letters to jump along it. Books run A to Z by surname, and the pointer above the shelf (and the giant letter behind it) shows where you are.
+  - Scroll the shelf sideways (trackpad, mouse wheel, the arrow buttons, or a swipe on a phone).
+  - With the keyboard, Tab to the shelf and use ← → (Home, End, Page Up/Down).
+  - *Shelf back* changes the colour of the wall behind the shelf.
+- **Find a player.** Search (`/`) looks across every shelf. Enter takes you to the player's shelf and brings the book under the pointer; Shift+Enter (or *Open*) takes it straight down. Players the catalogue doesn't hold are found through ESPN's search and shelved.
+- **Take a book down.** Click a book. It tips out by the top of its spine, comes off the shelf and turns to face you, cover first: the player's photo, name, team and years. Closing puts it back in its gap on the shelf.
 - **Read.** Tap or swipe the cover to open it. The book has real pages: a two-page spread on wide screens, one page on phones. Drag a page by its corner and it folds over under your finger, showing its back; let go past the middle (or flick) and it turns. Tap the right side to turn forward, the left side to go back, or use ← →.
   - The contents page lists real page numbers.
   - Esc takes you back to the shelf.
   - Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
-- **Without 3D.** *List* shows the same sections as rows of spine buttons, usable entirely by keyboard. Browsers without WebGL get it automatically. The *?* panel explains the spines and has a switch that turns animation off (the system reduced-motion setting is honored too).
+- The system's reduced-motion setting is honoured: books open and pages turn without animation.
 
 ## What a spine tells you
 
 | | |
 |---|---|
 | Thickness | Length of the career as far as ESPN's records show it |
-| Gold bands | One per MVP award |
+| Gold bands | One per MVP award (up to four) |
 | Stars | One per Finals MVP award |
-| Colour | The team's colour; a darker shade for an earlier first season |
-| Height | Decoration only |
+| Colour | The player's latest team; a darker shade for an earlier first season |
+| Height, lettering style | Decoration only |
 
-**Which team's bookcase.** A book sits with the franchise the player played the most games for in ESPN's career statistics. When those aren't recorded, it falls back to the team on the player's award records, then to ESPN's last-team field. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics sit with Oklahoma City. About a third of the books, mostly early players, have no team on ESPN's record and share a final bay. Inside a bookcase, books run A to Z by surname, spread evenly over the shelves.
+**Which shelf.** A player ESPN lists as active stands with his latest team: the team whose current roster lists him, or failing that the team he finished his latest season with (a traded player goes with the team he was traded to). Active players ESPN lists on no team have a shelf of their own. Everyone else is retired and stands on the retired shelf; the cover still names his last team. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics count as Oklahoma City.
 
 ## Data: ESPN's free public API, nothing invented
 
@@ -54,8 +51,8 @@ No API key, no paid service. Endpoints used:
 1. the season stat lists from 1984-85 on;
 2. award winners from every season;
 3. a scan of ESPN's player ids 1–8000, where players who debuted before about 2010 live;
-4. the current-player index;
-5. for careers that started before 1997, each player's own career stats, giving exact seasons, games and teams.
+4. every player's own career stats, giving exact seasons, games and the team of the latest season;
+5. the current-player index and the 30 current team rosters (who is active, and where).
 
 The result is about 5,240 players. Anyone else ESPN knows is added the first time someone searches for them.
 
@@ -70,15 +67,11 @@ The result is about 5,240 players. Anyone else ESPN knows is added the first tim
 
 ## How it's built
 
-- **Client** (`client/`): React 18 + Vite and plain three.js.
-  - The hall is laid out from the catalogue: each team gets one or more 1-metre bays, a team never splits across two faces of a row, and rows are added as needed.
-  - Each bay is one `InstancedMesh`, so its books are one draw call, and all the woodwork in the hall is one more.
-  - Walking is first person: collision keeps you in the aisles, and the opened book draws in its own pass so it never clips into a shelf.
-  - Spine lettering is painted into a canvas atlas per bay, only for the nearest bays in view, one per frame. Atlases are freed when you walk away. A small shader maps each book's spine face to its rectangle in the atlas.
-  - The scene renders only when something moves.
+- **Client** (`client/`): React 18 + Vite, no other runtime libraries.
+  - The shelf is plain HTML and CSS: each spine is a button whose size, colours, decoration and lettering come from the player's record (`client/src/shelves.js`). Only the books near the view are in the page, so the retired shelf (about 4,500 books) scrolls as smoothly as a team's.
+  - Taking a book down is CSS 3D (`client/src/pull.js`): the book is built as a box at the reader's cover size, scaled down over its spine, then tipped, pulled and turned until its cover lands exactly on the reader's.
   - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page folds along the perpendicular bisector of its corner and your finger (`client/src/fold.js`): the flat part is clipped, the lifted part is reflected across the fold to show the next page's back, and SVG gradients shade the curl and cast a shadow on the page underneath. The cover is stiff and swings without curling.
-  - three.js loads as a separate chunk, so the shelf list and reader don't wait for it.
-  - All textures (oak, floor, cloth, signs, covers) are drawn in code; the only images are ESPN's portraits on the covers.
+  - No image assets: everything is drawn in CSS and SVG; the only images are ESPN's portraits on the covers.
 - **API** (`api/`, Vercel functions):
   - `catalog` is every book, cached at the edge for an hour.
   - `book?id=` is a composed book and `book?id=&part=highs` the career highs.
@@ -94,7 +87,7 @@ npm run dev:fixtures   # the full interface on saved real data (test/fixtures), 
 MONGODB_URI=... npm run ingest && MONGODB_URI=... npm run dev   # the real thing
 npm test               # unit tests (real, trimmed ESPN responses)
 MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> ingest -> API
-npm run test:ui        # Chromium: room, search, opening, chapters, deep links, Back, no-WebGL, phone
+npm run test:ui        # Chromium: shelves, search, taking a book down, chapters, deep links, Back, keyboard, phone
 ```
 
 `tools/snapshot.mjs` refreshes `test/fixtures` from the live database; it runs through the *Probe ESPN* workflow with `task: snapshot`.
@@ -103,12 +96,13 @@ npm run test:ui        # Chromium: room, search, opening, chapters, deep links, 
 
 | Resource | Use | License |
 |---|---|---|
-| [three.js](https://threejs.org) 0.169 | 3D rendering | MIT |
 | [React](https://react.dev) 18 | Interface | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
-| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface, spines, signs, headings | SIL Open Font License 1.1 |
+| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface, spines, covers | SIL Open Font License 1.1 |
+| [Newsreader](https://fonts.google.com/specimen/Newsreader) (Production Type) | Headings, the shelf pointer | SIL Open Font License 1.1 |
+| [Oswald](https://fonts.google.com/specimen/Oswald) (Vernon Adams) and [Playfair Display](https://fonts.google.com/specimen/Playfair+Display) (Claus Eggers Sørensen) | Spine lettering | SIL Open Font License 1.1 |
 | [Literata](https://fonts.google.com/specimen/Literata) (TypeTogether) | Book text | SIL Open Font License 1.1 |
 | ESPN public API and headshots | All player data and portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
 
-Every texture, the favicon and all other artwork are original and drawn in code.
+The favicon and all other artwork are original and drawn in code.

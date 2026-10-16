@@ -36,5 +36,6 @@ jobs:
           check '/api/book?id=abc' 400 'error'
           n=$(curl -s "$URL/api/catalog" | grep -o '"i":"' | wc -l); echo "catalog size: $n"; [ "$n" -gt 5000 ] || fail=1
           t=$(curl -s "$URL/api/catalog" | grep -o '"tm":"' | wc -l); echo "books shelved with a team: $t"; [ "$t" -gt 3000 ] || fail=1
+          a=$(curl -s "$URL/api/catalog" | grep -o '"a":1' | wc -l); echo "active players (team shelves): $a"; [ "$a" -gt 400 ] || fail=1
           check /api/catalog 200 '"Boston Celtics"'
           exit $fail

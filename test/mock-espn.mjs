@@ -35,6 +35,7 @@ export function mockEspn() {
     [/\/core\/seasons\/2016\/awards\/33$/, () => ({ id: '33', name: 'MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/2016/athletes/1966` } }] })],
     [/\/core3\/athletes$/, () => ({ items: [{ id: '1966', displayName: 'LeBron James', firstName: 'LeBron', lastName: 'James' }, { id: '5000001', displayName: 'Rookie Newman', firstName: 'Rookie', lastName: 'Newman' }] })],
     [/\/site\/teams$/, () => ({ sports: [{ leagues: [{ teams: [['1', 'ATL', 'Atlanta Hawks'], ['2', 'BOS', 'Boston Celtics'], ['5', 'CLE', 'Cleveland Cavaliers'], ['9', 'GS', 'Golden State Warriors'], ['13', 'LAL', 'Los Angeles Lakers'], ['14', 'MIA', 'Miami Heat'], ['18', 'NY', 'New York Knicks']].map(([id, abbreviation, displayName]) => ({ team: { id, abbreviation, displayName, shortDisplayName: displayName.split(' ').pop(), color: '112233', alternateColor: 'ddeeff' } })) }] }] })],
+    [/\/site\/teams\/\d+\/roster$/, u => ({ athletes: u.pathname.includes('/teams/5/') ? [{ id: '1966', displayName: 'LeBron James', firstName: 'LeBron', lastName: 'James' }] : [] })],
     [/\/search$/, u => ({ results: [{ type: 'player', contents: /forgotten/i.test(u.searchParams.get('query')) ? [{ uid: 's:40~l:46~a:7777', displayName: 'Forgotten Guard' }, { uid: 's:20~l:28~a:5', displayName: 'Football Person' }] : [] }] })],
   ];
   const server = http.createServer((req, res) => {

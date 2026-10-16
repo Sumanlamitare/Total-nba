@@ -81,7 +81,7 @@ function titlePage(book, { player, shelf }, add) {
       <hr className="rule" />
       <p className="ex-libris">
         {book.regular ? <>A record of {plural(book.regular.seasons, 'season')} on ESPN's books{book.playoffs ? `, ${plural(book.playoffs.seasons, 'playoff run')}` : ''}.</> : <>ESPN keeps no season statistics for this player; the book holds what it does have.</>}
-        {shelf && <><br />{shelf.cs.team.id ? <>Shelved with the {shelf.cs.team.name}, {shelvedBecause(player)}.</> : <>Shelved in the bay for players whose team ESPN does not record.</>}</>}
+        {shelf && <><br />Shelved {shelvedBecause(player, shelf.team)}.</>}
       </p>
       <p className="turn-hint">Turn the page — drag its corner, swipe, or press →</p>
     </div>

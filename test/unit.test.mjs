@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseStats, compose, foldGamelog, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
 import { foldSeason, awardRows, countHonors, finishSpans, foldCareer, publicRecord, entry, sortKey, currentSeason, leaderOf } from '../lib/catalog.js';
-import { pack, span, seasonLabel, bookSize, CASE, hallPlan, HALL, spineColor, inkOn, luminance } from '../client/src/shelves.js';
-import { assignTeam } from '../lib/catalog.js';
+import { shelve, span, seasonLabel, spineOf, spineColor, inkOn, luminance, contrast, RETIRED } from '../client/src/shelves.js';
+import { assignTeam, rosterAthletes } from '../lib/catalog.js';
 import { localSearch } from '../client/src/search.js';
 import { perSeason, byTeam, best, coverageGap } from '../client/src/bookdata.js';
 
@@ -107,17 +107,18 @@ test('foldGamelog: highs, 40-point games and preseason ignored', () => {
 test('catalog: season lists, awards, spans and the public record', () => {
   const players = new Map();
   const season = { categories: [{ name: 'general', names: ['gamesPlayed'] }], athletes: [
-    { athlete: { id: '1', displayName: 'Ann Able', firstName: 'Ann', lastName: 'Able', debutYear: 2014, position: { abbreviation: 'G' }, teams: [{ abbreviation: 'BOS' }] }, categories: [{ name: 'general', values: [70] }] },
+    { athlete: { id: '1', displayName: 'Ann Able', firstName: 'Ann', lastName: 'Able', debutYear: 2014, position: { abbreviation: 'G' }, teams: [{ id: '2', abbreviation: 'BOS' }] }, categories: [{ name: 'general', values: [70] }] },
   ] };
   assert.equal(foldSeason(players, 2016, season), 1);
-  foldSeason(players, 2017, { ...season, athletes: [{ ...season.athletes[0], athlete: { ...season.athletes[0].athlete, teams: [{ abbreviation: 'NYK' }] } }] });
+  foldSeason(players, 2017, { ...season, athletes: [{ ...season.athletes[0], athlete: { ...season.athletes[0].athlete, teams: [{ id: '18', abbreviation: 'NYK' }] } }] });
   const rows = awardRows(1960, { id: '33', name: 'MVP', winners: [{ athlete: { $ref: 'http://x/seasons/1960/athletes/4142?lang=en' }, team: { $ref: 'http://x/seasons/1960/teams/9' } }] });
   assert.deepEqual(rows[0], { _id: '1960-33-4142', season: 1960, award: '33', name: 'MVP', id: '4142', team: '9' });
   players.set('4142', entry({ id: '4142', name: 'Wilt Chamberlain', debut: 1959, src: 'awards' }));
   countHonors(players, rows);
   finishSpans(players, rows);
   const a = players.get('1'), w = players.get('4142');
-  assert.deepEqual([a.y0, a.y1, a.g, a.t, a.ct], [2015, 2017, 140, ['BOS', 'NYK'], 'NYK']);
+  assert.deepEqual([a.y0, a.y1, a.g, a.t, a.ls], [2015, 2017, 140, ['BOS', 'NYK'], '18'], 'the latest season\'s team');
+  assert.equal(w.la, '9', 'the team on the latest award');
   assert.deepEqual([w.y0, w.y1, w.y1min, w.h], [1960, 1960, true, { mvp: 1 }]);
   assert.deepEqual(publicRecord(w), { i: '4142', n: 'Wilt Chamberlain', l: 'Chamberlain', k: 'chamberlain wilt', y0: 1960, y1: 1960, y1m: 1, h: { mvp: 1 } });
 });
@@ -142,60 +143,51 @@ test('sortKey, seasons and the current season', () => {
   assert.equal(currentSeason(new Date('2026-06-01')), 2026);
 });
 
-test('shelving by team: one book per player, a bookcase per franchise, A to Z inside, unrecorded last', () => {
+test('shelving: active players on their team\'s shelf, every retired player on one shelf, A to Z', () => {
   const players = catalog.players, teams = catalog.meta.teams || [];
   assert.ok(players.length > 5000);
-  const layout = pack(players, teams);
-  assert.equal(layout.books.length, players.length);
-  assert.equal(new Set(layout.books.map(b => b.i)).size, players.length);
-  for (const cs of layout.cases) {
-    const inCase = layout.books.slice(cs.first, cs.last + 1);
-    assert.ok(inCase.every(b => b.c === cs.index), 'contiguous');
-    // Every book in a case belongs to that case's team.
-    for (const b of inCase) assert.equal(players[b.i].tm && teams.some(t => t.id === players[b.i].tm) ? players[b.i].tm : null, cs.team.id);
-    for (let n = 1; n < inCase.length; n++) {
-      const a = inCase[n - 1], b = inCase[n];
-      assert.ok(players[a.i].k <= players[b.i].k, 'A to Z');
-      assert.ok(b.s > a.s || (b.s === a.s && b.x > a.x), 'reading order');
-    }
-    for (const b of inCase) assert.ok(Math.abs(b.x) + b.w / 2 <= CASE.width / 2 && b.s < CASE.shelves, 'fits');
-    assert.ok(cs.ends.length >= 1, 'bookends');
+  const lib = shelve(players, teams);
+  const all = [...lib.retired, ...lib.teams.flatMap(t => t.books)];
+  assert.equal(all.length, players.length, 'one book per player');
+  assert.equal(new Set(all).size, players.length);
+  assert.ok(lib.retired.every(i => !players[i].a), 'the retired shelf holds only retired players');
+  for (const t of lib.teams) {
+    assert.ok(t.books.every(i => players[i].a), 'team shelves hold only active players');
+    if (t.id !== 'none') assert.ok(t.books.every(i => players[i].tm === t.id), `${t.name}: its own players`);
   }
-  const named = layout.teams.filter(t => t.id);
-  assert.deepEqual(named.map(t => t.name), [...named.map(t => t.name)].sort((a, b) => a.localeCompare(b)));
-  if (layout.teams.some(t => !t.id)) assert.equal(layout.teams[layout.teams.length - 1].id, null);
-  // Without team data everything still has a place.
-  const flat = pack(players.slice(0, 500), []);
-  assert.equal(flat.books.length, 500);
-  assert.equal(flat.teams.length, 1);
+  for (const list of [lib.retired, ...lib.teams.map(t => t.books)]) {
+    for (let n = 1; n < list.length; n++) assert.ok(players[list[n - 1]].k <= players[list[n]].k, 'A to Z');
+  }
+  const named = lib.teams.filter(t => t.id !== 'none');
+  assert.deepEqual(named.map(t => t.name), [...named.map(t => t.name)].sort((x, y) => x.localeCompare(y)));
+  const russell = players.find(p => p.n === 'Bill Russell');
+  assert.equal(lib.placeOf.get(russell.i).shelf, RETIRED);
+  // Without team data every active player still has a place.
+  const flat = shelve(players.slice(0, 500), []);
+  assert.equal(flat.retired.length + flat.teams.reduce((n, t) => n + t.books.length, 0), 500);
 });
 
-test('team assignment: most games first, then season lists, awards, last team', () => {
+test('team assignment: the latest team — current roster, then latest season, last-team field, latest award', () => {
   const fr = new Set(['2', '13', '25']);
-  const p = { cg: { 13: 400, 2: 900 }, sg: { 13: 9999 }, ag: {}, lt: '25' };
-  assert.equal(assignTeam(p, fr), '2'); assert.equal(p.tms, 'games');
-  assert.equal(assignTeam({ cg: {}, sg: { 25: 30 }, ag: { 2: 3 }, lt: '13' }, fr), '25');
-  assert.equal(assignTeam({ cg: {}, sg: {}, ag: { 2: 3 }, lt: '13' }, fr), '2');
-  const q = { cg: {}, sg: {}, ag: {}, lt: '13' }; assert.equal(assignTeam(q, fr), '13'); assert.equal(q.tms, 'last');
-  assert.equal(assignTeam({ cg: { 99: 50 }, sg: {}, ag: {}, lt: null }, fr), null, 'unknown team ids are not shelved under a franchise');
+  const p = { rt: '13', lg: '2', ls: '25', lt: '25', la: '2' };
+  assert.equal(assignTeam(p, fr), '13'); assert.equal(p.tms, 'roster');
+  const q = { rt: null, lg: '2', ls: '25', lt: '13' }; assert.equal(assignTeam(q, fr), '2'); assert.equal(q.tms, 'career');
+  assert.equal(assignTeam({ ls: '25', lt: '13', la: '2' }, fr), '25');
+  const r = { lt: '13', la: '2' }; assert.equal(assignTeam(r, fr), '13'); assert.equal(r.tms, 'last');
+  assert.equal(assignTeam({ la: '2' }, fr), '2');
+  assert.equal(assignTeam({ lg: '99' }, fr), null, 'unknown team ids are not shelved under a franchise');
 });
 
-test('the hall: every bay has a place, no two overlap, a team stays on one face when it fits', () => {
-  const layout = pack(catalog.players, catalog.meta.teams || []);
-  const plan = hallPlan(layout);
-  assert.equal(plan.bays.filter(Boolean).length, layout.cases.length);
-  const seen = new Set();
-  for (const b of plan.bays) {
-    const key = `${b.x.toFixed(2)},${b.z.toFixed(2)}`;
-    assert.ok(!seen.has(key), 'overlap'); seen.add(key);
-    assert.ok(b.z < 0 && b.z > -HALL.rowLen, 'inside its row');
-  }
-  for (const t of layout.teams) {
-    if (t.cases > HALL.perFace) continue;
-    const faces = new Set(Array.from({ length: t.cases }, (_, k) => plan.bays[t.first + k].face));
-    assert.equal(faces.size, 1, `${t.name} split across faces`);
-  }
-  assert.equal(plan.faces.length, Math.ceil(plan.faces.length / 2) * 2 - (plan.faces.length % 2));
+test('team assignment: a traded season ends with the team he finished with', () => {
+  const p = entry({ id: '3992', name: 'James Harden', src: 'seasons' });
+  assert.equal(foldCareer(p, raw('stats_harden')), true);
+  assert.equal(p.lg, '5', 'traded from the Clippers to Cleveland in 2025-26');
+});
+
+test('rosters: flat and grouped responses', () => {
+  assert.deepEqual(rosterAthletes({ athletes: [{ id: '1' }, { id: '2' }] }).map(a => a.id), ['1', '2']);
+  assert.deepEqual(rosterAthletes({ athletes: [{ position: 'G', items: [{ id: '3' }] }, { items: [{ id: '4' }] }] }).map(a => a.id), ['3', '4']);
+  assert.deepEqual(rosterAthletes(null), []);
 });
 
 test('spine colours: the team colour, darker for earlier decades, with readable lettering', () => {
@@ -206,8 +198,15 @@ test('spine colours: the team colour, darker for earlier decades, with readable 
   assert.equal(inkOn('#0e2240'), '#f6f4ef');
 });
 
-test('thickness follows career length', () => {
-  assert.ok(bookSize({ i: '1', y0: 2004, y1: 2026 }).w > bookSize({ i: '1', y0: 2020, y1: 2021 }).w);
+test('spines: thickness follows career length; MVPs get gold bands; lettering is readable', () => {
+  const lakers = { color: '#552583', alt: '#fdb927' };
+  assert.ok(spineOf({ i: '1', y0: 2004, y1: 2026 }, lakers).w > spineOf({ i: '1', y0: 2020, y1: 2021 }, lakers).w);
+  const mvp = spineOf({ i: '2', y0: 2004, y1: 2026, h: { mvp: 4, fmvp: 4 } }, lakers);
+  assert.deepEqual([mvp.deco, mvp.mvp, mvp.fmvp], ['bands', 4, 4]);
+  for (const p of catalog.players.slice(0, 400)) {
+    const sp = spineOf(p, (catalog.meta.teams || []).find(t => t.id === p.tm));
+    assert.ok(contrast(sp.fg, sp.bg) >= 3, `${p.n}: lettering stands out`);
+  }
 });
 
 test('span labels', () => {

@@ -50,11 +50,11 @@ test('catalog: season-list players, award-only legends, the id scan and rookies 
   assert.equal(byName['LeBron James'].y0, 2004);
   assert.deepEqual(body.players.map(p => p.k), [...body.players.map(p => p.k)].sort(), 'alphabetical');
   assert.equal(body.meta.players, 5);
-  // Shelved by team: most games (career stats), then season lists, then award records; unknown stays unshelved.
+  // Shelved with the latest team: the current roster, then the latest season, then the latest award.
   assert.equal(body.meta.teams.length, 7);
   assert.equal(byName['LeBron James'].tm, '5');
-  assert.equal(byName['LeBron James'].tms, undefined, 'games is the default reason');
-  assert.equal(byName['Ann Able'].tm, '2', 'equal season games: the first team seen');
+  assert.equal(byName['LeBron James'].tms, undefined, 'roster is a default reason');
+  assert.equal(byName['Ann Able'].tm, '18', 'Boston, then New York: the latest season counts');
   assert.equal(byName['Ann Able'].tms, 'seasons');
   assert.equal(byName['Wilt Chamberlain'].tm, '9');
   assert.equal(byName['Wilt Chamberlain'].tms, 'awards');

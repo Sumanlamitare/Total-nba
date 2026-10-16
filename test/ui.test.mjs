@@ -46,28 +46,34 @@ async function page(opts = {}) {
   return p;
 }
 
-test('the reading room: search guides to the shelf, a book opens, chapters turn, Esc returns', async () => {
+test('the shelves: a team per shelf, one shelf for the retired, search brings a book to the pointer, it comes off the shelf and opens', async () => {
   const p = await page();
   await p.goto(base + '/');
-  await p.locator('.where').waitFor({ timeout: 30000 });
-  await p.locator('.room .loading').waitFor({ state: 'detached', timeout: 30000 });
-  assert.match(await p.locator('.brand-count').textContent(), /5,2\d\d players/);
-  await p.waitForTimeout(1500);
-  // The Teams button walks you to a team's section.
-  await p.getByRole('button', { name: 'Teams' }).click();
-  await p.getByRole('dialog', { name: 'Teams' }).getByRole('button', { name: /Boston Celtics/ }).click();
-  await p.locator('.where', { hasText: 'Boston Celtics' }).waitFor({ timeout: 20000 });
+  await p.locator('.vol').first().waitFor({ timeout: 30000 });
+  // One team at a time, picked from one dropdown; only active players stand on it.
+  await p.getByLabel('Team').selectOption({ label: (await p.locator('#team-pick option', { hasText: 'Boston Celtics' }).textContent()).trim() });
+  await p.getByRole('heading', { level: 1, name: 'Boston Celtics' }).waitFor();
+  assert.match(await p.locator('.count').textContent(), /^\d+ players?$/);
+  // Retired players: one shelf, no team picker.
+  await p.getByRole('button', { name: /^Retired players/ }).click();
+  await p.getByRole('heading', { level: 1, name: 'Retired players' }).waitFor();
+  assert.equal(await p.getByLabel('Team').count(), 0);
+  assert.match(await p.locator('.count').textContent(), /^4,\d{3} players$/);
+  // Search: Enter brings the book to the pointer on its shelf and focuses it.
   await p.keyboard.press('/');
   await p.getByRole('combobox').fill('bill russell');
-  assert.equal(await p.locator('.card-name').first().textContent(), 'Bill Russell');
+  assert.equal(await p.locator('#search-results .r-name').first().textContent(), 'Bill Russell');
   await p.keyboard.press('Enter');
-  await p.locator('.slip.chosen', { hasText: 'Bill Russell' }).waitFor();
-  await p.keyboard.press('Enter'); // opens the selected book (the slip's button does the same)
+  await p.locator('.vol.flash[data-id="4152"]').waitFor();
+  assert.equal(await p.locator('.ptag').textContent(), 'R');
+  await p.keyboard.press('Enter'); // the focused book comes off the shelf
   const reader = p.getByRole('dialog', { name: /Bill Russell/ });
   await reader.waitFor({ timeout: 15000 });
+  await p.locator('.reader:not(.hidden)').waitFor();
   assert.match(p.url(), /\/book\/4152\/bill-russell$/);
-  // The book arrives closed, cover up; → opens it at the bookplate and the title page. Turn the page to read on.
-  await p.locator('.book.closed .cover', { hasText: 'BILL' }).waitFor();
+  // It arrives closed, cover up, with his last team; → opens it at the bookplate and the title page.
+  await p.locator('.book.closed .cover', { hasText: 'Boston Celtics' }).waitFor();
+  await p.locator('.book:not(.turning) .pg-count, .reader .pg-count', { hasText: 'Cover' }).first().waitFor();
   await p.keyboard.press('ArrowRight');
   await p.locator('.book:not(.turning):not(.closed) .bookplate').waitFor();
   await p.keyboard.press('ArrowRight');
@@ -76,24 +82,22 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
   await p.keyboard.press('ArrowRight');
   await p.locator('.book .leaf-back').waitFor({ state: 'attached' });
   await p.locator('.book:not(.turning)').waitFor();
-  // Jump by chapter: the statistical record.
   await p.getByLabel('Chapter').selectOption('7');
   await p.locator('.book:not(.turning)').waitFor();
   const rows = await findInBook(p, b => b.locator('table.stats tbody tr'));
   assert.equal(await rows.count(), 13);
-  // Rebounds were not recorded by ESPN for these seasons: blank, not zero.
-  assert.equal(await rows.first().locator('td').nth(5).innerText(), '—');
-  await p.locator('.book').getByRole('radio', { name: 'Totals' }).click();
-  await p.locator('.book').getByRole('radio', { name: 'Playoffs' }).click();
-  assert.equal(await p.locator('.book table.stats tbody tr').count(), 13);
+  assert.equal(await rows.first().locator('td').nth(5).innerText(), '—', 'rebounds not recorded: blank, not zero');
   await p.keyboard.press('Escape');
   await reader.waitFor({ state: 'detached' });
   assert.equal(new URL(p.url()).pathname, '/');
-  // Open another straight from the catalogue (Shift+Enter), then the browser's Back button closes it.
+  await p.locator('.vol[data-id="4152"]').waitFor({ state: 'visible', timeout: 10000 }); // put back on the shelf
+  await p.locator('.stage').waitFor({ state: 'detached', timeout: 10000 });
+  // Shift+Enter opens straight from the search; the browser's Back button closes it.
   await p.keyboard.press('/');
   await p.getByRole('combobox').fill('wembanyama');
   await p.keyboard.press('Shift+Enter');
   await p.getByRole('dialog', { name: /Victor Wembanyama/ }).waitFor({ timeout: 15000 });
+  assert.equal(await p.locator('main h1').textContent(), 'San Antonio Spurs', 'his team\'s shelf, behind the book');
   await p.goBack();
   await p.getByRole('dialog').waitFor({ state: 'detached' });
   assert.equal(new URL(p.url()).pathname, '/');
@@ -102,8 +106,6 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
 
 test('a link straight to a book opens it on its own', async () => {
   const p = await page();
-  await p.goto(base + '/');
-  await p.locator('.where').waitFor({ timeout: 30000 });
   await p.goto(base + '/book/4142/wilt-chamberlain');
   const reader = p.getByRole('dialog', { name: /Wilt Chamberlain/ });
   await reader.waitFor({ timeout: 30000 });
@@ -132,22 +134,25 @@ test('records chapter loads career highs and says where they come from', async (
   await findInBook(p, b => b.getByText(/Counted from ESPN's game logs/));
 });
 
-test('without WebGL the library is a shelf list that works by keyboard', async () => {
-  const ctx = await browser.newContext({ viewport: { width: 1100, height: 800 } });
-  await ctx.route(/espncdn\.com/, r => r.abort()); // portraits; the web fonts load as they do for real
-  await ctx.addInitScript(() => { HTMLCanvasElement.prototype.getContext = function (t) { return /webgl/.test(t) ? null : CanvasRenderingContext2D && null; }; });
-  const p = await ctx.newPage();
+test('the shelf works by keyboard, and the retired shelf jumps by letter', async () => {
+  const p = await page({ viewport: { width: 1100, height: 800 } });
   await p.goto(base + '/');
-  await p.getByRole('region', { name: 'Shelf list' }).waitFor({ timeout: 20000 }).catch(() => {});
-  await p.locator('.listview').waitFor();
-  assert.equal(await p.getByRole('button', { name: /List view|Walk the library/ }).count(), 0, 'no 3D toggle offered');
-  const first = p.locator('.spine').first();
+  await p.locator('.vol').first().waitFor({ timeout: 30000 });
+  await p.getByRole('button', { name: /^Retired players/ }).click();
+  await p.getByRole('group', { name: 'Jump to' }).getByRole('button', { name: 'W', exact: true }).click();
+  await p.waitForFunction(() => document.querySelector('.ptag')?.textContent === 'W');
+  // One tab stop on the shelf; arrows move along it; Enter takes the book down.
+  const first = p.locator('.vol[tabindex="0"]');
   await first.focus();
+  const before = await first.getAttribute('data-id');
   await p.keyboard.press('ArrowRight');
+  const now = await p.evaluate(() => document.activeElement?.dataset.id);
+  assert.notEqual(now, before);
   await p.keyboard.press('Enter');
   await p.getByRole('dialog').waitFor({ timeout: 10000 });
   await p.keyboard.press('Escape');
   await p.getByRole('dialog').waitFor({ state: 'detached' });
+  assert.deepEqual(p.errors, []);
 });
 
 test('phone: the reader is a single page that turns, with a chapter picker', async () => {

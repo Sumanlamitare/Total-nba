@@ -38,7 +38,7 @@ function useGeometry(wrap) {
   return g;
 }
 
-export default function Reader({ id, player, layout, index, motion, onClose }) {
+export default function Reader({ id, player, shelf, hidden = false, arrived = false, motion, onClose }) {
   const [state, setState] = useState({ book: null, error: null });
   const [highs, setHighs] = useState({ state: 'loading' });
   const [ui, setUiState] = useState(UI_DEFAULTS);
@@ -62,17 +62,16 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     }).catch(e => live && setState({ book: null, error: e.message }));
     return () => { live = false; };
   }, [id]);
-  useEffect(() => { head.current?.focus(); }, []);
+  useEffect(() => { if (!hidden) head.current?.focus(); }, [hidden]);
 
   const { book, error } = state;
   const name = book?.name || player?.n || '';
-  const shelf = index != null && layout ? { cs: layout.cases[layout.books[index].c], s: layout.books[index].s + 1 } : null;
 
   // Pages: blocks -> measured heights -> packed pages. Two passes so the contents page can show page numbers.
   const [chapterPages, setChapterPages] = useState(null);
   const goPageRef = useRef(() => {});
   const blocks = useMemo(() => (book ? buildBlocks(book, { ui, setUi, highs, player, shelf, chapterPages, goPage: p => goPageRef.current(p) }) : []),
-    [book, ui, setUi, highs, player, shelf?.cs, shelf?.s, chapterPages]); // eslint-disable-line react-hooks/exhaustive-deps
+    [book, ui, setUi, highs, player, shelf?.label, chapterPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useLayoutEffect(() => {
     if (!geo || !measure.current || !blocks.length) return;
@@ -224,7 +223,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const startTurn = useCallback((to, { drag = false, top = false } = {}) => {
     // A request while a page is still moving waits for it to land (fast tapping turns page after page).
     if (anim.current.turn) { if (!drag && to >= -1 && to <= last) anim.current.queued = to; return !drag; }
-    if (to === pos || to < -1 || to > last) return false;
+    if (!paged || to === pos || to < -1 || to > last) return false;
     const fp = firstPageOf(to);
     const dir = to > pos ? 1 : -1;
     const t = { dir, from: pos, to, top, mirror: spread && dir < 0, reverse: !spread && dir < 0, anchorKey: fp != null && paged?.pages[fp] ? shown[paged.pages[fp].blocks[0]].key : null };
@@ -323,7 +322,8 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
 
   // What's where during a turn: the pages left lying underneath, the turning page's front, and its back.
   let baseL = null, baseR = null, face = null, back = null;
-  if (paged) {
+  if (!paged) baseR = 'cover'; // the pages are still coming: the book stays closed
+  else {
     if (spread) {
       if (!turn) { baseL = leftOf(pos); baseR = rightOf(pos); }
       else if (turn.dir > 0) { baseL = leftOf(turn.from); baseR = rightOf(turn.to); face = rightOf(turn.from); back = leftOf(turn.to); }
@@ -343,7 +343,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const closed = pos < 0 && !turn;
 
   return (
-    <div className="reader" role="dialog" aria-modal="true" aria-labelledby="book-title" style={{ '--accent': shelf ? teamCloth(shelf.cs.team) : '#2b6fd6' }}>
+    <div className={`reader${hidden ? ' hidden' : ''}${arrived ? ' arrived' : ''}`} role="dialog" aria-modal="true" aria-labelledby="book-title" style={{ '--accent': shelf?.team ? teamCloth(shelf.team) : '#2b6fd6' }}>
       <h1 id="book-title" className="sr-only" tabIndex={-1} ref={head}>{name}</h1>
       <div className="reader-bar">
         <button className="btn" onClick={onClose}>← <span className="long">Back to the shelves</span><span className="short">Shelves</span></button>
@@ -355,6 +355,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
             </select>
           </label>
         )}
+        {!paged && !error && <span className="pg-count" role="status"><span className="spinner small" aria-hidden /> Fetching the pages from ESPN…</span>}
         {paged && <span className="pg-count" aria-hidden>{(() => {
           if (pos < 0) return 'Cover';
           if (!spread) return `${pos + 1} / ${n}`;
@@ -365,7 +366,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
 
       <div className="book-wrap" ref={wrap}>
         {error ? <div className="pending" role="alert"><h2>This book won't open right now</h2><p>{error}</p><button className="btn" onClick={() => location.reload()}>Try again</button></div>
-          : !paged || !geo ? <div className="pending" role="status"><h2 className="display">{name}</h2><p className="lede">{spanOf(player || {})}</p><p><span className="spinner" aria-hidden /> Fetching the pages from ESPN…</p></div>
+          : !geo ? <div className="pending" role="status"><h2 className="display">{name}</h2><p className="lede">{spanOf(player || {})}</p><p><span className="spinner" aria-hidden /> Fetching the pages from ESPN…</p></div>
           : (
             <div
               ref={bookEl}
@@ -417,9 +418,9 @@ function Cover({ book, player, shelf }) {
   const initials = words.map(w => w[0]).slice(0, 2).join('');
   const start = book?.debut || (book?.regular ? book.regular.first - 1 : null);
   const years = book?.regular && start ? `${start}–${book.active ? 'now' : book.regular.last}` : spanOf(player || {});
-  const cloth = shelf ? teamCloth(shelf.cs.team) : '#3a3f47';
+  const cloth = shelf?.team ? teamCloth(shelf.team) : '#3a3f47';
   return (
-    <div className="pg cover" style={{ '--cloth': cloth, '--cover-ink': inkOn(cloth), '--band': shelf?.cs.team.alt || '#d8b25a' }}>
+    <div className="pg cover" style={{ '--cloth': cloth, '--cover-ink': inkOn(cloth), '--band': shelf?.team?.alt || '#d8b25a' }}>
       <p className="cover-imprint">Player Library</p>
       <div className={`cover-photo${img === 'ok' ? ' has' : ''}`}>
         {src && img !== 'none' && <img src={src} alt="" onLoad={() => setImg('ok')} onError={() => setImg('none')} />}
@@ -427,7 +428,7 @@ function Cover({ book, player, shelf }) {
       </div>
       <i className="cover-band" aria-hidden />
       <h2 className="cover-name">{words.map((w, k) => <span key={k} className={w.length > 9 ? 'long' : undefined}>{w}</span>)}</h2>
-      <p className="cover-years">{[shelf?.cs.team.id ? shelf.cs.team.name : null, years].filter(Boolean).join(' · ')}</p>
+      <p className="cover-years">{[shelf?.team?.name, years].filter(Boolean).join(' · ')}</p>
       <p className="cover-hint">Swipe or tap to open</p>
     </div>
   );
@@ -442,7 +443,7 @@ function Endpaper({ side, shelf, id, name, onClose }) {
         <div className="bookplate">
           <p className="bp-ex">From the Player Library</p>
           <p className="bp-name">{name}</p>
-          {shelf && <dl><dt>Shelf mark</dt><dd>{shelf.cs.label} · {shelf.s}</dd><dt>Team</dt><dd>{shelf.cs.team.abbr}</dd><dt>ESPN no.</dt><dd>{id}</dd></dl>}
+          {shelf && <dl><dt>Shelf</dt><dd>{shelf.label}</dd>{shelf.team && <><dt>{shelf.retired ? 'Last team' : 'Team'}</dt><dd>{shelf.team.abbr}</dd></>}<dt>ESPN no.</dt><dd>{id}</dd></dl>}
         </div>
       ) : (
         <div className="bookplate end">
