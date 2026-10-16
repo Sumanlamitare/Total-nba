@@ -7,7 +7,7 @@
 //  - The scene renders only when something moves.
 import * as THREE from 'three';
 import { CASE, shelfY, HALL, hallPlan, spineColor, teamCloth } from './shelves.js';
-import { paintCase, paintCover, paintEndpaper, paintHalfTitle, paintBookplate, paintTitlePage } from './spines.js';
+import { paintCase, paintSpine, paintCover } from './spines.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -492,46 +492,39 @@ export class Room {
 
   // ---- the opening sequence ---------------------------------------------------------------------------------
 
+  // The book being taken down: a closed book with its real spine, cover and page edges.
   async buildHero(n, portraitUrl) {
     const p = this.players[this.layout.books[n].i];
     const b = this.layout.books[n];
     const team = this.layout.cases[b.c].team;
     const tex = c => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(8, this.maxAniso); return t; };
-    const mat = t => new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
-    const shelfMark = `${this.layout.cases[b.c].label} · shelf ${b.s + 1}`;
-    const coverTex = tex(paintCover(p, team)), endTex = tex(paintEndpaper(team)), halfTex = tex(paintHalfTitle(p));
-    const plateTex = tex(paintBookplate(p, shelfMark, team)), titleTex = tex(paintTitlePage(p, team)), backTex = tex(paintEndpaper(team));
-    const clothMat = new THREE.MeshStandardMaterial({ color: teamCloth(team), roughness: 0.75 });
-    const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.7 });
-    const pages = new THREE.MeshStandardMaterial({ color: '#f4f1ea', roughness: 0.9 });
-    const endpaper = mat(endTex), half = mat(halfTex), plate = mat(plateTex), title = mat(titleTex), endBack = mat(backTex);
+    const sw = 64, sh = Math.min(1024, Math.round(sw * b.h / b.w));
+    const spineCanvas = document.createElement('canvas'); spineCanvas.width = sw; spineCanvas.height = sh;
+    paintSpine(spineCanvas.getContext('2d'), p, team, 0, 0, sw, sh);
+    const coverTex = tex(paintCover(p, team)), spineTex = tex(spineCanvas);
+    const clothMat = new THREE.MeshStandardMaterial({ color: spineColor(p, team), roughness: 0.75 });
+    // The cover lights up to its own colours as it reaches you, so it hands over to the reader's cover without a jump.
+    const coverMat = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.7, emissive: 0xffffff, emissiveMap: coverTex, emissiveIntensity: 0 });
+    const spineMat = new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.7 });
+    const pages = new THREE.MeshStandardMaterial({ color: '#f1ede4', roughness: 0.95 });
     const W = 0.24, H = 0.33, T = Math.max(0.03, b.w);
-    const inner = T / 2 - 0.003;
     const g = new THREE.Group();
     const geos = [];
     const box = (w, h, d) => { const geo = new THREE.BoxGeometry(w, h, d); geos.push(geo); return geo; };
-    const bt = inner - 0.0032 + (T / 2 - 0.003);
-    const block = new THREE.Mesh(box(bt, H * 0.97, W * 0.97), [title, pages, pages, pages, pages, pages]);
-    block.position.set(inner - 0.0032 - bt / 2, 0, 0);
-    const back = new THREE.Mesh(box(0.006, H, W), clothMat); back.position.x = -T / 2;
-    const spine = new THREE.Mesh(box(T, H, 0.006), clothMat); spine.position.z = W / 2;
-    const leaf = (x, geo, mats) => {
-      const hinge = new THREE.Group(); hinge.position.set(x, 0, W / 2);
-      const m = new THREE.Mesh(geo, mats); m.position.set(0, 0, -W / 2); hinge.add(m); g.add(hinge);
-      return hinge;
-    };
-    const board = leaf(T / 2, box(0.006, H, W), [coverMat, endpaper, clothMat, clothMat, clothMat, clothMat]);
-    const endLeaf = leaf(inner - 0.0007, box(0.0008, H * 0.97, W * 0.97), [endBack, pages, pages, pages, pages, pages]);
-    const halfLeaf = leaf(inner - 0.0021, box(0.0008, H * 0.97, W * 0.97), [half, plate, pages, pages, pages, pages]);
-    g.add(block, back, spine);
-    this.hero = { group: g, hinges: [board, endLeaf, halfLeaf], n, W, H, mats: [clothMat, coverMat, pages, endpaper, half, plate, title, endBack], tex: [coverTex, endTex, halfTex, plateTex, titleTex, backTex], geos };
+    // Boards a little larger than the text block, so the page edges sit inside them.
+    const boardT = 0.004;
+    const block = new THREE.Mesh(box(T - 2 * boardT, H * 0.975, W * 0.985), pages); block.position.z = -W * 0.0075;
+    const front = new THREE.Mesh(box(boardT, H, W), [coverMat, clothMat, clothMat, clothMat, clothMat, clothMat]); front.position.x = T / 2 - boardT / 2;
+    const back = new THREE.Mesh(box(boardT, H, W), clothMat); back.position.x = -T / 2 + boardT / 2;
+    const spine = new THREE.Mesh(box(T, H, boardT), [clothMat, clothMat, clothMat, clothMat, spineMat, clothMat]); spine.position.z = W / 2 - boardT / 2;
+    g.add(block, front, back, spine);
+    this.hero = { group: g, n, W, H, T, coverMat, mats: [clothMat, coverMat, spineMat, pages], tex: [coverTex, spineTex], geos };
     this.heroScene.add(g);
     if (portraitUrl) {
       const img = new Image(); img.crossOrigin = 'anonymous';
       img.onload = () => {
         if (!this.hero || this.hero.n !== n) return;
         coverTex.image = paintCover(p, team, { portrait: img }); coverTex.needsUpdate = true;
-        titleTex.image = paintTitlePage(p, team, { portrait: img }); titleTex.needsUpdate = true;
         this.dirty = true;
       };
       img.src = portraitUrl;
@@ -540,37 +533,56 @@ export class Room {
     const start = new THREE.Matrix4().multiplyMatrices(mesh.matrixWorld, new THREE.Matrix4().makeTranslation(b.x, shelfY(b.s) + b.h / 2, CASE.depth / 2 - b.d / 2 - 0.01));
     const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
     start.decompose(pos, quat, scl);
-    this.hero.from = { pos: pos.clone(), quat: quat.clone(), scale: new THREE.Vector3(b.w / T, b.h / H, b.d / W) };
+    const scale = new THREE.Vector3(b.w / T, b.h / H, b.d / W);
+    this.hero.from = { pos: pos.clone(), quat: quat.clone(), scale };
     this.hero.out = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
-    this.hero.outPos = pos.clone().addScaledVector(this.hero.out, b.d + 0.06);
+    this.hero.side = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
+    // The book tips on the front edge of its foot: the pivot, relative to its centre, in the room.
+    this.hero.pivot = new THREE.Vector3(0, -b.h / 2, b.d / 2);
   }
 
+  // Where the book ends up: in front of the camera, cover facing it, the size the reader shows the cover at.
   heroTarget() {
-    const cam = this.camera;
+    const cam = this.camera, h = this.hero;
     const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd);
     const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
     const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
-    const pos = cam.position.clone().addScaledVector(fwd, 0.62).addScaledVector(up, -0.01);
+    const vh = this.canvas.clientHeight || 1, aspect = cam.aspect, tan = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    // The reader lays the cover out under its top bar: about 86% of the height on a wide screen, the full width
+    // of a phone. Match that so the hand-over to the reader doesn't jump.
+    const wide = this.canvas.clientWidth >= 900;
+    const fracH = wide ? (vh - 92) / vh : 0.82, fracW = wide ? 0.9 : 0.96;
+    const dist = Math.max(h.H / (2 * tan * fracH), h.W / (2 * tan * aspect * fracW));
+    const drop = (wide ? 26 : 30) / vh * 2 * tan * dist;
+    const pos = cam.position.clone().addScaledVector(fwd, dist + h.T / 2).addScaledVector(up, -drop);
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(fwd.clone().negate(), up, right.clone().negate()));
-    const near = 0.33 / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * 0.86);
-    return { pos, quat: q, fwd, right, near };
+    return { pos, quat: q, fwd, right, up };
   }
 
-  // The whole sequence as a function of t (0 = on the shelf, 1 = open at the title page). Closing runs it back.
+  // Taking the book down, as a function of t (0 = on the shelf, 1 = held up, cover to you). Putting it back runs
+  // it in reverse. A finger hooks the top of the spine and tips the book out on its foot; it slides off the shelf,
+  // and is lifted and turned round to show its cover.
   poseHero(t) {
-    const h = this.hero, T = h.target;
-    const seg = (a, b) => ease(clamp((t - a) / (b - a), 0, 1));
-    const out = seg(0, 0.12), fly = seg(0.1, 0.4), cover = seg(0.4, 0.6), end = seg(0.56, 0.76), half = seg(0.7, 0.9), push = seg(0.42, 1);
-    const pos = h.from.pos.clone().lerp(h.outPos, out);
-    if (fly > 0) pos.lerp(T.pos, fly);
-    pos.addScaledVector(T.right, (h.W / 2) * cover);
-    pos.addScaledVector(T.fwd, -(0.62 - T.near) * push);
+    const h = this.hero, T = h.target, b = this.layout.books[h.n];
+    const seg = (a, c) => ease(clamp((t - a) / (c - a), 0, 1));
+    const tip = seg(0, 0.2), slide = seg(0.14, 0.42), fly = seg(0.36, 1), untip = seg(0.4, 0.8);
+    const angle = 0.32 * tip * (1 - untip);
+    const tilt = new THREE.Quaternion().setFromAxisAngle(h.side, angle);
+    // Tip about the pivot: the centre swings round it.
+    const c = h.pivot.clone().negate().applyQuaternion(h.from.quat).applyAxisAngle(h.side, angle);
+    const pivotW = h.pivot.clone().applyQuaternion(h.from.quat).add(h.from.pos);
+    const shelfPos = pivotW.add(c).addScaledVector(h.out, (b.d + 0.05) * slide).addScaledVector(UP, 0.012 * slide);
+    const shelfQuat = tilt.multiply(h.from.quat);
+    const pos = shelfPos.lerp(T.pos, fly);
+    // An arc on the way: up a little and swung out to the side, as a hand would carry it.
+    pos.addScaledVector(T.up, Math.sin(Math.PI * fly) * 0.06);
     h.group.position.copy(pos);
-    h.group.quaternion.copy(h.from.quat).slerp(T.quat, fly);
+    const q = shelfQuat.slerp(T.quat, fly);
+    const wobble = new THREE.Quaternion().setFromAxisAngle(T.up, Math.sin(Math.PI * fly) * -0.35);
+    h.group.quaternion.copy(wobble.multiply(q));
     h.group.scale.copy(h.from.scale).lerp(new THREE.Vector3(1, 1, 1), fly);
-    h.hinges[0].rotation.y = -Math.PI * 0.985 * cover;
-    h.hinges[1].rotation.y = -Math.PI * 0.975 * end;
-    h.hinges[2].rotation.y = -Math.PI * 0.965 * half;
+    const glow = seg(0.6, 1);
+    h.coverMat.color.setScalar(1 - glow); h.coverMat.emissiveIntensity = glow;
   }
 
   open(n, portraitUrl, { instant = false } = {}) {
@@ -582,7 +594,7 @@ export class Room {
       this.applyCamera(); this.camera.updateMatrixWorld();
       this.hero.target = this.heroTarget();
       this.poseHero(0);
-      const dur = this.reducedMotion || instant ? 0 : 2.9;
+      const dur = this.reducedMotion || instant ? 0 : 1.9;
       this.anim = { t0: performance.now(), dur, step: t => this.poseHero(t), done: () => { this.cb.onOpened?.(n); resolve(); } };
       if (!dur) this.skip();
       this.dirty = true;
@@ -593,7 +605,7 @@ export class Room {
     const h = this.hero; if (!h) return;
     const n = h.n;
     if (!h.target) { this.closeHero(); return; }
-    const dur = this.reducedMotion ? 0 : 1.7;
+    const dur = this.reducedMotion ? 0 : 1.5;
     this.anim = {
       t0: performance.now(), dur,
       step: t => this.poseHero(1 - t),

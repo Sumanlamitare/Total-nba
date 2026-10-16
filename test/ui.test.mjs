@@ -66,13 +66,15 @@ test('the reading room: search guides to the shelf, a book opens, chapters turn,
   const reader = p.getByRole('dialog', { name: /Bill Russell/ });
   await reader.waitFor({ timeout: 15000 });
   assert.match(p.url(), /\/book\/4152\/bill-russell$/);
-  // The first spread: bookplate on the left, title page on the right. Turn the page to read on.
-  await p.locator('.book .bookplate').waitFor();
+  // The book arrives closed, cover up; → opens it at the bookplate and the title page. Turn the page to read on.
+  await p.locator('.book.closed .cover', { hasText: 'BILL' }).waitFor();
+  await p.keyboard.press('ArrowRight');
+  await p.locator('.book:not(.turning):not(.closed) .bookplate').waitFor();
   await p.keyboard.press('ArrowRight');
   await findInBook(p, b => b.getByText(/played 13 regular seasons/));
-  // A leaf turns: mid-turn the book shows a leaf with two faces.
+  // A page turns: mid-turn the book shows the folded-over back of the page.
   await p.keyboard.press('ArrowRight');
-  await p.locator('.book .leaf3d .face.back').waitFor({ state: 'attached' });
+  await p.locator('.book .leaf-back').waitFor({ state: 'attached' });
   await p.locator('.book:not(.turning)').waitFor();
   // Jump by chapter: the statistical record.
   await p.getByLabel('Chapter').selectOption('7');
@@ -105,7 +107,9 @@ test('a link straight to a book opens it on its own', async () => {
   await p.goto(base + '/book/4142/wilt-chamberlain');
   const reader = p.getByRole('dialog', { name: /Wilt Chamberlain/ });
   await reader.waitFor({ timeout: 30000 });
-  await p.keyboard.press('ArrowRight');
+  await p.keyboard.press('ArrowRight'); // open the cover
+  await p.keyboard.press('ArrowRight'); // and turn to the contents (queued behind the first turn)
+  await p.locator('.book .toc').waitFor();
   await p.locator('.book:not(.turning)').waitFor();
   // The contents page carries real page numbers and turns to the chapter.
   await p.locator('.book .toc').getByRole('button', { name: /The player/ }).click();
@@ -150,6 +154,16 @@ test('phone: the reader is a single page that turns, with a chapter picker', asy
   const p = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   await p.goto(base + '/book/3992/james-harden');
   await p.getByRole('dialog', { name: /James Harden/ }).waitFor({ timeout: 30000 });
+  // A tap on the cover opens the book; a tap on the right of a page turns it, on the left turns back.
+  await p.locator('.book.closed .cover').tap();
+  await p.locator('.book:not(.turning):not(.closed)').waitFor();
+  assert.equal(await p.locator('.pg-count').textContent(), '1 / ' + (await p.locator('.pg-count').textContent()).split(' / ')[1]);
+  const box = await p.locator('.book').boundingBox();
+  await p.touchscreen.tap(box.x + box.width * 0.85, box.y + box.height * 0.5);
+  await p.locator('.book:not(.turning)').waitFor();
+  await p.waitForFunction(() => document.querySelector('.pg-count')?.textContent.startsWith('2 /'));
+  await p.touchscreen.tap(box.x + box.width * 0.15, box.y + box.height * 0.82); // below the contents list
+  await p.waitForFunction(() => document.querySelector('.pg-count')?.textContent.startsWith('1 /'));
   await p.getByLabel('Chapter').selectOption('7');
   await p.locator('.book:not(.turning)').waitFor();
   await findInBook(p, b => b.getByRole('heading', { name: 'Statistical record', exact: true }));

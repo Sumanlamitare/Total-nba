@@ -1,15 +1,19 @@
-// The reader: a real book. Content is measured and packed into pages; pages are shown as a two-page spread
-// (one page on narrow screens) and turn as leaves hinged at the spine — drag a page, swipe, click the corner,
-// or use the arrow keys.
+// The reader: a real book. It arrives closed, showing its cover; content is measured and packed into pages, shown
+// as a two-page spread (one page on narrow screens). Pages turn the way paper does: drag a page and its corner
+// follows your finger, folding along a crease, with the back of the page showing; tap the right side to turn
+// forward, the left to turn back, or use the arrow keys.
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { loadBook, loadHighs } from './api.js';
-import { span as spanOf, teamCloth } from './shelves.js';
+import { span as spanOf, teamCloth, inkOn } from './shelves.js';
 import { buildBlocks, paginate, CHAPTERS, ROMAN, UI_DEFAULTS } from './chapters.jsx';
+import { fold, clampCorner, progress, arc, pts, svgPts } from './fold.js';
+import { headshot } from './api.js';
 
 const ASPECT = 0.7; // page width / height
-const TURN_MS = 720;
+const TURN_MS = 820;
 const ease = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const INTERACTIVE = 'button, a, input, select, label, textarea, .table-scroll, .chart, [role=radio]';
+const ease3 = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 function useGeometry(wrap) {
   const [g, setG] = useState(null);
@@ -39,12 +43,13 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const [highs, setHighs] = useState({ state: 'loading' });
   const [ui, setUiState] = useState(UI_DEFAULTS);
   const setUi = useCallback(patch => setUiState(u => ({ ...u, ...patch })), []);
-  const wrap = useRef(null), measure = useRef(null), bookEl = useRef(null), leafEl = useRef(null), head = useRef(null);
+  const wrap = useRef(null), measure = useRef(null), bookEl = useRef(null), head = useRef(null);
+  const frontEl = useRef(null), backEl = useRef(null), castEl = useRef(null), flapEl = useRef(null);
   const geo = useGeometry(wrap);
   const [heights, setHeights] = useState(null);
-  const [pos, setPos] = useState(0); // spread index (two pages) or page index (one page)
-  const [turn, setTurn] = useState(null); // { dir, from, to }
-  const anim = useRef({ p: 0, raf: 0 });
+  const [pos, setPos] = useState(-1); // -1: closed, showing the cover; then a spread index (two pages) or page index
+  const [turn, setTurn] = useState(null); // { dir, from, to, top, mirror, reverse }
+  const anim = useRef({ P: null, raf: 0 });
   const [announce, setAnnounce] = useState('');
 
   useEffect(() => {
@@ -98,10 +103,11 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
   const spread = !!geo?.spread;
   const last = spread ? Math.floor(n / 2) : Math.max(0, n - 1);
   const spreadOf = p => Math.floor((p + 1) / 2);
-  // What sits on each side of a spread: 'front'/'back' are the marbled pastedowns inside the covers.
-  const leftOf = s => (s === 0 ? 'front' : 2 * s - 1 < n ? 2 * s - 1 : 'back');
-  const rightOf = s => (2 * s < n ? 2 * s : 'back');
-  const firstPageOf = s => (spread ? [leftOf(s), rightOf(s)] : [s]).find(x => typeof x === 'number');
+  // What sits on each side of a spread. -1 is the closed book (its cover, alone); 'front' is the inside of the
+  // cover with the bookplate, 'back' the endpaper inside the back cover.
+  const leftOf = s => (s < 0 ? null : s === 0 ? 'front' : 2 * s - 1 < n ? 2 * s - 1 : 'back');
+  const rightOf = s => (s < 0 ? 'cover' : 2 * s < n ? 2 * s : 'back');
+  const firstPageOf = s => (s < 0 ? null : spread ? [leftOf(s), rightOf(s)] : [s]).find(x => typeof x === 'number');
 
   // Keep the reader on the same text when the book re-paginates (fonts arriving, game logs loading, a resize):
   // remember the first block on the visible page and find it again in the new pagination.
@@ -125,17 +131,58 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
 
   // ---- turning ----------------------------------------------------------------------------------------------
 
-  const setP = p => {
-    anim.current.p = p;
-    const leaf = leafEl.current, bk = bookEl.current;
-    if (!leaf || !bk) return;
-    const t = anim.current.turn;
-    // Spread: the leaf hinges at the spine. One page: it hinges at the left edge and swings away (or back).
-    const angle = spread ? (t.dir > 0 ? -180 * p : 180 * p) : (t.dir > 0 ? -180 * p : -180 * (1 - p));
-    leaf.style.transform = `rotateY(${angle}deg)`;
-    const s = Math.sin(Math.PI * p);
-    bk.style.setProperty('--lift', s.toFixed(3));
-    bk.style.setProperty('--p', p.toFixed(3));
+  // A turn moves one page by its corner along a fold (see fold.js). In "turn space" the turning page is [0,W]×[0,H]
+  // with the spine at x = 0. Going back in a spread, the left page turns: turn space is mirrored (G flips x).
+  // Going back on a phone, the previous page comes back from the left: the forward fold, played in reverse.
+  const layoutTurn = t => {
+    const W = geo.pageW, H = geo.pageH;
+    const END = { x: -W, y: t.top ? 0 : H }, C = { x: W, y: t.top ? 0 : H };
+    return { W, H, start: t.reverse ? END : C, end: t.reverse ? C : END };
+  };
+
+  const setFold = P => {
+    const t = anim.current.turn; if (!t || !geo) return;
+    const W = geo.pageW, H = geo.pageH;
+    // A cover is a stiff board: it swings about the spine without curling, so its fold stays upright.
+    if (t.from < 0 || t.to < 0) P = { x: Math.max(-W, Math.min(W, P.x)), y: t.top ? 0 : H };
+    P = clampCorner(P, W, H, t.top);
+    anim.current.P = P;
+    const f = fold(P, W, H, t.top);
+    const G = t.mirror ? (q => ({ x: W - q.x, y: q.y })) : (q => q);     // turn space -> the page's own coordinates
+    const Hb = t.mirror ? (q => q) : (q => ({ x: W - q.x, y: q.y }));     // back page's coordinates -> turn space
+    const front = frontEl.current, back = backEl.current, cast = castEl.current, flap = flapEl.current;
+    const none = 'polygon(0 0, 0 0, 0 0)';
+    if (front) front.style.clipPath = !f ? 'none' : f.front.length > 2 ? `polygon(${pts(f.front.map(G))})` : none;
+    if (back) {
+      if (!f || f.lifted.length < 3) back.style.visibility = 'hidden';
+      else {
+        const T = B => G(f.reflect(Hb(B)));
+        const o = T({ x: 0, y: 0 }), ex = T({ x: 1, y: 0 }), ey = T({ x: 0, y: 1 });
+        back.style.visibility = 'visible';
+        back.style.transform = `matrix(${ex.x - o.x}, ${ex.y - o.y}, ${ey.x - o.x}, ${ey.y - o.y}, ${o.x}, ${o.y})`;
+        back.style.clipPath = `polygon(${pts(f.lifted.map(Hb))})`;
+      }
+    }
+    // Shading: a shadow cast on the page underneath, and the curve of light across the lifted flap.
+    const shade = (svg, poly, from, dir, len) => {
+      if (!svg) return;
+      const g = svg.querySelector('linearGradient'), p = svg.querySelector('polygon');
+      if (!f || poly.length < 3) { p.setAttribute('points', ''); return; }
+      const a = G(from), b = G({ x: from.x + dir.x * len, y: from.y + dir.y * len });
+      g.setAttribute('x1', a.x); g.setAttribute('y1', a.y); g.setAttribute('x2', b.x); g.setAttribute('y2', b.y);
+      p.setAttribute('points', svgPts(poly.map(G)));
+    };
+    if (f) {
+      const reach = Math.min(f.len, W) * 0.5 + 12;
+      shade(cast, f.lifted, f.M, f.n, reach);
+      shade(flap, f.flap, f.M, { x: -f.n.x, y: -f.n.y }, Math.max(30, Math.min(f.len, W)));
+    } else { shade(cast, [], null); shade(flap, [], null); }
+    // Opening or closing the cover slides the book so the closed book sits in the middle.
+    if (spread && bookEl.current && (t.from === -1 || t.to === -1)) {
+      const pr = t.reverse ? 1 - progress(P, W) : progress(P, W);
+      const open = t.from === -1 ? pr : 1 - pr;
+      bookEl.current.style.transform = `translateX(${(-geo.pageW / 2) * (1 - open)}px)`;
+    }
   };
 
   const finish = useCallback((complete) => {
@@ -149,45 +196,54 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
       if (p >= 0) t.to = spread ? spreadOf(p) : p;
       land(t.to);
       if (anim.current.queued != null) { const q = anim.current.queued; anim.current.queued = null; setTimeout(() => startTurnRef.current(q), 0); }
-      const pg = spread ? [leftOf(t.to), rightOf(t.to)].filter(x => typeof x === 'number') : [t.to];
+      const pg = t.to < 0 ? [] : spread ? [leftOf(t.to), rightOf(t.to)].filter(x => typeof x === 'number') : [t.to];
       const ch = pg.length ? (pagedRef.current || paged).pages[pg[pg.length - 1]]?.ch ?? 0 : 0;
-      setAnnounce(`${pg.length === 2 ? `Pages ${pg[0] + 1} and ${pg[1] + 1}` : pg.length ? `Page ${pg[0] + 1}` : 'Endpaper'}${ch > 1 ? `: Chapter ${ROMAN[ch]}, ${CHAPTERS[ch]}` : ch === 1 ? ': Contents' : ''}.`);
+      setAnnounce(t.to < 0 ? 'The cover.' : `${pg.length === 2 ? `Pages ${pg[0] + 1} and ${pg[1] + 1}` : pg.length ? `Page ${pg[0] + 1}` : 'Endpaper'}${ch > 1 ? `: Chapter ${ROMAN[ch]}, ${CHAPTERS[ch]}` : ch === 1 ? ': Contents' : ''}.`);
     }
   }, [spread, paged]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const animateTo = useCallback((target, ms = TURN_MS) => {
+  // Move the corner from where it is to the end of the turn (or back where it started), with a lift on the way.
+  const animateTo = useCallback((complete, ms = TURN_MS) => {
     cancelAnimationFrame(anim.current.raf);
-    const from = anim.current.p, t0 = performance.now();
-    const dur = Math.max(120, ms * Math.abs(target - from));
+    const t = anim.current.turn; if (!t) return;
+    const L = layoutTurn(t);
+    const from = anim.current.P || L.start, to = complete ? L.end : L.start;
+    const dist = Math.hypot(to.x - from.x, to.y - from.y) / (2 * L.W);
+    const dur = Math.max(160, ms * Math.min(1, dist));
+    const t0 = performance.now();
     const step = now => {
-      const k = Math.min(1, (now - t0) / dur);
-      setP(from + (target - from) * ease(k));
+      const k = Math.min(1, (now - t0) / dur), e = ease3(k);
+      const lift = Math.sin(Math.PI * e) * L.H * 0.12 * Math.min(1, dist) * (t.top ? -1 : 1);
+      setFold({ x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - lift });
       if (k < 1) anim.current.raf = requestAnimationFrame(step);
-      else finish(target === 1);
+      else finish(complete);
     };
     anim.current.raf = requestAnimationFrame(step);
-  }, [finish]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [finish, geo]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const startTurn = useCallback((to, { drag = false } = {}) => {
-    // A request while a leaf is still moving waits for it to land (fast clicking turns page after page).
-    if (anim.current.turn) { if (!drag && to >= 0 && to <= last) anim.current.queued = to; return !drag; }
-    if (to === pos || to < 0 || to > last) return false;
+  const startTurn = useCallback((to, { drag = false, top = false } = {}) => {
+    // A request while a page is still moving waits for it to land (fast tapping turns page after page).
+    if (anim.current.turn) { if (!drag && to >= -1 && to <= last) anim.current.queued = to; return !drag; }
+    if (to === pos || to < -1 || to > last) return false;
     const fp = firstPageOf(to);
-    const t = { dir: to > pos ? 1 : -1, from: pos, to, anchorKey: fp != null && paged?.pages[fp] ? shown[paged.pages[fp].blocks[0]].key : null };
+    const dir = to > pos ? 1 : -1;
+    const t = { dir, from: pos, to, top, mirror: spread && dir < 0, reverse: !spread && dir < 0, anchorKey: fp != null && paged?.pages[fp] ? shown[paged.pages[fp].blocks[0]].key : null };
     if (!motion) { anim.current.turn = t; finish(true); return true; }
-    anim.current.turn = t; anim.current.p = 0;
+    anim.current.turn = t; anim.current.P = layoutTurn(t).start;
     setTurn(t);
-    if (!drag) requestAnimationFrame(() => animateTo(1));
+    if (!drag) requestAnimationFrame(() => animateTo(true));
     return true;
-  }, [pos, last, motion, animateTo, finish, paged, shown]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pos, last, motion, animateTo, finish, paged, shown, spread, geo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startTurnRef = useRef(startTurn);
   startTurnRef.current = startTurn;
-  useLayoutEffect(() => { if (turn) setP(anim.current.p); }); // place a freshly rendered leaf
+  useLayoutEffect(() => { if (turn && anim.current.P) setFold(anim.current.P); }); // place freshly rendered pages
+  // At rest the closed book sits centred; an open one doesn't move.
+  useLayoutEffect(() => { if (!turn && bookEl.current && geo) bookEl.current.style.transform = spread && pos < 0 ? `translateX(${-geo.pageW / 2}px)` : ''; });
 
   const goPage = useCallback(p => { startTurn(spread ? spreadOf(p) : p); }, [startTurn, spread]);
   goPageRef.current = goPage;
-  // Relative turns count from where the book is heading, so pressing → three times turns three leaves.
+  // Relative turns count from where the book is heading, so pressing → three times turns three pages.
   const heading = () => anim.current.queued ?? anim.current.turn?.to ?? pos;
   const next = () => startTurn(heading() + 1);
   const prev = () => startTurn(heading() - 1);
@@ -206,38 +262,55 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     return () => removeEventListener('keydown', onKey);
   });
 
-  // Dragging a page: the leaf follows the pointer; let go past a third of the way (or flick) and it turns.
+  // Touch and mouse: drag a page and its corner follows; let go past the middle (or flick) and it turns over.
+  // A tap turns: on the right side of the book forward, on the left side back.
   const drag = useRef(null);
   const onPointerDown = e => {
     if (e.button > 0 || e.target.closest(INTERACTIVE) || anim.current.turn) return;
-    drag.current = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId, started: false };
+    const r = bookEl.current.getBoundingClientRect();
+    drag.current = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId, started: false, top: e.clientY - r.top < r.height * 0.42, rx: (e.clientX - r.left) / r.width };
   };
   const onPointerMove = e => {
     const d = drag.current; if (!d || d.id !== e.pointerId) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (!d.started) {
-      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) { if (Math.abs(dy) > 14) drag.current = null; return; }
-      if (!startTurn(pos + (dx < 0 ? 1 : -1), { drag: true })) { drag.current = null; return; }
-      d.started = true; d.dir = dx < 0 ? 1 : -1;
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * 1.1) { if (Math.abs(dy) > 16) drag.current = null; return; }
+      if (!startTurn(pos + (dx < 0 ? 1 : -1), { drag: true, top: d.top })) { drag.current = null; return; }
+      d.started = true;
       bookEl.current?.setPointerCapture?.(e.pointerId);
     }
-    const span = spread ? geo.pageW * 1.6 : geo.pageW * 1.1;
-    const p = Math.max(0, Math.min(1, (d.dir > 0 ? -dx : dx) / span));
-    d.v = (p - (d.p || 0)) / Math.max(1, performance.now() - (d.lt || d.t)); d.p = p; d.lt = performance.now();
+    const t = anim.current.turn; if (!t) return;
+    const L = layoutTurn(t);
+    const mx = t.mirror ? -dx : dx;
     cancelAnimationFrame(anim.current.raf);
-    setP(p);
+    const P = { x: L.start.x + mx * 1.15, y: L.start.y + dy * 0.6 };
+    const now = performance.now();
+    d.vx = (mx - (d.lmx ?? 0)) / Math.max(1, now - (d.lt || d.t)); d.lmx = mx; d.lt = now;
+    setFold(P);
   };
   const onPointerUp = e => {
     const d = drag.current; drag.current = null;
-    if (!d || !d.started) return;
-    animateTo(anim.current.p > 0.33 || (d.v || 0) > 0.0015 ? 1 : 0, TURN_MS * 0.8);
+    if (!d) return;
+    if (!d.started) {
+      if (e.type !== 'pointerup' || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8 || window.getSelection?.()?.toString()) return;
+      // A tap on the right of the book turns forward; on the left, back (a closed book opens from anywhere).
+      if (pos < 0 || d.rx > (spread ? 0.5 : 0.35)) next(); else prev();
+      return;
+    }
+    const t = anim.current.turn; if (!t) return;
+    const L = layoutTurn(t);
+    const pr = t.reverse ? 1 - progress(anim.current.P, L.W) : progress(anim.current.P, L.W);
+    const flick = (t.reverse || t.mirror ? 1 : -1) * (d.vx || 0) > 0.5;
+    animateTo(pr > 0.28 || flick, TURN_MS * 0.9);
   };
 
   // ---- rendering --------------------------------------------------------------------------------------------
 
   const renderPage = (k, side) => {
+    if (k === 'cover') return <Cover book={book} player={player} shelf={shelf} />;
     if (k === 'front' || k === 'back') return <Endpaper side={k} shelf={shelf} id={id} name={name} onClose={onClose} />;
     const page = paged.pages[k];
+    if (!page) return null;
     const ch = page.ch;
     return (
       <div className={`pg ${side}`} style={{ padding: `${geo.padTop}px ${geo.padX}px ${geo.padBottom}px` }}>
@@ -248,20 +321,26 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
     );
   };
 
+  // What's where during a turn: the pages left lying underneath, the turning page's front, and its back.
   let baseL = null, baseR = null, face = null, back = null;
   if (paged) {
     if (spread) {
       if (!turn) { baseL = leftOf(pos); baseR = rightOf(pos); }
       else if (turn.dir > 0) { baseL = leftOf(turn.from); baseR = rightOf(turn.to); face = rightOf(turn.from); back = leftOf(turn.to); }
       else { baseL = leftOf(turn.to); baseR = rightOf(turn.from); face = leftOf(turn.from); back = rightOf(turn.to); }
-    } else if (!turn) baseR = pos;
-    else if (turn.dir > 0) { baseR = turn.to; face = turn.from; }
-    else { baseR = turn.from; face = turn.to; }
+    } else {
+      const at = p => (p < 0 ? 'cover' : p);
+      if (!turn) baseR = at(pos);
+      else if (turn.dir > 0) { baseR = at(turn.to); face = at(turn.from); }
+      else { baseR = at(turn.from); face = at(turn.to); }
+    }
   }
-  const pagesLeftOfSpine = spread ? Math.max(0, 2 * pos - 1) : pos;
-  const curPage = spread ? (typeof rightOf(pos) === 'number' ? rightOf(pos) : n - 1) : pos;
+  const pagesLeftOfSpine = spread ? Math.max(0, 2 * pos - 1) : Math.max(0, pos);
+  const curPage = pos < 0 ? 0 : spread ? (typeof rightOf(pos) === 'number' ? rightOf(pos) : n - 1) : pos;
   const curCh = paged ? paged.pages[Math.min(curPage, n - 1)]?.ch ?? 0 : 0;
   const bookW = geo ? (spread ? geo.pageW * 2 : geo.pageW) : 0;
+  const leafLeft = turn && spread && !turn.mirror ? geo.pageW : 0;
+  const closed = pos < 0 && !turn;
 
   return (
     <div className="reader" role="dialog" aria-modal="true" aria-labelledby="book-title" style={{ '--accent': shelf ? teamCloth(shelf.cs.team) : '#2b6fd6' }}>
@@ -277,6 +356,7 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
           </label>
         )}
         {paged && <span className="pg-count" aria-hidden>{(() => {
+          if (pos < 0) return 'Cover';
           if (!spread) return `${pos + 1} / ${n}`;
           const vis = [leftOf(pos), rightOf(pos)].filter(x => typeof x === 'number').map(x => x + 1);
           return `${vis.length ? vis.join('–') : '—'} / ${n}`;
@@ -289,22 +369,32 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
           : (
             <div
               ref={bookEl}
-              className={`book ${spread ? 'spread2' : 'single'}${turn ? ` turning dir${turn.dir > 0 ? 'f' : 'b'}` : ''}`}
+              className={`book ${spread ? 'spread2' : 'single'}${turn ? ' turning' : ''}${closed ? ' closed' : ''}${turn && (turn.from < 0 || turn.to < 0) ? ' cover-turn' : ''}`}
               style={{ width: bookW, height: geo.pageH, '--pw': `${geo.pageW}px`, '--ph': `${geo.pageH}px`, '--text-h': `${geo.textH}px`, '--stack-l': `${Math.min(10, pagesLeftOfSpine * 0.7)}px`, '--stack-r': `${Math.min(10, (n - pagesLeftOfSpine) * 0.7)}px` }}
               onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
             >
               <div className="boards" aria-hidden />
-              {spread && <div className="half left base">{baseL != null && renderPage(baseL, 'left')}<i className="shade" /></div>}
-              <div className="half right base">{baseR != null && renderPage(baseR, 'right')}<i className="shade" /></div>
-              {turn && (
-                <div ref={leafEl} className={`leaf3d ${spread ? (turn.dir > 0 ? 'on-right' : 'on-left') : turn.dir > 0 ? 'single-f' : 'single-b'}`} aria-hidden inert="">
-                  <div className="face front">{face != null && renderPage(face, spread && turn.dir < 0 ? 'left' : 'right')}<i className="shade" /></div>
-                  <div className="face back">{back != null ? renderPage(back, turn.dir > 0 ? 'left' : 'right') : <div className="pg paper-back" />}<i className="shade" /></div>
+              {spread && <div className="half left base">{baseL != null && renderPage(baseL, 'left')}</div>}
+              <div className="half right base">{baseR != null && renderPage(baseR, 'right')}</div>
+              {turn && (<>
+                <svg ref={castEl} className="fold-shade" style={{ left: leafLeft }} aria-hidden>
+                  <defs><linearGradient id="cast-g" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#0a0a0e" stopOpacity=".38" /><stop offset="1" stopColor="#0a0a0e" stopOpacity="0" /></linearGradient></defs>
+                  <polygon fill="url(#cast-g)" />
+                </svg>
+                <div ref={frontEl} className="leaf-front" style={{ left: leafLeft }} aria-hidden inert="">
+                  {face != null && renderPage(face, spread && turn.mirror ? 'left' : 'right')}
                 </div>
-              )}
-              {spread && <i className="gutter" aria-hidden />}
-              {pos > 0 && <button className="corner prev" onClick={prev} aria-label="Turn back a page"><i /></button>}
-              {pos < last && <button className="corner next" onClick={next} aria-label="Turn the page"><i /></button>}
+                <div ref={backEl} className="leaf-back" style={{ left: leafLeft }} aria-hidden inert="">
+                  {back != null ? renderPage(back, turn.mirror ? 'right' : 'left') : <div className="pg paper-back" />}
+                </div>
+                <svg ref={flapEl} className="fold-shade top" style={{ left: leafLeft }} aria-hidden>
+                  <defs><linearGradient id="flap-g" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#0a0a0e" stopOpacity=".28" /><stop offset=".22" stopColor="#ffffff" stopOpacity=".18" /><stop offset=".6" stopColor="#ffffff" stopOpacity="0" /><stop offset="1" stopColor="#0a0a0e" stopOpacity=".06" /></linearGradient></defs>
+                  <polygon fill="url(#flap-g)" />
+                </svg>
+              </>)}
+              {spread && !closed && <i className="gutter" aria-hidden />}
+              {pos > -1 && <button className="corner prev" onClick={prev} aria-label="Turn back a page"><i /></button>}
+              {pos < last && <button className="corner next" onClick={next} aria-label={pos < 0 ? 'Open the book' : 'Turn the page'}><i /></button>}
             </div>
           )}
       </div>
@@ -315,6 +405,30 @@ export default function Reader({ id, player, layout, index, motion, onClose }) {
         </div>
       )}
       <p className="sr-only" role="status" aria-live="polite">{announce}</p>
+    </div>
+  );
+}
+
+// The front cover: the team's cloth, the player's photo and name. Opening it is the first page turn.
+function Cover({ book, player, shelf }) {
+  const [img, setImg] = useState('loading');
+  const src = book?.headshot || (player?.i ? headshot(player.i) : null);
+  const words = (book?.name || player?.n || '').toUpperCase().split(/\s+/);
+  const initials = words.map(w => w[0]).slice(0, 2).join('');
+  const start = book?.debut || (book?.regular ? book.regular.first - 1 : null);
+  const years = book?.regular && start ? `${start}–${book.active ? 'now' : book.regular.last}` : spanOf(player || {});
+  const cloth = shelf ? teamCloth(shelf.cs.team) : '#3a3f47';
+  return (
+    <div className="pg cover" style={{ '--cloth': cloth, '--cover-ink': inkOn(cloth), '--band': shelf?.cs.team.alt || '#d8b25a' }}>
+      <p className="cover-imprint">Player Library</p>
+      <div className={`cover-photo${img === 'ok' ? ' has' : ''}`}>
+        {src && img !== 'none' && <img src={src} alt="" onLoad={() => setImg('ok')} onError={() => setImg('none')} />}
+        {img !== 'ok' && <span className="cover-mono" aria-hidden>{initials}</span>}
+      </div>
+      <i className="cover-band" aria-hidden />
+      <h2 className="cover-name">{words.map((w, k) => <span key={k} className={w.length > 9 ? 'long' : undefined}>{w}</span>)}</h2>
+      <p className="cover-years">{[shelf?.cs.team.id ? shelf.cs.team.name : null, years].filter(Boolean).join(' · ')}</p>
+      <p className="cover-hint">Swipe or tap to open</p>
     </div>
   );
 }

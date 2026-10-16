@@ -14,8 +14,8 @@ Live: https://total-nba-ja9d.vercel.app
 - **Find a team or a player.**
   - *Teams* opens a grid of every section and walks you there.
   - *Search* (`/`) finds a player and walks you to the shelf (Shift+Enter opens the book). Players the catalogue doesn't hold are found through ESPN's search and shelved.
-- **Open a book.** Click a book; on touch, tap once to select it and again to open. It slides off the shelf, the cover opens and the first leaves turn to the title page. Any click or key skips the animation, and closing reverses it, putting the book back.
-- **Read.** The book has real pages: a two-page spread on wide screens, one page on phones, turned as leaves hinged at the spine. Drag a page, swipe, click the turned-down corner, or use ← →.
+- **Take a book down.** Click a book; on touch, tap once to select it and again to open. It tips out by the top of its spine, slides off the shelf and is turned round to face you, cover first: the player's photo and name. Any click or key skips the animation, and closing reverses it, putting the book back.
+- **Read.** Tap or swipe the cover to open it. The book has real pages: a two-page spread on wide screens, one page on phones. Drag a page by its corner and it folds over under your finger, showing its back; let go past the middle (or flick) and it turns. Tap the right side to turn forward, the left side to go back, or use ← →.
   - The contents page lists real page numbers.
   - Esc takes you back to the shelf.
   - Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
@@ -76,9 +76,9 @@ The result is about 5,240 players. Anyone else ESPN knows is added the first tim
   - Walking is first person: collision keeps you in the aisles, and the opened book draws in its own pass so it never clips into a shelf.
   - Spine lettering is painted into a canvas atlas per bay, only for the nearest bays in view, one per frame. Atlases are freed when you walk away. A small shader maps each book's spine face to its rectangle in the atlas.
   - The scene renders only when something moves.
-  - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page is a 3D-transformed leaf whose two faces are the outgoing and incoming pages, with shading and a cast shadow driven by the turn angle.
+  - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page folds along the perpendicular bisector of its corner and your finger (`client/src/fold.js`): the flat part is clipped, the lifted part is reflected across the fold to show the next page's back, and SVG gradients shade the curl and cast a shadow on the page underneath. The cover is stiff and swings without curling.
   - three.js loads as a separate chunk, so the shelf list and reader don't wait for it.
-  - All textures (oak, floor, cloth, signs, covers) are drawn in code. No image assets.
+  - All textures (oak, floor, cloth, signs, covers) are drawn in code; the only images are ESPN's portraits on the covers.
 - **API** (`api/`, Vercel functions):
   - `catalog` is every book, cached at the edge for an hour.
   - `book?id=` is a composed book and `book?id=&part=highs` the career highs.
