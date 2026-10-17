@@ -193,6 +193,19 @@ export default function App() {
     return out;
   }, [lib, team, books, players]);
 
+  // The loading page (drawn in index.html before any script runs): say how many books are being shelved, then lift
+  // it away once the shelves are ready, after it has had a moment to open its book.
+  useEffect(() => {
+    const msg = document.getElementById('boot-msg');
+    if (msg && players?.length) msg.textContent = `Shelving ${players.length.toLocaleString('en-US')} books…`;
+  }, [players?.length]);
+  useEffect(() => {
+    if (!lib && !error) return;
+    const boot = document.getElementById('boot'); if (!boot) return;
+    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 700); }, Math.max(0, 1500 - performance.now()));
+    return () => clearTimeout(t);
+  }, [lib, error]);
+
   const { ghost, dark } = ghostFor(wall);
   const openPlayer = open ? byId.get(open.id) || { i: open.id, n: '', l: '' } : null;
   // Where the open book's player stands among everyone in the library (games played).
