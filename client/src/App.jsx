@@ -193,16 +193,30 @@ export default function App() {
     return out;
   }, [lib, team, books, players]);
 
-  // The loading page (drawn in index.html before any script runs): say how many books are being shelved, then lift
-  // it away once the shelves are ready, after it has had a moment to open its book.
+  // The loading page (index.html, drawn before any script runs): the arena tip-off. Once the catalogue is here, its
+  // scoreboard counts the players and its ticker runs real names; once the shelves are ready, it closes into the ball.
   useEffect(() => {
-    const msg = document.getElementById('boot-msg');
-    if (msg && players?.length) msg.textContent = `Shelving ${players.length.toLocaleString('en-US')} books…`;
-  }, [players?.length]);
+    // Fill the scoreboard and the ticker from the real catalogue.
+    const boot = document.getElementById('boot');
+    if (!boot || !players?.length) return;
+    const n = document.getElementById('boot-n'), msg = document.getElementById('boot-msg'), run = document.getElementById('boot-run');
+    if (msg) msg.textContent = 'shelved and counting';
+    if (run) {
+      const famous = players.filter(p => p.h?.mvp || p.h?.fmvp || p.h?.nba1).sort(() => Math.random() - 0.5).slice(0, 28);
+      run.replaceChildren(...famous.flatMap((p, k) => { const a = document.createElement('span'); a.textContent = p.n; const d = document.createElement('i'); d.textContent = '●'; return k ? [d, a] : [a]; }));
+    }
+    if (n) {
+      const total = players.length, t0 = performance.now();
+      const step = now => { const k = Math.min(1, (now - t0) / 900); n.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US'); if (k < 1 && boot.isConnected) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }
+    boot.classList.add('ready');
+  }, [players?.length]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!lib && !error) return;
     const boot = document.getElementById('boot'); if (!boot) return;
-    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 700); }, Math.max(0, 1500 - performance.now()));
+    // Let the count land, then close the arena into the ball and open on the shelves.
+    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(1100, 2200 - performance.now()));
     return () => clearTimeout(t);
   }, [lib, error]);
 
