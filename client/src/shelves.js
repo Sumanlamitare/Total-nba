@@ -81,7 +81,7 @@ export function spineColor(p, team) {
   return mix(base, '#0b0c10', Math.max(0, t + j));
 }
 // Dark or light lettering, whichever stands out more.
-export const inkOn = bg => (contrast('#15161a', bg) > contrast('#f6f4ef', bg) ? '#15161a' : '#f6f4ef');
+export const inkOn = bg => (contrast('#f6f4ef', bg) >= 3.2 || contrast('#f6f4ef', bg) >= contrast('#15161a', bg) ? '#f6f4ef' : '#15161a'); // light when it reads well
 
 // ---- Spines ------------------------------------------------------------------------------------------------------
 

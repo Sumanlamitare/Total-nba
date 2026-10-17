@@ -14,7 +14,8 @@ const media = q => (typeof matchMedia === 'function' ? matchMedia(q).matches : f
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
 
 // The back of the shelf: a colour the visitor can change. The giant letter re-tones itself to stay visible.
-const WALLS = [['#ffffff', 'White'], ['#f3ead8', 'Cream'], ['#dbe5d8', 'Sage'], ['#d9e6f0', 'Mist'], ['#f1dcd6', 'Blush'], ['#3a3d45', 'Slate'], ['#16202e', 'Midnight']];
+// Arena lighting: the colour of the air behind the shelf.
+const WALLS = [['#0b0b0d', 'Arena'], ['#1d1209', 'Hardwood'], ['#0b1730', 'Royal'], ['#1f0a0c', 'Red-hot'], ['#0b2216', 'Parquet green'], ['#1a0f2b', 'Purple and gold'], ['#2a2d33', 'Concrete']];
 function ghostFor(wall) {
   const dark = luminance(wall) < 0.179;
   let t = 0.05, g = mix(wall, dark ? '#ffffff' : '#000000', t);
@@ -32,7 +33,7 @@ export default function App() {
   const [returning, setReturning] = useState(null);
   const [target, setTarget] = useState(null);
   const [letter, setLetter] = useState('');
-  const [wall, setWall] = useState(() => (/^#[0-9a-f]{6}$/i.test(store.get('library.wall') || '') ? store.get('library.wall') : '#ffffff'));
+  const [wall, setWall] = useState(() => (/^#[0-9a-f]{6}$/i.test(store.get('library.arena') || '') ? store.get('library.arena') : '#0b0b0d'));
   const [motion] = useState(() => !media('(prefers-reduced-motion: reduce)'));
   const [announce, setAnnounce] = useState('');
   const pushed = useRef(false), pull = useRef(null), search = useRef(null), wantOpen = useRef(null);
@@ -62,7 +63,7 @@ export default function App() {
     return pl.shelf === ALL ? { tab: 'active', teamId: ALL, at: pl.allAt } : { tab: 'active', teamId: pl.shelf, at: pl.at };
   }, [lib, tab, team, teamId]);
   const goTo = pf => { setTab(pf.tab); setTeamId(pf.teamId); };
-  useEffect(() => { store.set('library.wall', wall); document.documentElement.style.setProperty('--wall', wall); }, [wall]);
+  useEffect(() => { store.set('library.arena', wall); document.documentElement.style.setProperty('--wall', wall); }, [wall]);
 
   // Which shelf a book is on, for the reader's title page and endpapers.
   const shelfOf = p => {
@@ -246,8 +247,8 @@ export default function App() {
     <div className="app">
       <header className="nav" {...away}>
         <a className="brand" href="/" onClick={e => e.preventDefault()}>
-          <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden><rect x="1" y="3" width="6" height="18" rx="1" fill="currentColor" /><rect x="9" y="1" width="6" height="20" rx="1" fill="currentColor" opacity=".7" /><rect x="17" y="5" width="6" height="16" rx="1" fill="currentColor" opacity=".45" /></svg>
-          Player Library
+          <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden><defs><radialGradient id="nb" cx="35%" cy="30%" r="75%"><stop offset="0" stopColor="#ffb066" /><stop offset=".55" stopColor="#e8701f" /><stop offset="1" stopColor="#9c3f0c" /></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#nb)" /><g fill="none" stroke="#2a1306" strokeWidth="4" strokeLinecap="round"><path d="M50 3v94M3 50h94" /><path d="M16 17c14 12 14 54 0 66" /><path d="M84 17c-14 12-14 54 0 66" /></g></svg>
+          <span>Player <em>Library</em></span>
         </a>
         <span className="nav-note">{total ? `${total.toLocaleString('en-US')} NBA players` : 'Opening…'}</span>
       </header>
