@@ -29,7 +29,7 @@ function mockApi(name, url, res) {
     if (name === 'book') {
       const id = (url.searchParams.get('id') || '').replace(/\D/g, '');
       const body = file(path.join(dir, 'books', `${id}${url.searchParams.get('part') === 'highs' ? '.highs' : ''}.json`));
-      return body ? send(200, body) : send(404, { error: 'ESPN has no record of this player' });
+      return body ? send(200, body) : send(404, { error: 'There is no record of this player' });
     }
     if (name === 'search') return send(200, { results: [], added: [] });
     send(404, { error: 'Not found' });

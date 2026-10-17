@@ -5,12 +5,13 @@
 import React, { useState } from 'react';
 import { span as spanOf, seasonLabel, shelvedBecause } from './shelves.js';
 import { n0, n1, pct, longDate, shortDate, ageOn, list, plural } from './format.js';
-import { perSeason, byTeam, best, LEADER_PHRASE, coverageGap, teamsInSeason } from './bookdata.js';
+import { perSeason, byTeam, best, LEADER_PHRASE, coverageGap, teamsInSeason, trueShooting, ageInSeason, prime, clubs, milestones, playoffShift } from './bookdata.js';
 import { SeasonColumns, Accumulation } from './charts.jsx';
+import CountUp from './CountUp.jsx';
 
-export const CHAPTERS = ['Title page', 'Contents', 'The player', 'Career', 'Records', 'Honors', 'Teams', 'Statistical record', 'Legacy'];
-export const ROMAN = ['', '', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
-export const UI_DEFAULTS = { careerKind: 'regular', careerMetric: 0, statKind: 'regular', statView: 'avg', statTeam: 'all' };
+export const CHAPTERS = ['Title page', 'Contents', 'By the numbers', 'The player', 'Career', 'Prime', 'Records', 'Playoffs', 'Honors', 'Teams', 'Statistical record', 'Legacy'];
+export const ROMAN = ['', '', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+export const UI_DEFAULTS = { careerKind: 'regular', careerMetric: 0, careerAxis: 'season', statKind: 'regular', statView: 'avg', statTeam: 'all' };
 
 const Note = ({ children }) => <p className="note">{children}</p>;
 const ChapterHead = ({ ch, title, sub }) => (
@@ -43,9 +44,12 @@ export function buildBlocks(book, ctx) {
   const add = (ch, key, el, opts = {}) => out.push({ key: `${ch}-${key}`, ch, el, ...opts });
   titlePage(book, ctx, add);
   contents(book, ctx, add);
+  byTheNumbers(book, ctx, add);
   thePlayer(book, ctx, add);
   career(book, ctx, add);
+  primeChapter(book, ctx, add);
   records(book, ctx, add);
+  playoffsChapter(book, ctx, add);
   honors(book, ctx, add);
   teams(book, ctx, add);
   statRecord(book, ctx, add);
@@ -78,6 +82,9 @@ function titlePage(book, { player, shelf }, add) {
       <Portrait book={book} />
       <h2 className="display">{book.name}</h2>
       <p className="lede">{[book.posName, years].filter(Boolean).join(' · ')}</p>
+      <dl className="card-strip">
+        {[['Height', book.height], ['Weight', book.weight], ['Jersey', book.jersey ? `#${book.jersey}` : null], ['Drafted', draftShort(book.draft)]].filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
       <hr className="rule" />
       <p className="ex-libris">
         {book.regular ? <>A record of {plural(book.regular.seasons, 'season')} on record{book.playoffs ? `, ${plural(book.playoffs.seasons, 'playoff run')}` : ''}.</> : <>No season statistics are on record for this player; the book holds what there is.</>}
@@ -86,6 +93,50 @@ function titlePage(book, { player, shelf }, add) {
       <p className="turn-hint">Turn the page — drag its corner, swipe, or press →</p>
     </div>
   ), { start: true, whole: true });
+}
+
+// "2003: Round 1, Pick 1, Cleveland Cavaliers" -> "2003 · No. 1"
+function draftShort(d) {
+  const m = String(d || '').match(/(\d{4}).*?Pick (\d+)/i);
+  return m ? `${m[1]} · No. ${m[2]}` : d ? String(d).split(':')[0] : null;
+}
+
+// ---- I. By the numbers ------------------------------------------------------------------------------------------
+
+function byTheNumbers(book, { highs }, add) {
+  const ch = 2;
+  const reg = book.regular, c = reg?.career || {};
+  const surname = book.last || book.name;
+  const one = v => (v == null ? '—' : v.toFixed(1));
+  const int = v => Math.round(v).toLocaleString('en-US');
+  const honors = book.honors.reduce((a, h) => a + h.count, 0);
+  const mvp = book.honors.find(h => h.key === 'mvp');
+  const ts = trueShooting(c.tot);
+  const tiles = reg ? [
+    ['ppg', 'Points a game', c.avg?.avgPoints, one], ['rpg', 'Rebounds a game', c.avg?.avgRebounds, one], ['apg', 'Assists a game', c.avg?.avgAssists, one],
+    ['gp', 'Games', c.avg?.gamesPlayed, int], ['seasons', 'Seasons', reg.seasons, int], ['ts', 'True shooting %', ts, one],
+    ...(c.tot?.points != null ? [['pts', 'Career points', c.tot.points, int]] : []),
+    ...(highs.state === 'ok' && highs.h.covered.length ? [['g30', '30-point games', highs.h.thirty?.regular ?? null, int]] : []),
+    ...(mvp ? [['mvp', mvp.count > 1 ? 'MVP awards' : 'MVP award', mvp.count, int]] : honors ? [['hon', 'NBA honors', honors, int]] : []),
+  ].filter(([, , v]) => v != null) : [];
+  const b = best(reg, 'avgPoints');
+  add(ch, 'head', (
+    <>
+      <ChapterHead ch={ch} title="By the numbers" sub={reg ? `${surname}'s career at a glance${reg.careerBeyondRows ? '' : `, ${recordSpan(book)}`}` : undefined} />
+      {reg ? (
+        <div className="tiles">
+          {tiles.slice(0, 9).map(([k, label, v, f], i) => (
+            <div key={k} className={`tile${i < 3 ? ' big' : ''}`}>
+              <span className="tile-v"><CountUp id={`${book.id}-${k}`} value={v} format={f} /></span>
+              <span className="tile-l">{label}</span>
+            </div>
+          ))}
+        </div>
+      ) : <p>There are no season statistics on record for {book.name}; the chapters that follow hold the biography and honors.</p>}
+    </>
+  ), { start: true });
+  if (b) add(ch, 'peak', <p className="kicker">Best scoring season: <strong>{n1(b.value)} points a game</strong> in {b.label}{b.team ? ` with ${b.team}` : ''}{book.born ? `, at ${ageInSeason(book.born, b.season)}` : ''}.</p>);
+  if (ts != null) add(ch, 'ts-n', <Note>True shooting counts every point against every shot: points ÷ (2 × (field-goal attempts + 0.44 × free-throw attempts)). It counts threes and free throws, which field-goal percentage leaves out.</Note>);
 }
 
 // ---- Contents --------------------------------------------------------------------------------------------------
@@ -107,10 +158,10 @@ function contents(book, { chapterPages, goPage }, add) {
   ), { start: true });
 }
 
-// ---- I. The player ---------------------------------------------------------------------------------------------
+// ---- II. The player ---------------------------------------------------------------------------------------------
 
 function thePlayer(book, ctx, add) {
-  const ch = 2;
+  const ch = 3;
   const reg = book.regular;
   const names = byTeam(reg).map(t => t.name || t.team);
   const gap = coverageGap(book);
@@ -149,12 +200,12 @@ function thePlayer(book, ctx, add) {
   ));
 }
 
-// ---- II. Career ------------------------------------------------------------------------------------------------
+// ---- III. Career ------------------------------------------------------------------------------------------------
 
 const METRICS = [['avgPoints', 'Points', n1], ['avgRebounds', 'Rebounds', n1], ['avgAssists', 'Assists', n1], ['avgMinutes', 'Minutes', n1], ['gamesPlayed', 'Games', n0]];
 
 function career(book, { ui, setUi }, add) {
-  const ch = 3;
+  const ch = 4;
   if (!book.regular) {
     add(ch, 'head', <><ChapterHead ch={ch} title="Career" /><p>There are no season statistics on record for {book.name}, so there is no career to chart. The honors chapter lists what is on record.</p></>, { start: true });
     return;
@@ -162,16 +213,21 @@ function career(book, { ui, setUi }, add) {
   const kind = book[ui.careerKind] ? ui.careerKind : 'regular';
   const stats = book[kind];
   const [key, label, fmt] = METRICS[ui.careerMetric];
-  const data = perSeason(stats).map(r => ({ key: r.season, label: r.label, short: `’${String(r.season % 100).padStart(2, '0')}`, value: r.avg?.[key] ?? null, note: `${r.combined ? teamsInSeason(stats, r.season).join(' / ') : r.team || ''}${r.avg?.gamesPlayed != null ? ` · ${r.avg.gamesPlayed} games` : ''}` }));
+  const byAge = ui.careerAxis === 'age' && book.born;
+  const data = perSeason(stats).map(r => {
+    const age = ageInSeason(book.born, r.season);
+    return { key: r.season, label: byAge && age != null ? `Age ${age} · ${r.label}` : r.label, short: byAge && age != null ? String(age) : `’${String(r.season % 100).padStart(2, '0')}`, value: r.avg?.[key] ?? null, note: `${r.combined ? teamsInSeason(stats, r.season).join(' / ') : r.team || ''}${r.avg?.gamesPlayed != null ? ` · ${r.avg.gamesPlayed} games` : ''}` };
+  });
   add(ch, 'head', (
     <>
       <ChapterHead ch={ch} title="Career" sub={`Seasons on record: ${recordSpan(book)}`} />
       <div className="controls" role="group" aria-label="Chart options">
         <Segmented label="Season type" value={kind} set={v => setUi({ careerKind: v })} options={[['regular', 'Regular season'], ...(book.playoffs ? [['playoffs', 'Playoffs']] : [])]} />
         <Segmented label="Measure" value={ui.careerMetric} set={v => setUi({ careerMetric: v })} options={METRICS.map(([, l], k) => [k, l])} />
+        {book.born && <Segmented label="Along" value={byAge ? 'age' : 'season'} set={v => setUi({ careerAxis: v })} options={[['season', 'By season'], ['age', 'By age']]} />}
       </div>
       {data.every(d => d.value == null) ? <p>No {label.toLowerCase()} figures are on record for {book.last || book.name}'s seasons.</p> : (
-        <SeasonColumns data={data} format={fmt} caption={`${label} ${key === 'gamesPlayed' ? 'played' : 'per game'}, by ${kind === 'playoffs' ? 'playoff run' : 'season'}. The highest is marked in red.`} />
+        <SeasonColumns data={data} format={fmt} caption={`${label} ${key === 'gamesPlayed' ? 'played' : 'per game'}, by ${kind === 'playoffs' ? 'playoff run' : 'season'}${byAge ? ', labelled with his age that season' : ''}. The highest is marked in red.`} />
       )}
     </>
   ), { start: true });
@@ -187,10 +243,111 @@ function career(book, { ui, setUi }, add) {
   if (book.regular.rows.some(r => r.combined)) add(ch, 'trade', <Note>Seasons split by a trade count toward each team the player appeared for.</Note>);
 }
 
-// ---- III. Records ----------------------------------------------------------------------------------------------
+// ---- IV. Prime ------------------------------------------------------------------------------------------------
+
+function primeChapter(book, ctx, add) {
+  const ch = 5;
+  const reg = book.regular;
+  const surname = book.last || book.name;
+  if (!reg) { add(ch, 'head', <><ChapterHead ch={ch} title="Prime" /><p>There are no season statistics on record for {book.name}, so there is no prime to measure.</p></>, { start: true }); return; }
+  const top = best(reg, 'avgPoints');
+  const row = top && perSeason(reg).find(r => r.season === top.season);
+  const won = top ? book.honors.filter(h => h.seasons.includes(top.season)).map(h => h.name) : [];
+  const led = top ? (book.leaders || []).filter(l => l.season === top.season).map(l => LEADER_PHRASE[l.stat]) : [];
+  const age = top && book.born ? ageInSeason(book.born, top.season) : null;
+  add(ch, 'head', (
+    <>
+      <ChapterHead ch={ch} title="Prime" sub="The best season and the best stretch" />
+      {row && (
+        <div className="season-card">
+          <p className="sc-kicker">Signature season</p>
+          <p className="sc-year">{row.label}</p>
+          <p className="sc-meta">{[top.team, age != null ? `age ${age}` : null, `${row.avg.gamesPlayed} games`].filter(Boolean).join(' · ')}</p>
+          <div className="sc-line">
+            {[['PTS', row.avg.avgPoints], ['REB', row.avg.avgRebounds], ['AST', row.avg.avgAssists], ['TS%', trueShooting(row.tot)]].filter(([, v]) => v != null).map(([k, v]) => (
+              <span key={k}><strong><CountUp id={`${book.id}-sc-${k}`} value={v} format={x => x.toFixed(1)} /></strong><em>{k}</em></span>
+            ))}
+          </div>
+          {(won.length > 0 || led.length > 0) && <p className="sc-honors">{[...won, ...(led.length ? [`led the league in ${list(led)}`] : [])].join(' · ')}</p>}
+        </div>
+      )}
+      {row && <Note>His highest-scoring regular season of 20 or more games.</Note>}
+    </>
+  ), { start: true });
+  const p = prime(reg);
+  if (p) {
+    const c = reg.career, cts = trueShooting(c.tot);
+    const lines = [['Points', p.ppg, c.avg?.avgPoints], ['Rebounds', p.rpg, c.avg?.avgRebounds], ['Assists', p.apg, c.avg?.avgAssists], ['True shooting %', p.ts, cts]].filter(([, a]) => a != null);
+    add(ch, 'prime', (
+      <section>
+        <h3>Best five-season stretch</h3>
+        <p>{p.from.label} to {p.to.label}{book.born ? `, from age ${ageInSeason(book.born, p.from.season)} to ${ageInSeason(book.born, p.to.season)}` : ''}: {n0(p.gp)} games.</p>
+        <table className="mini compare">
+          <caption className="sr-only">Five-season stretch against the whole career, per game</caption>
+          <thead><tr><th scope="col">Per game</th><th scope="col">Those five</th><th scope="col">Career</th></tr></thead>
+          <tbody>{lines.map(([l, a, b]) => <tr key={l}><th scope="row">{l}</th><td className="num">{n1(a)}</td><td>{n1(b)}</td></tr>)}</tbody>
+        </table>
+        <Note>The five consecutive seasons with the most points per game.</Note>
+      </section>
+    ));
+  }
+  const cl = clubs(reg);
+  if (cl.length) {
+    add(ch, 'clubs-h', <h3>Season clubs</h3>);
+    cl.forEach(c => add(ch, `club-${c.key}`, (
+      <div className="club">
+        <span className="club-n">{c.seasons.length}</span>
+        <div><strong>{c.label}</strong>{c.note && <span className="club-note"> · {c.note}</span>}<p className="seasons">{c.seasons.map(seasonLabel).join(' · ')}</p></div>
+      </div>
+    )));
+    if (cl.some(c => c.key === 's504090')) add(ch, 'club-n', <Note>50-40-90 counts only seasons that also reach the league's minimums: 300 field goals, 82 three-pointers and 125 free throws made.</Note>);
+  } else add(ch, 'clubs-none', <p>{surname} had no 25-point, 20-and-10, 20-5-5, 10-and-10 or 50-40-90 season on record (seasons of 20 or more games).</p>);
+}
+
+// ---- VI. Playoffs ---------------------------------------------------------------------------------------------
+
+function playoffsChapter(book, ctx, add) {
+  const ch = 7;
+  const surname = book.last || book.name;
+  const shift = playoffShift(book);
+  if (!book.playoffs) { add(ch, 'head', <><ChapterHead ch={ch} title="Playoffs" /><p>{surname} has no playoff games on record.</p></>, { start: true }); return; }
+  const post = book.playoffs;
+  const runs = perSeason(post);
+  const deepest = runs.reduce((a, r) => ((r.avg?.gamesPlayed || 0) > (a?.avg?.gamesPlayed || 0) ? r : a), null);
+  const top = best(post, 'avgPoints', 5);
+  const fmv = book.honors.find(h => h.key === 'fmvp');
+  add(ch, 'head', (
+    <>
+      <ChapterHead ch={ch} title="Playoffs" sub={`${plural(post.seasons, 'postseason')}, ${plural(post.career.avg?.gamesPlayed || 0, 'game')}`} />
+      {shift ? (
+        <figure className="shift">
+          <figcaption>Playoffs against the regular season, career per game</figcaption>
+          {shift.rows.map(r => {
+            const rel = r.reg ? r.diff / r.reg : 0, w = Math.min(50, Math.abs(rel) * 160);
+            return (
+              <div key={r.label} className="shift-row">
+                <span className="shift-l">{r.label}</span>
+                <span className="shift-bar" aria-hidden><i className={r.diff >= 0 ? 'up' : 'down'} style={{ width: `${w}%` }} /></span>
+                <span className="shift-v">{n1(r.reg)} → <strong>{n1(r.post)}</strong> <em className={r.diff >= 0 ? 'up' : 'down'}>{r.diff >= 0 ? '+' : '−'}{n1(Math.abs(r.diff))}</em></span>
+              </div>
+            );
+          })}
+        </figure>
+      ) : <p>Fewer than 10 playoff games are on record, too few to set against the regular season.</p>}
+    </>
+  ), { start: true });
+  const facts = [];
+  if (top) facts.push(<>Highest-scoring run: <strong>{n1(top.value)} points a game</strong> in {top.label} ({top.games} games).</>);
+  if (deepest && runs.length > 1) facts.push(<>Longest run: <strong>{deepest.avg.gamesPlayed} games</strong> in {deepest.label}.</>);
+  if (fmv) facts.push(<>Finals MVP: <strong>{fmv.seasons.map(seasonLabel).join(', ')}</strong>.</>);
+  facts.forEach((f, k) => add(ch, `pf${k}`, <p className="kicker">{f}</p>));
+  if (shift) add(ch, 'shift-n', <Note>Bars show the change as a share of his regular-season figure. Playoff games come against the best teams, so most players' numbers move.</Note>);
+}
+
+// ---- V. Records ----------------------------------------------------------------------------------------------
 
 function records(book, { highs }, add) {
-  const ch = 4;
+  const ch = 6;
   const surname = book.last || book.name;
   add(ch, 'head', <><ChapterHead ch={ch} title="Records" />{!book.regular && <p>There are no season or game statistics on record for {book.name}, so there are no records to show.</p>}</>, { start: true });
   if (!book.regular) return;
@@ -247,10 +404,16 @@ function highsBlocks(h, surname, ch, add) {
   ));
   add(ch, 'tallies', (
     <ul className="tallies">
-      <li><strong>{n0(h.forty.regular)}</strong> regular-season games of 40+ points{h.forty.playoffs ? <>, <strong>{n0(h.forty.playoffs)}</strong> in the playoffs</> : null}</li>
+      {h.thirty && <li><strong>{n0(h.thirty.regular)}</strong> regular-season games of 30+ points{h.thirty.playoffs ? <>, <strong>{n0(h.thirty.playoffs)}</strong> in the playoffs</> : null}</li>}
+      <li><strong>{n0(h.forty.regular)}</strong> of 40+{h.forty.playoffs ? <>, <strong>{n0(h.forty.playoffs)}</strong> in the playoffs</> : null}</li>
       <li><strong>{n0(h.fifty.regular)}</strong> of 50+{h.fifty.playoffs ? <>, <strong>{n0(h.fifty.playoffs)}</strong> in the playoffs</> : null}</li>
+      {h.twentyTen && <li><strong>{n0(h.twentyTen.regular)}</strong> games of 20 points and 10 rebounds{h.twentyTen.playoffs ? <>, <strong>{n0(h.twentyTen.playoffs)}</strong> in the playoffs</> : null}</li>}
       <li><strong>{n0(h.tripleDoubles.regular)}</strong> triple-doubles{h.tripleDoubles.playoffs ? <>, <strong>{n0(h.tripleDoubles.playoffs)}</strong> in the playoffs</> : null}</li>
     </ul>
+  ));
+  if (h.firstForty) add(ch, 'forties', (
+    <p className="kicker">{h.firstForty.date === h.lastForty.date ? <>His 40-point game on record: <strong>{h.firstForty.points}</strong> {game(h.firstForty)}.</>
+      : <>First 40-point game on record: <strong>{h.firstForty.points}</strong> {game(h.firstForty)}. Most recent: <strong>{h.lastForty.points}</strong> {game(h.lastForty)}.</>}</p>
   ));
   add(ch, 'highs-n', (
     <Note>
@@ -260,10 +423,10 @@ function highsBlocks(h, surname, ch, add) {
   ));
 }
 
-// ---- IV. Honors ------------------------------------------------------------------------------------------------
+// ---- VII. Honors ------------------------------------------------------------------------------------------------
 
 function honors(book, ctx, add) {
-  const ch = 5;
+  const ch = 8;
   add(ch, 'head', <><ChapterHead ch={ch} title="Honors" />{!book.honors.length && <p>No NBA awards are on record for {book.last || book.name}.</p>}</>, { start: true });
   book.honors.forEach(h => add(ch, `h-${h.name}`, (
     <div className={`honor${h.key === 'mvp' || h.key === 'fmvp' ? ' major' : ''}`}>
@@ -278,10 +441,10 @@ function honors(book, ctx, add) {
   add(ch, 'note', <Note>The award records do not include All-Star selections or championships, so neither appears here rather than being guessed.</Note>);
 }
 
-// ---- V. Teams --------------------------------------------------------------------------------------------------
+// ---- VIII. Teams --------------------------------------------------------------------------------------------------
 
 function teams(book, ctx, add) {
-  const ch = 6;
+  const ch = 9;
   const sums = byTeam(book.regular);
   const find = name => sums.find(s => s.name === name || (name && s.name && name.endsWith(s.name.split(' ').pop()) && s.name.split(' ').pop().length > 3));
   add(ch, 'head', <><ChapterHead ch={ch} title="Teams" />{!book.teams.length && !sums.length && <p>No team history is on record for {book.name}.</p>}</>, { start: true });
@@ -303,8 +466,9 @@ function teams(book, ctx, add) {
   if (book.teams.some(t => t.derived)) add(ch, 'n2', <Note>No team history is on record for this player; these stints are read from the season statistics.</Note>);
 }
 
-// ---- VI. Statistical record ------------------------------------------------------------------------------------
+// ---- IX. Statistical record ------------------------------------------------------------------------------------
 
+const ordinal = n => { const t = ['th', 'st', 'nd', 'rd'], v = n % 100; return `${n.toLocaleString('en-US')}${t[(v - 20) % 10] || t[v] || t[0]}`; };
 const pair = (a, b, f) => (a == null && b == null ? '—' : `${f(a)}–${f(b)}`);
 const AVG_COLS = [
   ['GP', 'Games played', r => n0(r.avg?.gamesPlayed)], ['GS', 'Games started', r => n0(r.avg?.gamesStarted)], ['MIN', 'Minutes per game', r => n1(r.avg?.avgMinutes)],
@@ -313,6 +477,7 @@ const AVG_COLS = [
   ['FG', 'Field goals made–attempted', r => pair(r.avg?.avgFieldGoalsMade, r.avg?.avgFieldGoalsAttempted, n1)], ['FG%', 'Field-goal percentage', r => pct(r.avg?.fieldGoalPct)],
   ['3P', 'Three-pointers made–attempted', r => pair(r.avg?.avgThreePointFieldGoalsMade, r.avg?.avgThreePointFieldGoalsAttempted, n1)], ['3P%', 'Three-point percentage', r => pct(r.avg?.threePointFieldGoalPct)],
   ['FT', 'Free throws made–attempted', r => pair(r.avg?.avgFreeThrowsMade, r.avg?.avgFreeThrowsAttempted, n1)], ['FT%', 'Free-throw percentage', r => pct(r.avg?.freeThrowPct)],
+  ['TS%', 'True shooting percentage', r => pct(trueShooting(r.tot))],
   ['OREB', 'Offensive rebounds', r => n1(r.avg?.avgOffensiveRebounds)], ['DREB', 'Defensive rebounds', r => n1(r.avg?.avgDefensiveRebounds)],
 ];
 const TOT_COLS = [
@@ -326,7 +491,7 @@ const TOT_COLS = [
 ];
 
 function statRecord(book, { ui, setUi }, add) {
-  const ch = 7;
+  const ch = 10;
   if (!book.regular) { add(ch, 'head', <><ChapterHead ch={ch} title="Statistical record" /><p>No season statistics are on record for {book.name}.</p></>, { start: true }); return; }
   const kind = book[ui.statKind] ? ui.statKind : 'regular';
   const stats = book[kind];
@@ -380,10 +545,10 @@ function statRecord(book, { ui, setUi }, add) {
     : <Note>Seasons before {gap.recordLabel} are not in the record, so the career line covers {recordSpan(book)} only.</Note>);
 }
 
-// ---- VII. Legacy -----------------------------------------------------------------------------------------------
+// ---- X. Legacy -----------------------------------------------------------------------------------------------
 
-function legacy(book, ctx, add) {
-  const ch = 8;
+function legacy(book, { rank }, add) {
+  const ch = 11;
   const reg = book.regular, post = book.playoffs;
   const surname = book.last || book.name;
   const seasons = perSeason(reg);
@@ -396,6 +561,7 @@ function legacy(book, ctx, add) {
     if (parts.length) lines.push(`${list(parts)} in ${n0(reg.career.avg?.gamesPlayed)} regular-season games.`.replace(/^./, c => c.toUpperCase()));
   }
   if (post) lines.push(`${n0(post.career.tot?.points)} more points in ${n0(post.career.avg?.gamesPlayed)} playoff games across ${plural(post.seasons, 'postseason')}.`);
+  if (rank?.games) lines.push(`${ordinal(rank.games.rank)} in games played among the ${rank.games.of.toLocaleString('en-US')} players in this library.`);
   if (total) lines.push(`${plural(total, 'NBA honor')} on the award lists${book.honors[0] ? `, led by ${book.honors[0].count > 1 ? `${book.honors[0].count} × ` : ''}${book.honors[0].name}` : ''}.`);
   add(ch, 'head', (
     <>
@@ -403,6 +569,13 @@ function legacy(book, ctx, add) {
       {lines.length ? <ul className="summary">{lines.map((l, k) => <li key={k}>{l}</li>)}</ul> : <p>The record for {book.name} is too thin to add up.</p>}
     </>
   ), { start: true });
+  const marks = reg && !coverageGap(book) ? milestones(reg) : [];
+  if (marks.length) {
+    add(ch, 'ms-h', <h3>Milestones</h3>);
+    marks.forEach(m => add(ch, `ms-${m.key}`, (
+      <div className="ledger-row"><span>{m.label}</span><span>Passed {m.value.toLocaleString('en-US')} {m.word}{book.born ? ` at ${ageInSeason(book.born, m.season)}` : ''}</span><strong aria-hidden>●</strong></div>
+    )));
+  }
   if (seasons.length > 1) add(ch, 'chart', (
     <Accumulation data={seasons.map(r => ({ key: r.season, label: r.label, short: `’${String(r.season % 100).padStart(2, '0')}`, value: r.tot?.points ?? null }))} format={n0}
       caption={`Career regular-season points, accumulated season by season${book.active ? ' — the book is still being written' : ''}.`} />
@@ -422,7 +595,9 @@ export function paginate(blocks, heights, room) {
   let cur = null, used = 0;
   blocks.forEach((b, k) => {
     const h = Math.min(heights[k] || 0, room);
-    if (!cur || b.start || b.whole || (used + h > room && cur.blocks.length)) {
+    // A section heading (key ending in "-h") never ends a page: it moves over with the block it introduces.
+    const withNext = /-h$/.test(b.key) && k + 1 < blocks.length && !blocks[k + 1].start ? Math.min(heights[k + 1] || 0, room - h) : 0;
+    if (!cur || b.start || b.whole || (used + h + withNext > room && cur.blocks.length)) {
       cur = { blocks: [], ch: b.ch }; pages.push(cur); used = 0;
     }
     cur.blocks.push(k); used += h;

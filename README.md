@@ -12,8 +12,10 @@ Live: https://total-nba-ja9d.vercel.app
   - *Shelf back* changes the colour of the wall behind the shelf.
 - **Find a player.** Search (`/`) looks across every shelf. Enter takes you to the player's shelf and brings the book under the pointer; Shift+Enter (or *Open*) takes it straight down. Players the catalogue doesn't hold are found through ESPN's search and shelved.
 - **Take a book down.** Click a book. It tips out by the top of its spine, comes off the shelf and turns to face you, cover first: the player's photo, name, team and years. Closing puts it back in its gap on the shelf.
+- **The book.** Ten chapters: *By the numbers* (the career at a glance), *The player*, *Career* (by season or by age), *Prime* (the signature season, the best five-season stretch, season clubs such as 25-point, 20-and-10 and 50-40-90 seasons), *Records* (league titles, best seasons, single-game highs, 30- and 40-point games, 20-and-10 games, triple-doubles), *Playoffs* (playoff numbers set against the regular season), *Honors*, *Teams*, *Statistical record* (with true shooting) and *Legacy* (career totals, round-number milestones and the season each was passed, where the player stands in games played among everyone in the library). Every figure is the record's own number or plain arithmetic on it, and each derived measure says how it is worked out.
 - **Read.** Tap or swipe the cover to open it. The book has real pages: a two-page spread on wide screens, one page on phones. Drag a page by its corner and it folds over under your finger, showing its back; let go past the middle (or flick) and it turns. Tap the right side to turn forward, the left side to go back, or use ← →.
-  - The contents page lists real page numbers.
+  - The pills under the book jump to any chapter; the contents page lists real page numbers.
+  - Turning a page makes a soft paper sound (drawn in the browser, no audio files); the speaker button turns it off.
   - Esc takes you back to the shelf.
   - Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
 - The system's reduced-motion setting is honoured: books open and pages turn without animation.
@@ -67,7 +69,7 @@ The result is about 5,240 players. Anyone else ESPN knows is added the first tim
 
 ## How it's built
 
-- **Client** (`client/`): React 18 + Vite, no other runtime libraries.
+- **Client** (`client/`): React 18 + Vite, with [Motion](https://motion.dev) for springs and transitions (the sliding tab and chapter markers, numbers that count up as a page comes into view, the closed book floating and leaning towards the pointer).
   - The shelf is plain HTML and CSS: each spine is a button whose size, colours, decoration and lettering come from the player's record (`client/src/shelves.js`). Only the books near the view are in the page, so the retired shelf (about 4,500 books) scrolls as smoothly as a team's.
   - Taking a book down is CSS 3D (`client/src/pull.js`): the book is built as a box at the reader's cover size, scaled down over its spine, then tipped, pulled and turned until its cover lands exactly on the reader's.
   - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page folds along the perpendicular bisector of its corner and your finger (`client/src/fold.js`): the flat part is clipped, the lifted part is reflected across the fold to show the next page's back, and SVG gradients shade the curl and cast a shadow on the page underneath. The cover is stiff and swings without curling.
@@ -97,6 +99,7 @@ npm run test:ui        # Chromium: shelves, search, taking a book down, chapters
 | Resource | Use | License |
 |---|---|---|
 | [React](https://react.dev) 18 | Interface | MIT |
+| [Motion](https://github.com/motiondivision/motion) 12 | Animation | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
 | [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface, spines, covers | SIL Open Font License 1.1 |
@@ -105,4 +108,4 @@ npm run test:ui        # Chromium: shelves, search, taking a book down, chapters
 | [Literata](https://fonts.google.com/specimen/Literata) (TypeTogether) | Book text | SIL Open Font License 1.1 |
 | ESPN public API and headshots | All player data and portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
 
-The favicon and all other artwork are original and drawn in code.
+The favicon and all other artwork are original and drawn in code. The held, floating book with page sounds and chapter pills takes its cue from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (an interactive 3D book); no code or assets are copied from it.

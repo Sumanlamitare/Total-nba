@@ -6,6 +6,8 @@ import Shelf from './Shelf.jsx';
 import SearchBox from './SearchBox.jsx';
 import Reader from './Reader.jsx';
 import { buildPull } from './pull.js';
+import { motion as M } from 'motion/react';
+import { playTurn } from './sound.js';
 
 const bookFromPath = () => (location.pathname.match(/^\/book\/(\d+)/) || [])[1] || null;
 const media = q => (typeof matchMedia === 'function' ? matchMedia(q).matches : false);
@@ -84,6 +86,7 @@ export default function App() {
   const openFromShelf = useCallback((p, spineEl) => {
     if (open || returning) return;
     loadBook(p.i).catch(() => {});
+    playTurn('tap');
     if (bookFromPath() !== p.i) { history.pushState({ book: p.i }, '', `/book/${p.i}/${slug(p.n)}`); pushed.current = true; }
     document.title = `${p.n} · Player Library`;
     setOpen({ id: p.i, phase: motion ? 'pulling' : 'open', spine: spineEl, color: spineOf(p, teamOf(p)).bg });
@@ -192,6 +195,13 @@ export default function App() {
 
   const { ghost, dark } = ghostFor(wall);
   const openPlayer = open ? byId.get(open.id) || { i: open.id, n: '', l: '' } : null;
+  // Where the open book's player stands among everyone in the library (games played).
+  const gamesSorted = useMemo(() => (players || []).map(p => p.g || 0).filter(Boolean).sort((a, b) => b - a), [players]);
+  const rank = useMemo(() => {
+    const g = openPlayer?.g; if (!g || !gamesSorted.length) return null;
+    let lo = 0, hi = gamesSorted.length; while (lo < hi) { const m = (lo + hi) >> 1; if (gamesSorted[m] > g) lo = m + 1; else hi = m; }
+    return { games: { rank: lo + 1, of: players.length } };
+  }, [openPlayer?.g, gamesSorted, players]); // eslint-disable-line react-hooks/exhaustive-deps
   const total = players?.length || 0;
 
   if (error && !catalog) {
@@ -219,7 +229,9 @@ export default function App() {
         <section className="tools" aria-label="Find a shelf">
           <div className="top-row">
             <div className="lib-head">
-              <h1>{tab === RETIRED ? 'Retired players' : team ? team.name : 'Active players'}</h1>
+              <M.h1 key={shelfKey} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
+                {tab === RETIRED ? 'Retired players' : team ? team.name : 'Active players'}
+              </M.h1>
               <p className="count" aria-live="polite">{lib ? `${books.length.toLocaleString('en-US')} ${books.length === 1 ? 'player' : 'players'}` : ''}</p>
             </div>
             <div className="top-controls">
@@ -248,8 +260,15 @@ export default function App() {
             )}
           </div>
           <nav className="tabs" aria-label="Library sections">
-            <button className="tab" type="button" aria-current={tab !== RETIRED ? 'page' : undefined} onClick={() => setTab('active')}>Active players{lib && <span className="tab-n">{(total - lib.retired.length).toLocaleString('en-US')}</span>}</button>
-            <button className="tab" type="button" aria-current={tab === RETIRED ? 'page' : undefined} onClick={() => setTab(RETIRED)}>Retired players{lib && <span className="tab-n">{lib.retired.length.toLocaleString('en-US')}</span>}</button>
+            {[['active', 'Active players', lib ? total - lib.retired.length : null], [RETIRED, 'Retired players', lib?.retired.length]].map(([k, label, n]) => {
+              const on = k === RETIRED ? tab === RETIRED : tab !== RETIRED;
+              return (
+                <button key={k} className="tab" type="button" aria-current={on ? 'page' : undefined} onClick={() => setTab(k)}>
+                  {label}{n != null && <span className="tab-n">{n.toLocaleString('en-US')}</span>}
+                  {on && <M.i className="tab-line" layoutId="tab-line" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+                </button>
+              );
+            })}
           </nav>
         </section>
 
@@ -273,7 +292,7 @@ export default function App() {
       </main>
 
       {open && (
-        <Reader key={open.id} id={open.id} player={openPlayer} shelf={shelfOf(openPlayer)} hidden={open.phase === 'pulling'} arrived={!open.deep}
+        <Reader key={open.id} id={open.id} player={openPlayer} shelf={shelfOf(openPlayer)} rank={rank} hidden={open.phase === 'pulling'} arrived={!open.deep}
           motion={motion} onClose={closeBook} />
       )}
       <p className="sr-only" role="status" aria-live="polite">{announce}</p>

@@ -4,6 +4,7 @@ import React, { forwardRef, useEffect, useMemo, useState } from 'react';
 import { searchPlayers } from './api.js';
 import { span, teamCloth, RETIRED, ALL } from './shelves.js';
 import { localSearch } from './search.js';
+import { motion, AnimatePresence } from 'motion/react';
 
 const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, onGo, onOpen, onAdded }, input) {
   const [q, setQ] = useState('');
@@ -54,8 +55,9 @@ const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, on
           aria-activedescendant={show && results[active] ? `sr-${results[active].i}` : undefined} aria-keyshortcuts="/"
           onChange={e => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onKeyDown={onKey} />
       </label>
+      <AnimatePresence>
       {show && (
-        <div className="results">
+        <motion.div className="results" initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}>
           <ul id="search-results" role="listbox" aria-label="Matching players">
             {results.map((p, k) => {
               const w = where(p);
@@ -77,8 +79,9 @@ const SearchBox = forwardRef(function SearchBox({ players, placeOf, teamById, on
               : !results.length ? 'No match yet…'
               : 'Enter goes to the shelf · Shift+Enter opens the book'}
           </p>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 });

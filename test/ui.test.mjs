@@ -35,6 +35,12 @@ async function findInBook(p, make, turns = 4) {
   }
 }
 
+// Jump to a chapter with the pills under the book.
+const chapter = async (p, name) => {
+  await p.getByRole('navigation', { name: 'Chapters' }).getByRole('button', { name, exact: true }).click();
+  await p.locator('.book:not(.turning)').waitFor();
+};
+
 async function page(opts = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, ignoreHTTPSErrors: true, ...opts });
   // Fonts come from Google; the tests don't need them.
@@ -88,12 +94,12 @@ test('the shelves: a team per shelf, one shelf for the retired, search brings a 
   await p.keyboard.press('ArrowRight');
   await p.locator('.book:not(.turning):not(.closed) .bookplate').waitFor();
   await p.keyboard.press('ArrowRight');
-  await findInBook(p, b => b.getByText(/played 13 regular seasons/));
+  await findInBook(p, b => b.getByText(/played 13 regular seasons/), 6);
   // A page turns: mid-turn the book shows the folded-over back of the page.
   await p.keyboard.press('ArrowRight');
   await p.locator('.book .leaf-back').waitFor({ state: 'attached' });
   await p.locator('.book:not(.turning)').waitFor();
-  await p.getByLabel('Chapter').selectOption('7');
+  await chapter(p, 'Statistical record');
   await p.locator('.book:not(.turning)').waitFor();
   const rows = await findInBook(p, b => b.locator('table.stats tbody tr'));
   assert.equal(await rows.count(), 13);
@@ -137,7 +143,20 @@ test('records chapter loads career highs and says where they come from', async (
   const p = await page();
   await p.goto(base + '/book/1966/lebron-james');
   await p.getByRole('dialog', { name: /LeBron James/ }).waitFor({ timeout: 30000 });
-  await p.getByLabel('Chapter').selectOption('4');
+  // By the numbers: the career at a glance, counted from the record.
+  await chapter(p, 'By the numbers');
+  await p.locator('.book:not(.turning) .tiles').waitFor();
+  await p.waitForFunction(() => [...document.querySelectorAll('.book .tile')].some(t => /26\.8/.test(t.textContent) && /Points a game/.test(t.textContent)));
+  // Prime: the signature season and the best five-season stretch.
+  await chapter(p, 'Prime');
+  await p.locator('.book:not(.turning) .season-card', { hasText: '2005-06' }).waitFor();
+  await findInBook(p, b => b.getByText('Best five-season stretch'));
+  // Playoffs against the regular season.
+  await chapter(p, 'Playoffs');
+  await p.locator('.book:not(.turning)').waitFor();
+  const shift = await findInBook(p, b => b.locator('.shift-row'));
+  assert.ok(await shift.count() >= 4);
+  await chapter(p, 'Records');
   await p.locator('.book:not(.turning)').waitFor();
   await findInBook(p, b => b.getByText('Led the league'));
   const highs = await findInBook(p, b => b.locator('table.highs tbody tr'), 6);
@@ -174,14 +193,17 @@ test('phone: the reader is a single page that turns, with a chapter picker', asy
   // A tap on the cover opens the book; a tap on the right of a page turns it, on the left turns back.
   await p.locator('.book.closed .cover').tap();
   await p.locator('.book:not(.turning):not(.closed)').waitFor();
-  assert.equal(await p.locator('.pg-count').textContent(), '1 / ' + (await p.locator('.pg-count').textContent()).split(' / ')[1]);
+  await p.waitForTimeout(400);
+  await p.locator('.book:not(.turning)').waitFor();
+  const at = async () => Number((await p.locator('.pg-count').textContent()).split(' / ')[0]);
+  const start = await at();
   const box = await p.locator('.book').boundingBox();
   await p.touchscreen.tap(box.x + box.width * 0.85, box.y + box.height * 0.5);
+  await p.waitForFunction(n => document.querySelector('.pg-count')?.textContent.startsWith(`${n} /`), start + 1);
   await p.locator('.book:not(.turning)').waitFor();
-  await p.waitForFunction(() => document.querySelector('.pg-count')?.textContent.startsWith('2 /'));
-  await p.touchscreen.tap(box.x + box.width * 0.15, box.y + box.height * 0.82); // below the contents list
-  await p.waitForFunction(() => document.querySelector('.pg-count')?.textContent.startsWith('1 /'));
-  await p.getByLabel('Chapter').selectOption('7');
+  await p.touchscreen.tap(box.x + box.width * 0.15, box.y + 24); // the running head: clear of any list or button
+  await p.waitForFunction(n => document.querySelector('.pg-count')?.textContent.startsWith(`${n} /`), start);
+  await chapter(p, 'Statistical record');
   await p.locator('.book:not(.turning)').waitFor();
   await findInBook(p, b => b.getByRole('heading', { name: 'Statistical record', exact: true }));
   const combined = await findInBook(p, b => b.locator('tr.combined'));

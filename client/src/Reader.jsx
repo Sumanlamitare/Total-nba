@@ -8,6 +8,8 @@ import { span as spanOf, teamCloth, inkOn } from './shelves.js';
 import { buildBlocks, paginate, CHAPTERS, ROMAN, UI_DEFAULTS } from './chapters.jsx';
 import { fold, clampCorner, progress, arc, pts, svgPts } from './fold.js';
 import { headshot } from './api.js';
+import { motion as M, useSpring, useReducedMotion } from 'motion/react';
+import { playTurn, soundOn, setSound } from './sound.js';
 
 const ASPECT = 0.7; // page width / height
 const TURN_MS = 820;
@@ -38,7 +40,7 @@ function useGeometry(wrap) {
   return g;
 }
 
-export default function Reader({ id, player, shelf, hidden = false, arrived = false, motion, onClose }) {
+export default function Reader({ id, player, shelf, rank, hidden = false, arrived = false, motion, onClose }) {
   const [state, setState] = useState({ book: null, error: null });
   const [highs, setHighs] = useState({ state: 'loading' });
   const [ui, setUiState] = useState(UI_DEFAULTS);
@@ -49,8 +51,27 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
   const [heights, setHeights] = useState(null);
   const [pos, setPos] = useState(-1); // -1: closed, showing the cover; then a spread index (two pages) or page index
   const [turn, setTurn] = useState(null); // { dir, from, to, top, mirror, reverse }
+  const [pending, setPending] = useState(false); // a queued turn is about to start
   const anim = useRef({ P: null, raf: 0 });
   const [announce, setAnnounce] = useState('');
+  const [snd, setSnd] = useState(soundOn);
+  const reduced = useReducedMotion();
+  // A closed book is held up, floating a little and leaning towards the pointer; an open one lies still to be read.
+  const tiltX = useSpring(0, { stiffness: 120, damping: 18 }), tiltY = useSpring(0, { stiffness: 120, damping: 18 });
+  const pillsEl = useRef(null);
+  const onTilt = e => {
+    if (pos >= 0 || anim.current.turn || reduced || !motion || e.pointerType === 'touch') { tiltX.set(0); tiltY.set(0); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    tiltY.set(((e.clientX - r.left) / r.width - 0.5) * 7);
+    tiltX.set(-((e.clientY - r.top) / r.height - 0.5) * 5);
+  };
+  // Keep the current chapter's pill in view (only when it has moved out of view).
+  const pillKey = pos < 0 ? 'cover' : `${pos}`;
+  useEffect(() => {
+    const nav = pillsEl.current, on = nav?.querySelector('.pill.on'); if (!on) return;
+    const a = on.getBoundingClientRect(), b = nav.getBoundingClientRect();
+    if (a.left < b.left || a.right > b.right) nav.scrollTo({ left: nav.scrollLeft + (a.left + a.width / 2) - (b.left + b.width / 2), behavior: motion && !reduced ? 'smooth' : 'auto' });
+  }, [pillKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let live = true;
@@ -70,8 +91,8 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
   // Pages: blocks -> measured heights -> packed pages. Two passes so the contents page can show page numbers.
   const [chapterPages, setChapterPages] = useState(null);
   const goPageRef = useRef(() => {});
-  const blocks = useMemo(() => (book ? buildBlocks(book, { ui, setUi, highs, player, shelf, chapterPages, goPage: p => goPageRef.current(p) }) : []),
-    [book, ui, setUi, highs, player, shelf?.label, chapterPages]); // eslint-disable-line react-hooks/exhaustive-deps
+  const blocks = useMemo(() => (book ? buildBlocks(book, { ui, setUi, highs, player, shelf, rank, chapterPages, goPage: p => goPageRef.current(p) }) : []),
+    [book, ui, setUi, highs, player, shelf?.label, rank, chapterPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useLayoutEffect(() => {
     if (!geo || !measure.current || !blocks.length) return;
@@ -194,7 +215,12 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
       const p = k >= 0 && latest ? latest.pages.findIndex(x => x.blocks.includes(k)) : -1;
       if (p >= 0) t.to = spread ? spreadOf(p) : p;
       land(t.to);
-      if (anim.current.queued != null) { const q = anim.current.queued; anim.current.queued = null; setTimeout(() => startTurnRef.current(q), 0); }
+      // A turn asked for mid-turn starts next. Until it does, the book still counts as turning (and relative turns
+      // count from where it is heading), so nothing slips in between the two.
+      if (anim.current.queued != null) {
+        const q = anim.current.queued; anim.current.queued = null; anim.current.next = q; setPending(true);
+        setTimeout(() => { anim.current.next = null; setPending(false); startTurnRef.current(q); }, 0);
+      }
       const pg = t.to < 0 ? [] : spread ? [leftOf(t.to), rightOf(t.to)].filter(x => typeof x === 'number') : [t.to];
       const ch = pg.length ? (pagedRef.current || paged).pages[pg[pg.length - 1]]?.ch ?? 0 : 0;
       setAnnounce(t.to < 0 ? 'The cover.' : `${pg.length === 2 ? `Pages ${pg[0] + 1} and ${pg[1] + 1}` : pg.length ? `Page ${pg[0] + 1}` : 'Endpaper'}${ch > 1 ? `: Chapter ${ROMAN[ch]}, ${CHAPTERS[ch]}` : ch === 1 ? ': Contents' : ''}.`);
@@ -207,6 +233,7 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
     const t = anim.current.turn; if (!t) return;
     const L = layoutTurn(t);
     const from = anim.current.P || L.start, to = complete ? L.end : L.start;
+    if (complete) playTurn(t.from < 0 || t.to < 0 ? 'cover' : 'page');
     const dist = Math.hypot(to.x - from.x, to.y - from.y) / (2 * L.W);
     const dur = Math.max(160, ms * Math.min(1, dist));
     const t0 = performance.now();
@@ -227,7 +254,7 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
     const fp = firstPageOf(to);
     const dir = to > pos ? 1 : -1;
     const t = { dir, from: pos, to, top, mirror: spread && dir < 0, reverse: !spread && dir < 0, anchorKey: fp != null && paged?.pages[fp] ? shown[paged.pages[fp].blocks[0]].key : null };
-    if (!motion) { anim.current.turn = t; finish(true); return true; }
+    if (!motion) { anim.current.turn = t; playTurn(t.from < 0 || t.to < 0 ? 'cover' : 'page'); finish(true); return true; }
     anim.current.turn = t; anim.current.P = layoutTurn(t).start;
     setTurn(t);
     if (!drag) requestAnimationFrame(() => animateTo(true));
@@ -243,7 +270,7 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
   const goPage = useCallback(p => { startTurn(spread ? spreadOf(p) : p); }, [startTurn, spread]);
   goPageRef.current = goPage;
   // Relative turns count from where the book is heading, so pressing → three times turns three pages.
-  const heading = () => anim.current.queued ?? anim.current.turn?.to ?? pos;
+  const heading = () => anim.current.queued ?? anim.current.next ?? anim.current.turn?.to ?? pos;
   const next = () => startTurn(heading() + 1);
   const prev = () => startTurn(heading() - 1);
 
@@ -264,6 +291,8 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
   // Touch and mouse: drag a page and its corner follows; let go past the middle (or flick) and it turns over.
   // A tap turns: on the right side of the book forward, on the left side back.
   const drag = useRef(null);
+  const tapTurnAt = useRef(0);
+  const onClickCapture = e => { if (performance.now() - tapTurnAt.current < 600) { e.preventDefault(); e.stopPropagation(); tapTurnAt.current = 0; } };
   const onPointerDown = e => {
     if (e.button > 0 || e.target.closest(INTERACTIVE) || anim.current.turn) return;
     const r = bookEl.current.getBoundingClientRect();
@@ -294,6 +323,8 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
       if (e.type !== 'pointerup' || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8 || window.getSelection?.()?.toString()) return;
       // A tap on the right of the book turns forward; on the left, back (a closed book opens from anywhere).
       if (pos < 0 || d.rx > (spread ? 0.5 : 0.35)) next(); else prev();
+      // The click that follows this tap must not land on whatever the new page has under the finger.
+      tapTurnAt.current = performance.now();
       return;
     }
     const t = anim.current.turn; if (!t) return;
@@ -341,20 +372,14 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
   const bookW = geo ? (spread ? geo.pageW * 2 : geo.pageW) : 0;
   const leafLeft = turn && spread && !turn.mirror ? geo.pageW : 0;
   const closed = pos < 0 && !turn;
+  const floating = closed && spread && motion && !reduced && !hidden; // on a phone the closed book fills the screen: no float
 
   return (
     <div className={`reader${hidden ? ' hidden' : ''}${arrived ? ' arrived' : ''}`} role="dialog" aria-modal="true" aria-labelledby="book-title" style={{ '--accent': shelf?.team ? teamCloth(shelf.team) : '#2b6fd6' }}>
       <h1 id="book-title" className="sr-only" tabIndex={-1} ref={head}>{name}</h1>
       <div className="reader-bar">
         <button className="btn" onClick={onClose}>← <span className="long">Back to the shelves</span><span className="short">Shelves</span></button>
-        {paged && (
-          <label className="chapter-pick">
-            <span className="sr-only">Chapter</span>
-            <select value={curCh} onChange={e => goPage(paged.chapterPages[e.target.value])}>
-              {CHAPTERS.map((c, k) => paged.chapterPages[k] == null ? null : <option key={c} value={k}>{ROMAN[k] ? `${ROMAN[k]}. ` : ''}{c}</option>)}
-            </select>
-          </label>
-        )}
+        <span className="reader-title" aria-hidden>{name}</span>
         {!paged && !error && <span className="pg-count" role="status"><span className="spinner small" aria-hidden /> Fetching the pages…</span>}
         {paged && <span className="pg-count" aria-hidden>{(() => {
           if (pos < 0) return 'Cover';
@@ -362,17 +387,24 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
           const vis = [leftOf(pos), rightOf(pos)].filter(x => typeof x === 'number').map(x => x + 1);
           return `${vis.length ? vis.join('–') : '—'} / ${n}`;
         })()}</span>}
+        <button className="btn icon" onClick={() => { setSound(!snd); setSnd(!snd); }} aria-pressed={snd} aria-label="Page sounds" title={snd ? 'Page sounds on' : 'Page sounds off'}>
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" />{snd ? <><path d="M16.5 8.5a5 5 0 0 1 0 7" /><path d="M19 6a8.5 8.5 0 0 1 0 12" /></> : <path d="M17 9l5 6M22 9l-5 6" />}</svg>
+        </button>
       </div>
 
       <div className="book-wrap" ref={wrap}>
         {error ? <div className="pending" role="alert"><h2>This book won't open right now</h2><p>{error}</p><button className="btn" onClick={() => location.reload()}>Try again</button></div>
           : !geo ? <div className="pending" role="status"><h2 className="display">{name}</h2><p className="lede">{spanOf(player || {})}</p><p><span className="spinner" aria-hidden /> Fetching the pages…</p></div>
           : (
+            <div className="desk" onPointerMove={onTilt} onPointerLeave={() => { tiltX.set(0); tiltY.set(0); }}>
+            <M.div className="book-float" style={{ rotateX: tiltX, rotateY: tiltY }}
+              animate={floating ? { y: [0, -8, 0] } : { y: 0 }}
+              transition={floating ? { duration: 5.5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.5, ease: 'easeOut' }}>
             <div
               ref={bookEl}
-              className={`book ${spread ? 'spread2' : 'single'}${turn ? ' turning' : ''}${closed ? ' closed' : ''}${turn && (turn.from < 0 || turn.to < 0) ? ' cover-turn' : ''}`}
+              className={`book ${spread ? 'spread2' : 'single'}${turn || pending ? ' turning' : ''}${closed ? ' closed' : ''}${turn && (turn.from < 0 || turn.to < 0) ? ' cover-turn' : ''}`}
               style={{ width: bookW, height: geo.pageH, '--pw': `${geo.pageW}px`, '--ph': `${geo.pageH}px`, '--text-h': `${geo.textH}px`, '--stack-l': `${Math.min(10, pagesLeftOfSpine * 0.7)}px`, '--stack-r': `${Math.min(10, (n - pagesLeftOfSpine) * 0.7)}px` }}
-              onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
+              onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClickCapture={onClickCapture}
             >
               <div className="boards" aria-hidden />
               {spread && <div className="half left base">{baseL != null && renderPage(baseL, 'left')}</div>}
@@ -397,8 +429,27 @@ export default function Reader({ id, player, shelf, hidden = false, arrived = fa
               {pos > -1 && <button className="corner prev" onClick={prev} aria-label="Turn back a page"><i /></button>}
               {pos < last && <button className="corner next" onClick={next} aria-label={pos < 0 ? 'Open the book' : 'Turn the page'}><i /></button>}
             </div>
+            </M.div>
+            <M.i className="floor-shadow" aria-hidden style={{ width: closed ? geo.pageW : bookW }}
+              animate={floating ? { scaleX: [1, 0.9, 1], opacity: [0.55, 0.38, 0.55] } : { scaleX: 1, opacity: 0.5 }}
+              transition={floating ? { duration: 5.5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.5 }} />
+            </div>
           )}
       </div>
+      {paged && (
+        <nav className="chapter-pills" aria-label="Chapters" ref={pillsEl}>
+          {[['cover', 'Cover', 'The cover'], ...CHAPTERS.map((c, k) => (paged.chapterPages[k] == null ? null : [k, ROMAN[k] ? `${ROMAN[k]} · ${c}` : k === 0 ? 'Title' : c, c])).filter(Boolean)].map(([k, label, full]) => {
+            const on = k === 'cover' ? pos < 0 : pos >= 0 && curCh === k;
+            return (
+              <button key={k} type="button" className={`pill${on ? ' on' : ''}`} aria-current={on ? 'true' : undefined} aria-label={full}
+                onClick={() => (k === 'cover' ? startTurn(-1) : goPage(paged.chapterPages[k]))}>
+                {on && <M.span className="pill-bg" layoutId="pill-bg" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <span className="pill-t">{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {geo && book && (
         <div className="measure" ref={measure} aria-hidden="true" inert="" style={{ width: geo.textW, '--text-h': `${geo.textH}px` }}>

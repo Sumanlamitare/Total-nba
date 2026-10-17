@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseStats, compose, foldGamelog, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
+import { parseStats, compose, foldGamelog, newHighs, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
 import { foldSeason, awardRows, countHonors, finishSpans, foldCareer, publicRecord, entry, sortKey, currentSeason, leaderOf } from '../lib/catalog.js';
 import { shelve, span, seasonLabel, spineOf, spineColor, inkOn, luminance, contrast, RETIRED } from '../client/src/shelves.js';
 import { assignTeam, rosterAthletes } from '../lib/catalog.js';
@@ -93,7 +93,7 @@ test('parseHonors prefers the bio and drops other leagues', () => {
 });
 
 test('foldGamelog: highs, 40-point games and preseason ignored', () => {
-  const acc = { highs: { regular: {}, playoffs: {} }, games: { regular: 0, playoffs: 0 }, forty: { regular: 0, playoffs: 0 }, fifty: { regular: 0, playoffs: 0 }, tripleDoubles: { regular: 0, playoffs: 0 } };
+  const acc = newHighs();
   const n = foldGamelog(acc, 2016, raw('gamelog_lebron_2016'));
   // ESPN logs 71 of the 76 regular-season games that season; the reader reports logged games, not games played.
   assert.equal(acc.games.regular, 71);
@@ -102,6 +102,11 @@ test('foldGamelog: highs, 40-point games and preseason ignored', () => {
   assert.equal(acc.highs.playoffs.points.value, 41);
   assert.equal(acc.highs.regular.points.games[0].season, 2016);
   assert.ok(acc.highs.regular.points.games[0].opp);
+  // Threshold games: every 40 is also a 30; the first and last 40-point games carry their date and points.
+  assert.ok(acc.thirty.regular >= acc.forty.regular && acc.thirty.playoffs >= acc.forty.playoffs);
+  assert.ok(acc.thirty.regular > 0);
+  assert.ok(acc.twentyTen.regular + acc.twentyTen.playoffs >= 0);
+  if (acc.firstForty) assert.ok(acc.firstForty.points >= 40 && acc.firstForty.date <= acc.lastForty.date);
 });
 
 test('catalog: season lists, awards, spans and the public record', () => {
@@ -244,4 +249,29 @@ test('every snapshot book is consistent with what the reader shows', () => {
     const gap = coverageGap(b);
     if (gap) assert.ok(gap.recordFrom > gap.from);
   }
+});
+
+test('derived measures: true shooting, age, best stretch, season clubs, milestones, playoff shift', async () => {
+  const { trueShooting, ageInSeason, prime, clubs, milestones, playoffShift } = await import('../client/src/bookdata.js');
+  // True shooting from totals: 100 points on 50 FGA and 25 FTA -> 100 / (2 × 61) = 81.97%.
+  assert.equal(Math.round(trueShooting({ points: 100, fieldGoalsAttempted: 50, freeThrowsAttempted: 25 }) * 100) / 100, 81.97);
+  assert.equal(trueShooting({ points: 10 }), null);
+  // Age on 1 February of the season's second year (LeBron, born 30 December 1984: 21 in 2005-06).
+  assert.equal(ageInSeason('1984-12-30', 2006), 21);
+  assert.equal(ageInSeason('1984-02-01', 2006), 22);
+  assert.equal(ageInSeason('1984-02-02', 2006), 21);
+  const reg = parseStats(raw('stats_lebron')), post = parseStats(raw('stats_post_lebron'));
+  const p = prime(reg);
+  assert.equal(p.to.season - p.from.season, 4, 'five consecutive seasons');
+  assert.ok(p.ppg >= reg.career.avg.avgPoints, 'the best stretch scores at least the career average');
+  const cl = Object.fromEntries(clubs(reg).map(c => [c.key, c.seasons.length]));
+  assert.ok(cl.p25 >= 10, '25-point seasons');
+  assert.equal(cl.s504090, undefined, 'no 50-40-90 season');
+  const ms = milestones(reg).map(m => `${m.value} ${m.word}`);
+  assert.ok(ms.includes('30000 points') && ms.includes('10000 assists'));
+  assert.ok(milestones(reg).every((m, k, a) => k === 0 || a[k - 1].season <= m.season), 'in order');
+  const shift = playoffShift({ regular: reg, playoffs: post });
+  assert.equal(shift.rows[0].label, 'Points');
+  assert.equal(Math.round(shift.rows[0].diff * 10) / 10, Math.round((post.career.avg.avgPoints - reg.career.avg.avgPoints) * 10) / 10);
+  assert.equal(playoffShift({ regular: reg, playoffs: null }), null);
 });
