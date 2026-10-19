@@ -1,329 +1,203 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { loadCatalog, loadBook, store } from './api.js';
-import { shelve, teamCloth, spineOf, letterOf, luminance, contrast, mix, RETIRED, ALL } from './shelves.js';
-import { slug } from './format.js';
-import Shelf from './Shelf.jsx';
-import SearchBox from './SearchBox.jsx';
-import Reader from './Reader.jsx';
-import { buildPull } from './pull.js';
-import { motion as M } from 'motion/react';
-import { playTurn } from './sound.js';
+// Beat the Dynasty. Draft a starting five from random franchise + decade spins, then take on a champion in a
+// best-of-seven. Beat the ladder of dynasties to reach the '17 Warriors.
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion as M, AnimatePresence } from 'motion/react';
+import { loadGame, store } from './api.js';
+import { SLOTS, daily as dailyOf, decadeLabel, rateSeries, simulate, todayKey } from './game.js';
+import { teamGlow } from './colors.js';
+import { Face } from './bits.jsx';
+import Draft from './Draft.jsx';
+import { Tape, Series, Result } from './Series.jsx';
+import { setSound, soundOn, sfx } from './sound.js';
 
-const bookFromPath = () => (location.pathname.match(/^\/book\/(\d+)/) || [])[1] || null;
-const media = q => (typeof matchMedia === 'function' ? matchMedia(q).matches : false);
-const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+const decadeOfSeason = s => Math.floor((s - 1) / 10) * 10;
+const BEATEN_KEY = 'btd.beaten';
+const DAILY_KEY = 'btd.daily';
 
-// The back of the shelf: a colour the visitor can change. The giant letter re-tones itself to stay visible.
-// Arena lighting: the colour of the air behind the shelf.
-const WALLS = [['#0b0b0d', 'Arena'], ['#1d1209', 'Hardwood'], ['#0b1730', 'Royal'], ['#1f0a0c', 'Red-hot'], ['#0b2216', 'Parquet green'], ['#1a0f2b', 'Purple and gold'], ['#2a2d33', 'Concrete']];
-function ghostFor(wall) {
-  const dark = luminance(wall) < 0.179;
-  let t = 0.05, g = mix(wall, dark ? '#ffffff' : '#000000', t);
-  while (contrast(g, wall) < 1.3 && t < 0.9) { t += 0.02; g = mix(wall, dark ? '#ffffff' : '#000000', t); }
-  return { ghost: g, dark };
+// Shape the API payload for play: every era keyed, every player knowing his franchise and decade, each dynasty's
+// five as a lineup.
+export function prepare(d) {
+  const teamById = new Map(d.teams.map(t => [t.id, t]));
+  const eras = d.eras.filter(e => teamById.has(e.team)).map(e => ({
+    ...e, key: `${e.team}-${e.decade}`,
+    players: e.players.map(p => ({ ...p, team: e.team, decade: e.decade })),
+  }));
+  const dynasties = d.dynasties.map(x => {
+    const team = teamById.get(x.team);
+    const lineup = Object.fromEntries(x.five.map(p => [p.slot, { ...p, team: x.team, decade: decadeOfSeason(x.season), season: x.season }]));
+    return { ...x, lineup, teamInfo: team, glow: teamGlow(team), short: team?.short || x.abbr };
+  });
+  return { ...d, teamById, eras, dynasties, playerEras: eras.reduce((n, e) => n + e.players.length, 0) };
 }
 
 export default function App() {
-  const [catalog, setCatalog] = useState(null);
+  const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  // Every visit starts on the active players, all teams.
-  const [tab, setTab] = useState('active');
-  const [teamId, setTeamId] = useState(ALL);
-  const [open, setOpen] = useState(() => (bookFromPath() ? { id: bookFromPath(), phase: 'open', deep: true } : null));
-  const [returning, setReturning] = useState(null);
-  const [target, setTarget] = useState(null);
-  const [letter, setLetter] = useState('');
-  const [wall, setWall] = useState(() => (/^#[0-9a-f]{6}$/i.test(store.get('library.arena') || '') ? store.get('library.arena') : '#0b0b0d'));
-  const [motion] = useState(() => !media('(prefers-reduced-motion: reduce)'));
-  const [announce, setAnnounce] = useState('');
-  const pushed = useRef(false), pull = useRef(null), search = useRef(null), wantOpen = useRef(null);
+  const [beaten, setBeaten] = useState(() => new Set(store.get(BEATEN_KEY) || []));
+  const [run, setRun] = useState(null); // { dynasty, seed, daily, lineup, rated, series, screen }
+  const [sound, setSoundState] = useState(soundOn());
 
   useEffect(() => {
-    let live = true;
-    loadCatalog(fresh => live && setCatalog(fresh)).then(d => live && setCatalog(d)).catch(e => live && setError(e.message));
-    return () => { live = false; };
+    loadGame().then(d => setData(prepare(d))).catch(e => setError(e));
   }, []);
 
-  const players = catalog?.players || null;
-  const lib = useMemo(() => (players ? shelve(players, catalog?.meta?.teams || []) : null), [players, catalog?.meta?.teams]);
-  const byId = useMemo(() => new Map((players || []).map(p => [p.i, p])), [players]);
-  // Active players: "All teams" (the default) or one team.
-  const team = lib && tab !== RETIRED && teamId !== ALL ? lib.teams.find(t => t.id === teamId) || null : null;
-  const books = !lib ? [] : tab === RETIRED ? lib.retired : team ? team.books : lib.active;
-  const shelfKey = tab === RETIRED ? RETIRED : team?.id || ALL;
-  const teamOf = useCallback(p => lib?.teamById.get(p.tm), [lib]);
-
-  useEffect(() => { try { localStorage.removeItem('library.tab'); localStorage.removeItem('library.team'); } catch { /* blocked */ } }, []);
-
-  // Which shelf shows a player's book, and where on it: the shelf in view if the book is on it, else its own.
-  const placeFor = useCallback(id => {
-    const pl = lib?.placeOf.get(id); if (!pl) return null;
-    if (pl.shelf === RETIRED) return { tab: RETIRED, teamId, at: pl.at };
-    if (tab !== RETIRED && !team) return { tab: 'active', teamId: ALL, at: pl.allAt };
-    return pl.shelf === ALL ? { tab: 'active', teamId: ALL, at: pl.allAt } : { tab: 'active', teamId: pl.shelf, at: pl.at };
-  }, [lib, tab, team, teamId]);
-  const goTo = pf => { setTab(pf.tab); setTeamId(pf.teamId); };
-  useEffect(() => { store.set('library.arena', wall); document.documentElement.style.setProperty('--wall', wall); }, [wall]);
-
-  // Which shelf a book is on, for the reader's title page and endpapers.
-  const shelfOf = p => {
-    if (!p || !lib) return null;
-    const t = lib.teamById.get(p.tm) || null;
-    return { team: t, retired: !p.a, label: !p.a ? 'Retired players' : t ? t.name : 'No current team' };
-  };
-
-  // Bring a player's book to the pointer on its shelf.
-  const goToPlayer = useCallback((id, { openIt = false } = {}) => {
-    const pl = lib?.placeOf.get(id), pf = placeFor(id); if (!pf) return false;
-    goTo(pf);
-    setTarget({ at: pf.at, flash: true, focus: !openIt, smooth: false, n: Date.now() });
-    if (openIt) wantOpen.current = id;
-    const p = byId.get(id);
-    setAnnounce(`${p.n}: on the ${pl.shelf === RETIRED ? 'retired players' : pf.teamId === ALL ? 'active players' : lib.teamById.get(pf.teamId)?.name} shelf. Press Enter to open.`);
-    return true;
-  }, [lib, byId, placeFor]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Take a book down: the reader mounts unseen (so its cover's place is known), the book flies there, the reader shows.
-  const openFromShelf = useCallback((p, spineEl) => {
-    if (open || returning) return;
-    loadBook(p.i).catch(() => {});
-    playTurn('tap');
-    if (bookFromPath() !== p.i) { history.pushState({ book: p.i }, '', `/book/${p.i}/${slug(p.n)}`); pushed.current = true; }
-    document.title = `${p.n} · Player Library`;
-    setOpen({ id: p.i, phase: motion ? 'pulling' : 'open', spine: spineEl, color: spineOf(p, teamOf(p)).bg });
-  }, [open, returning, motion, teamOf]);
-
+  // The loading page (index.html): fill the scoreboard and ticker from the real data, then close the arena.
   useEffect(() => {
-    if (open?.phase !== 'pulling') return;
-    let live = true;
-    (async () => {
-      let cover = null;
-      for (let k = 0; k < 90 && live && !cover; k++) { await frame(); cover = document.querySelector('.reader .book .cover'); }
-      if (!live) return;
-      if (!cover || !open.spine?.isConnected) { setOpen(o => o && { ...o, phase: 'open' }); return; }
-      const scale = parseFloat(getComputedStyle(open.spine.closest('.shelf')).getPropertyValue('--s')) || 1;
-      const pr = buildPull(open.spine, cover, { scale, color: open.color });
-      pull.current = { id: open.id, pr };
-      await pr.out();
-      if (!live) { pr.done(); return; }
-      setOpen(o => o && { ...o, phase: 'open' });
-      await frame(); await frame();
-      pr.done();
-    })();
-    return () => { live = false; };
-  }, [open?.phase]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // A player chosen with "Open": once the shelf shows the book, take it down.
-  useEffect(() => {
-    const id = wantOpen.current; if (!id) return;
-    wantOpen.current = null;
-    frame().then(() => {
-      const el = document.querySelector(`.shelf .vol[data-id="${id}"] .spine`);
-      const p = byId.get(id);
-      if (el && p) openFromShelf(p, el);
-    });
-  }, [target]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const finishClose = useCallback(() => {
-    const was = open; if (!was) return;
-    setOpen(null); document.title = 'Player Library';
-    const pr = pull.current?.id === was.id ? pull.current.pr : null;
-    pull.current = null;
-    const pf = placeFor(was.id);
-    if (pr) {
-      setReturning(was.id);
-      frame().then(() => {
-        const el = document.querySelector(`.shelf .vol[data-id="${was.id}"] .spine`);
-        return pr.back(el, { instant: !motion });
-      }).then(() => { setReturning(null); document.querySelector(`.shelf .vol[data-id="${was.id}"]`)?.focus({ preventScroll: true }); });
-    } else if (pf) {
-      // Opened from a link: show where the book lives.
-      goTo(pf);
-      setTarget({ at: pf.at, flash: true, focus: true, n: Date.now() });
-    }
-  }, [open, motion, placeFor]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const closeBook = useCallback(() => {
-    if (pushed.current && history.state?.book) history.back();
-    else { history.replaceState(null, '', '/'); finishClose(); }
-  }, [finishClose]);
-
-  // Back/forward buttons.
-  useEffect(() => {
-    const onPop = () => {
-      const id = bookFromPath();
-      if (!id) { pushed.current = false; finishClose(); }
-      else if (!open) setOpen({ id, phase: 'open', deep: true });
-    };
-    addEventListener('popstate', onPop);
-    return () => removeEventListener('popstate', onPop);
-  }, [open, finishClose]);
-
-  // A deep link: once the shelves exist, stand at the book's shelf so closing the book shows where it lives.
-  const placed = useRef(false);
-  useEffect(() => {
-    if (placed.current || !lib || !open?.deep) return;
-    placed.current = true;
-    const pf = placeFor(open.id); if (pf) goTo(pf);
-  }, [lib, open]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Players found through ESPN search join the catalogue (and the shelves) straight away.
-  const addPlayers = useCallback(list => {
-    setCatalog(c => {
-      const have = new Set(c.players.map(p => p.i));
-      const extra = list.filter(p => !have.has(p.i));
-      if (!extra.length) return c;
-      return { ...c, players: [...c.players, ...extra].sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : 0)) };
-    });
-  }, []);
-
-  useEffect(() => {
-    const onKey = e => {
-      if (e.target.closest?.('input, textarea, select')) return;
-      if (e.key === '/' && !open) { e.preventDefault(); search.current?.focus(); }
-    };
-    addEventListener('keydown', onKey);
-    return () => removeEventListener('keydown', onKey);
-  }, [open]);
-
-  // Letters along the long shelves (all active players, the retired), for jumping.
-  const letters = useMemo(() => {
-    if (!lib || team) return [];
-    const out = [];
-    books.forEach((i, at) => { const L = letterOf(players[i]); if (!out.length || out[out.length - 1].L !== L) out.push({ L, at }); });
-    return out;
-  }, [lib, team, books, players]);
-
-  // The loading page (index.html, drawn before any script runs): the arena tip-off. Once the catalogue is here, its
-  // scoreboard counts the players and its ticker runs real names; once the shelves are ready, it closes into the ball.
-  useEffect(() => {
-    // Fill the scoreboard and the ticker from the real catalogue.
     const boot = document.getElementById('boot');
-    if (!boot || !players?.length) return;
-    const n = document.getElementById('boot-n'), msg = document.getElementById('boot-msg'), run = document.getElementById('boot-run');
-    if (msg) msg.textContent = 'shelved and counting';
-    if (run) {
-      const famous = players.filter(p => p.h?.mvp || p.h?.fmvp || p.h?.nba1).sort(() => Math.random() - 0.5).slice(0, 28);
-      run.replaceChildren(...famous.flatMap((p, k) => { const a = document.createElement('span'); a.textContent = p.n; const d = document.createElement('i'); d.textContent = '●'; return k ? [d, a] : [a]; }));
+    if (!boot || !data) return;
+    const n = document.getElementById('boot-n'), msg = document.getElementById('boot-msg'), runEl = document.getElementById('boot-run');
+    if (msg) msg.textContent = 'rated and ready';
+    if (runEl) {
+      const stars = data.eras.map(e => e.players[0]).filter(Boolean).sort((a, b) => b.ovr - a.ovr).slice(0, 16).map(p => `${p.n} ${p.ovr}`);
+      const names = data.dynasties.map(x => x.label).concat(stars);
+      runEl.replaceChildren(...names.flatMap((t, k) => { const a = document.createElement('span'); a.textContent = t; const d = document.createElement('i'); d.textContent = '●'; return k ? [d, a] : [a]; }));
     }
     if (n) {
-      const total = players.length, t0 = performance.now();
+      const total = data.playerEras, t0 = performance.now();
       const step = now => { const k = Math.min(1, (now - t0) / 900); n.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US'); if (k < 1 && boot.isConnected) requestAnimationFrame(step); };
       requestAnimationFrame(step);
     }
     boot.classList.add('ready');
-  }, [players?.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data]);
   useEffect(() => {
-    if (!lib && !error) return;
+    if (!data && !error) return;
     const boot = document.getElementById('boot'); if (!boot) return;
-    // Let the count land, then close the arena into the ball and open on the shelves.
     const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(1100, 2200 - performance.now()));
     return () => clearTimeout(t);
-  }, [lib, error]);
+  }, [data, error]);
 
-  const { ghost, dark } = ghostFor(wall);
-  const openPlayer = open ? byId.get(open.id) || { i: open.id, n: '', l: '' } : null;
-  // Where the open book's player stands among everyone in the library (games played).
-  const gamesSorted = useMemo(() => (players || []).map(p => p.g || 0).filter(Boolean).sort((a, b) => b - a), [players]);
-  const rank = useMemo(() => {
-    const g = openPlayer?.g; if (!g || !gamesSorted.length) return null;
-    let lo = 0, hi = gamesSorted.length; while (lo < hi) { const m = (lo + hi) >> 1; if (gamesSorted[m] > g) lo = m + 1; else hi = m; }
-    return { games: { rank: lo + 1, of: players.length } };
-  }, [openPlayer?.g, gamesSorted, players]); // eslint-disable-line react-hooks/exhaustive-deps
-  const total = players?.length || 0;
+  // Each screen starts at the top of the page.
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [run?.screen]);
 
-  if (error && !catalog) {
-    return (
-      <main className="fault">
-        <h1>The library can't open right now</h1>
-        <p>{error}</p>
-        <button className="btn" onClick={() => location.reload()}>Try again</button>
-      </main>
-    );
-  }
-  const away = open ? { inert: '', 'aria-hidden': true } : {};
+  const eraOf = useCallback(p => {
+    const t = data?.teamById.get(p.team);
+    return p.season ? `${t?.abbr || ''} '${String(p.season).slice(2)}` : `${t?.abbr || ''} ${decadeLabel(p.decade)}`;
+  }, [data]);
+
+  const start = (dynasty, opts = {}) => {
+    sfx('lock');
+    setRun({ dynasty, seed: opts.seed || `${dynasty.key}:${Date.now()}`, daily: opts.daily || null, screen: 'draft' });
+  };
+  const drafted = lineup => setRun(r => ({ ...r, lineup, rated: rateSeries(lineup, r.dynasty.lineup), screen: 'tape' }));
+  const names = run && { mine: 'Your Five', theirs: run.dynasty.short, theirsFull: run.dynasty.label };
+  const colors = run && { theirs: run.dynasty.glow };
+  const tip = () => {
+    const gap = run.rated.mine.rating - run.rated.theirs.rating;
+    const ids = SLOTS.map(s => run.lineup[s].i).join('.');
+    const series = simulate({ mine: run.lineup, theirs: run.dynasty.lineup, gap, names, seed: `${run.seed}:${ids}` });
+    sfx('buzzer');
+    setRun(r => ({ ...r, series, screen: 'series' }));
+  };
+  const finish = () => {
+    const { series, dynasty, daily } = run;
+    if (series.won && !daily) {
+      const next = new Set(beaten); next.add(dynasty.key);
+      setBeaten(next); store.set(BEATEN_KEY, [...next]);
+    }
+    if (daily) store.set(DAILY_KEY, { day: daily, key: dynasty.key, won: series.won, w: series.w, l: series.l });
+    setRun(r => ({ ...r, screen: 'result' }));
+  };
+
+  const toggleSound = () => { setSound(!sound); setSoundState(!sound); if (!sound) sfx('pick'); };
+
+  if (error) return <main className="fault"><h1>The arena is dark</h1><p>{error.status === 503 ? 'The rosters are still being built. Try again in a few minutes.' : error.message}</p><button className="btn primary" onClick={() => location.reload()}>Try again</button></main>;
+  if (!data) return null;
+
+  const ladderIndex = run ? data.dynasties.findIndex(x => x.key === run.dynasty.key) : -1;
+  const next = ladderIndex >= 0 && !run?.daily ? data.dynasties[ladderIndex + 1] || null : null;
 
   return (
     <div className="app">
-      <header className="nav" {...away}>
-        <a className="brand" href="/" onClick={e => e.preventDefault()}>
-          <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden><defs><radialGradient id="nb" cx="35%" cy="30%" r="75%"><stop offset="0" stopColor="#ffb066" /><stop offset=".55" stopColor="#e8701f" /><stop offset="1" stopColor="#9c3f0c" /></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#nb)" /><g fill="none" stroke="#2a1306" strokeWidth="4" strokeLinecap="round"><path d="M50 3v94M3 50h94" /><path d="M16 17c14 12 14 54 0 66" /><path d="M84 17c-14 12-14 54 0 66" /></g></svg>
-          <span>Player <em>Library</em></span>
-        </a>
-        <span className="nav-note">{total ? `${total.toLocaleString('en-US')} NBA players` : 'Opening…'}</span>
-      </header>
-
-      <main {...away}>
-        <section className="tools" aria-label="Find a shelf">
-          <div className="top-row">
-            <div className="lib-head">
-              <M.h1 key={shelfKey} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
-                {tab === RETIRED ? 'Retired players' : team ? team.name : 'Active players'}
-              </M.h1>
-              <p className="count" aria-live="polite">{lib ? `${books.length.toLocaleString('en-US')} ${books.length === 1 ? 'player' : 'players'}` : ''}</p>
-            </div>
-            <div className="top-controls">
-              {lib && <SearchBox ref={search} players={players} placeOf={lib.placeOf} teamById={lib.teamById} onGo={id => goToPlayer(id)} onOpen={id => goToPlayer(id, { openIt: true })} onAdded={addPlayers} />}
-            </div>
-          </div>
-          <div className="filters">
-            {lib && tab !== RETIRED && (
-              <div className="fgroup">
-                <label className="flabel" htmlFor="team-pick">Team</label>
-                <div className={`team-select${team ? '' : ' all'}`} style={{ '--dot': teamCloth(team) }}>
-                  <select id="team-pick" value={team?.id || ALL} onChange={e => setTeamId(e.target.value)}>
-                    <option value={ALL}>All teams ({lib.active.length})</option>
-                    {lib.teams.map(t => <option key={t.id} value={t.id}>{t.name} ({t.books.length})</option>)}
-                  </select>
-                </div>
-              </div>
-            )}
-            {lib && letters.length > 1 && (
-              <div className="fgroup wide">
-                <span className="flabel" id="jump-label">Jump to</span>
-                <div className="chips" role="group" aria-labelledby="jump-label">
-                  {letters.map(({ L, at }) => <button key={L} type="button" className="chip" aria-pressed={letter === L} onClick={() => setTarget({ at, smooth: true, n: Date.now() })}>{L}</button>)}
-                </div>
-              </div>
-            )}
-          </div>
-          <nav className="tabs" aria-label="Library sections">
-            {[['active', 'Active players', lib ? total - lib.retired.length : null], [RETIRED, 'Retired players', lib?.retired.length]].map(([k, label, n]) => {
-              const on = k === RETIRED ? tab === RETIRED : tab !== RETIRED;
-              return (
-                <button key={k} className="tab" type="button" aria-current={on ? 'page' : undefined} onClick={() => setTab(k)}>
-                  {label}{n != null && <span className="tab-n">{n.toLocaleString('en-US')}</span>}
-                  {on && <M.i className="tab-line" layoutId="tab-line" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
-                </button>
-              );
-            })}
-          </nav>
-        </section>
-
-        <section className={`floor${dark ? ' on-dark' : ''}`} style={{ '--wall': wall, '--ghost': ghost }} aria-label="Shelf">
-          {letter && <div className="ghost" aria-hidden><span>{letter}</span></div>}
-          <div className="library">
-            {!lib ? <p className="loading" role="status"><span className="spinner" aria-hidden /> Shelving the books…</p>
-              : <Shelf players={players} books={books} teamOf={teamOf} shelfKey={shelfKey} hiddenId={open && !open.deep ? open.id : returning}
-                  target={target} onOpen={openFromShelf} onLetter={setLetter} motion={motion} />}
-          </div>
-          <div className="wallpick" role="group" aria-label="Shelf back colour">
-            <span className="wp-label">Shelf back</span>
-            <div className="swatches">
-              {WALLS.map(([c, name]) => <button key={c} type="button" className="sw" style={{ '--c': c }} aria-pressed={wall === c} aria-label={`Shelf back: ${name}`} title={name} onClick={() => setWall(c)} />)}
-              <label className="sw custom" title="Pick any colour" data-on={!WALLS.some(w => w[0] === wall)}>
-                <input type="color" value={wall} aria-label="Shelf back: any colour" onChange={e => setWall(e.target.value)} />
-              </label>
-            </div>
-          </div>
-        </section>
+      <nav className="nav">
+        <button type="button" className="brand" onClick={() => setRun(null)} aria-label="Beat the Dynasty, home">
+          <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden><circle cx="50" cy="50" r="46" fill="#e8701f" /><g fill="none" stroke="#2a1306" strokeWidth="5" strokeLinecap="round"><path d="M50 4v92M4 50h92" /><path d="M18 17c14 12 14 54 0 66" /><path d="M82 17c-14 12-14 54 0 66" /></g></svg>
+          <span>Beat the <em>Dynasty</em></span>
+        </button>
+        <div className="nav-right">
+          {run && <span className="nav-note">vs {run.dynasty.label}</span>}
+          <button type="button" className="icon-btn" onClick={toggleSound} aria-pressed={sound} aria-label="Sound" title={sound ? 'Sound on' : 'Sound off'}>
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />{sound ? <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /> : <path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}</svg>
+          </button>
+        </div>
+      </nav>
+      <main className="stage">
+        <AnimatePresence mode="wait">
+          <M.div key={run ? `${run.seed}-${run.screen}` : 'home'} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.28 }}>
+            {!run && <Home data={data} beaten={beaten} onPlay={start} />}
+            {run?.screen === 'draft' && <Draft data={data} dynasty={run.dynasty} seed={run.seed} eraOf={eraOf} onDone={drafted} onQuit={() => setRun(null)} />}
+            {run?.screen === 'tape' && <Tape mine={run.lineup} theirs={run.dynasty.lineup} rated={run.rated} names={names} colors={colors} eraOf={eraOf} onTip={tip} />}
+            {run?.screen === 'series' && <Series series={run.series} names={names} colors={colors} onEnd={finish} />}
+            {run?.screen === 'result' && <Result lineup={run.lineup} dynasty={run.dynasty} series={run.series} rating={run.rated} names={names} colors={colors} eraOf={eraOf} daily={run.daily}
+              next={next} onAgain={() => start(run.dynasty, run.daily ? { seed: run.seed, daily: run.daily } : {})} onNext={() => next && start(next)} onHome={() => setRun(null)} />}
+          </M.div>
+        </AnimatePresence>
       </main>
-
-      {open && (
-        <Reader key={open.id} id={open.id} player={openPlayer} shelf={shelfOf(openPlayer)} rank={rank} hidden={open.phase === 'pulling'} arrived={!open.deep}
-          motion={motion} onClose={closeBook} />
-      )}
-      <p className="sr-only" role="status" aria-live="polite">{announce}</p>
+      <footer className="foot">Ratings come from each player's real per-game numbers with that franchise in that decade. Dynasties are rated on their championship season.</footer>
     </div>
+  );
+}
+
+function Home({ data, beaten, onPlay }) {
+  const today = todayKey();
+  const d = useMemo(() => dailyOf(data.dynasties, today), [data, today]);
+  const played = store.get(DAILY_KEY);
+  const playedToday = played?.day === today ? played : null;
+  const unlocked = k => k === 0 || beaten.has(data.dynasties[k - 1].key);
+  const count = data.dynasties.filter(x => beaten.has(x.key)).length;
+  const [peek, setPeek] = useState(null);
+
+  return (
+    <section className="home">
+      <div className="hero">
+        <p className="eyebrow">Five spins · five picks · one series</p>
+        <h1>Beat the <span>Dynasty</span></h1>
+        <p className="lede">Spin a franchise and a decade, sign one player from that era, and do it five times: one per position, no take-backs. Then take your five into a best-of-seven against one of the greatest teams ever.</p>
+      </div>
+
+      <div className="daily" style={{ '--glow': d.dynasty.glow }}>
+        <div>
+          <p className="eyebrow">Daily challenge · {today}</p>
+          <h2>Today: the {d.dynasty.label}</h2>
+          <p>Everyone gets the same spins. {playedToday ? <b>You {playedToday.won ? 'won' : 'lost'} {playedToday.won ? `${playedToday.w}-${playedToday.l}` : `${playedToday.l}-${playedToday.w}`} today.</b> : 'One shot at bragging rights.'}</p>
+        </div>
+        <button type="button" className="btn primary big" onClick={() => onPlay(d.dynasty, { seed: d.seed, daily: today })}>{playedToday ? 'Play it again' : 'Play the daily'}</button>
+      </div>
+
+      <div className="ladder-head">
+        <h2>The ladder</h2>
+        <p>{count} of {data.dynasties.length} dynasties beaten. Win a series to unlock the next banner.</p>
+      </div>
+      <ol className="banners">
+        {data.dynasties.map((x, k) => {
+          const open = unlocked(k), won = beaten.has(x.key);
+          const avg = SLOTS.reduce((s, sl) => s + x.lineup[sl].ovr, 0) / 5;
+          return (
+            <M.li key={x.key} initial={{ opacity: 0, y: -24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * k, type: 'spring', stiffness: 160, damping: 16 }}>
+              <button type="button" className={`banner${open ? '' : ' locked'}${won ? ' won' : ''}${x.boss ? ' boss' : ''}`} style={{ '--team': x.glow }}
+                onClick={() => (open ? onPlay(x) : setPeek(peek === x.key ? null : x.key))} aria-label={`${x.label}${won ? ', beaten' : open ? '' : ', locked'}`}>
+                <span className="banner-rung">{x.boss ? 'Final boss' : `Rung ${k + 1}`}</span>
+                <span className="banner-year">{x.season - 1}–{String(x.season).slice(2)}</span>
+                <span className="banner-name">{x.short}</span>
+                <span className="banner-faces">{SLOTS.map(s => <Face key={s} p={x.lineup[s]} size={30} ring={x.glow} />)}</span>
+                <span className="banner-avg">Starters avg <b>{avg.toFixed(1)}</b></span>
+                <span className="banner-state">{won ? '✓ Beaten' : open ? 'Play' : '🔒 Locked'}</span>
+              </button>
+              {peek === x.key && !open && <p className="peek">Beat the {data.dynasties[k - 1].label} first.</p>}
+            </M.li>
+          );
+        })}
+      </ol>
+
+      <div className="rules">
+        <h2>How it plays</h2>
+        <ol>
+          <li><b>Draft.</b> Each spin lands on a franchise and a decade. Pick one player from that era for an open position.</li>
+          <li><b>Rate.</b> Every player-era is rated 60–99 from his real per-game numbers in that stretch.</li>
+          <li><b>Fit.</b> +2 for a ball-handler, two shooters and a rim protector; −3 for three centers or no point guard; +1 for three from the same decade.</li>
+          <li><b>Matchups.</b> Each position battle you win adds half a point.</li>
+          <li><b>Series.</b> The rating gap sets the odds: even is 50%, +5 about 65%, −10 about 22%. The dynasty has home court; Game 7 is wilder.</li>
+        </ol>
+      </div>
+    </section>
   );
 }

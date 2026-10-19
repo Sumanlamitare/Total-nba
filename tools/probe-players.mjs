@@ -1,9 +1,9 @@
 // Look up players by name in ESPN (id scan) and print what their career stats hold. Diagnostic only.
-//   node tools/probe-players.mjs "Larry Bird" "Dennis Johnson"
+//   node tools/probe-players.mjs "Larry Bird,Dennis Johnson"
 import * as espn from '../lib/espn.js';
 import { parseStats } from '../lib/stats.js';
 
-const want = new Set(process.argv.slice(2).map(s => s.toLowerCase()));
+const want = new Set(process.argv.slice(2).join(',').split(',').filter(Boolean).map(s => s.trim()).map(s => s.toLowerCase()));
 const ids = Array.from({ length: 8000 }, (_, k) => String(k + 1));
 const hits = [];
 await espn.pool(ids, 16, async id => {

@@ -1,49 +1,26 @@
-// Fetching with caching: the catalog is kept in localStorage (it changes weekly), books in memory.
-const CATALOG_KEY = 'library.catalog.v1';
-const books = new Map();
+// The game data (one request, cached in localStorage until the next ingest) and small local storage helpers.
+const GAME_KEY = 'btd.game.v1';
 
-async function json(url, { signal } = {}) {
+export const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* full or blocked: fine */ } },
+};
+
+async function json(url) {
   let r;
-  try { r = await fetch(url, { signal, headers: { accept: 'application/json' } }); }
-  catch (e) { if (e.name === 'AbortError') throw e; throw new Error('The library is offline — check your connection and try again.'); }
+  try { r = await fetch(url, { headers: { accept: 'application/json' } }); }
+  catch { throw new Error('The arena is offline — check your connection and try again.'); }
   const body = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(body.error || `Request failed (${r.status})`), { status: r.status });
   return body;
 }
 
-const store = {
-  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* full or blocked: fine */ } },
-};
-export { store };
-
-// Returns cached data at once (if any) and calls onFresh when the network copy arrives.
-export async function loadCatalog(onFresh) {
-  const cached = store.get(CATALOG_KEY);
-  const fresh = json('/api/catalog').then(d => { store.set(CATALOG_KEY, { at: Date.now(), d }); return d; });
-  if (cached?.d?.players?.length) {
-    fresh.then(d => { if (d.players.length !== cached.d.players.length || d.meta?.at !== cached.d.meta?.at) onFresh?.(d); }).catch(() => {});
-    return cached.d;
-  }
+// Returns cached data at once when there is some (refreshing it quietly), else waits for the network.
+export async function loadGame() {
+  const cached = store.get(GAME_KEY);
+  const fresh = json('/api/game').then(d => { store.set(GAME_KEY, d); return d; });
+  if (cached?.eras?.length) { fresh.catch(() => {}); return cached; }
   return fresh;
 }
-
-export function loadBook(id) {
-  if (!books.has(id)) {
-    const p = json(`/api/book?id=${encodeURIComponent(id)}`);
-    books.set(id, p);
-    p.catch(() => books.delete(id));
-    if (books.size > 40) books.delete(books.keys().next().value);
-  }
-  return books.get(id);
-}
-
-const highs = new Map();
-export function loadHighs(id) {
-  if (!highs.has(id)) { const p = json(`/api/book?id=${encodeURIComponent(id)}&part=highs`); highs.set(id, p); p.catch(() => highs.delete(id)); }
-  return highs.get(id);
-}
-
-export const searchPlayers = (q, signal) => json(`/api/search?q=${encodeURIComponent(q)}`, { signal });
 
 export const headshot = id => `https://a.espncdn.com/i/headshots/nba/players/full/${id}.png`;
