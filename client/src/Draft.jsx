@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion as M, AnimatePresence, useReducedMotion } from 'motion/react';
 import { SLOT_NAMES, decadeLabel, deal, fits, openSlots, rng, spin } from './game.js';
-import { Court, Face, Ovr, line } from './bits.jsx';
+import { Court, Face, Ovr, Rep, line } from './bits.jsx';
 import { teamCloth, teamGlow, inkOn } from './colors.js';
 import { sfx } from './sound.js';
 
@@ -127,6 +127,7 @@ export default function Draft({ data, dynasty, seed, eraOf, onDone, onQuit }) {
                           <span className="card-main">
                             <b>{p.n}</b>
                             <small>{line(p)}</small>
+                            <Rep p={p} />
                             <small className="card-years">{p.from === p.to ? `${p.from - 1}-${String(p.from).slice(2)}` : `${p.from - 1}–${String(p.to).slice(2)}`} · {p.gp} games</small>
                           </span>
                           <span className="card-pos">{p.slots.map(s => <i key={s} className={lineup[s] ? 'filled' : ''}>{s}</i>)}</span>

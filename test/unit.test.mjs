@@ -139,7 +139,7 @@ test('draft: spins only land on eras with someone who fits an open spot', () => 
 });
 
 test('deal: four players who fit, the regulars likelier, the same for the same seed', () => {
-  const era = { players: Array.from({ length: 30 }, (_, k) => P(String(k), 60 + k, k % 2 ? ['C'] : ['PG'], { mpg: k < 5 ? 36 : 6 })) };
+  const era = { players: Array.from({ length: 30 }, (_, k) => P(String(k), 70 + (k % 3), k % 2 ? ['C'] : ['PG'], { mpg: k < 5 ? 36 : 6 })) };
   const lineup = { C: P('c', 70, ['C']) };
   const h = deal(era, lineup, rng('d'));
   assert.equal(h.length, HAND);
@@ -150,6 +150,11 @@ test('deal: four players who fit, the regulars likelier, the same for the same s
   for (let k = 0; k < 200; k++) regulars += deal(era, lineup, rng(`x${k}`)).filter(p => p.mpg === 36).length;
   assert.ok(regulars / 200 > 2, `the three regulars who fit show up most of the time: ${regulars / 200}`);
   assert.equal(deal({ players: [P('z', 70, ['SF'])] }, lineup, rng('y')).length, 1);
+  // Among equal minutes, the better player shows up more.
+  const stars = { players: Array.from({ length: 20 }, (_, k) => P(`s${k}`, k < 2 ? 92 : 64, ['PG'], { mpg: 25 })) };
+  let seen = 0;
+  for (let k = 0; k < 200; k++) seen += deal(stars, {}, rng(`s${k}`)).filter(p => p.ovr === 92).length;
+  assert.ok(seen / 200 > 1.5, `the two stars show up most of the time: ${seen / 200}`);
 });
 
 test('fit: the bonus, the penalties and same-era chemistry', () => {
@@ -264,4 +269,38 @@ test('surnames skip suffixes', async () => {
   assert.equal(surname('Wendell Carter Jr.'), 'Carter');
   assert.equal(surname('Gary Payton II'), 'Payton');
   assert.equal(surname('Nene'), 'Nene');
+});
+
+test('reputation: awards and rings by team, saturating; playoffs count double', async () => {
+  const { honorIndex, countHonors, repOf, repBonus, card, REP_MAX } = await import('../lib/dynasty.js');
+  const awards = [
+    { season: 2016, key: 'fmvp', id: '1966', team: '5' },
+    { season: 2016, key: 'nba1', id: '1966', team: '5' },
+    { season: 2013, key: 'mvp', id: '1966', team: '14' },
+  ];
+  const post = new Map([['1966', [{ season: 2016, teamId: '5', combined: false, avg: { gamesPlayed: 21 } }]], ['9', [{ season: 2016, teamId: '5', combined: false, avg: { gamesPlayed: 3 } }]], ['8', [{ season: 2016, teamId: '9', combined: false, avg: { gamesPlayed: 20 } }]]]);
+  const idx = honorIndex(awards, post);
+  assert.deepEqual(countHonors(idx.get('1966')), { fmvp: 1, nba1: 1, mvp: 1, ring: 1 });
+  assert.deepEqual(countHonors(idx.get('9')), { ring: 1 }, 'everyone in the title run gets a ring');
+  assert.equal(idx.get('8'), undefined, 'the losing finalist gets nothing');
+  assert.equal(repOf({ mvp: 1, ring: 2 }), 8);
+  assert.equal(repBonus(0), 0);
+  assert.ok(repBonus(3) > 2.5 && repBonus(3) < 3.5);
+  assert.equal(repBonus(1000), REP_MAX);
+  // A player who rises in the playoffs rates above his regular season; reputation adds on top.
+  const p = { _id: '1', n: 'A Player', p: 'G' };
+  const reg = { gp: 80, min: 2800, pts: 1600, reb: 400, ast: 400, stl: 80, blk: 20, tov: 200, pf: 160, fgm: 600, fga: 1300, ftm: 300, fta: 360, tpm: 100, oreb: 80, dreb: 320 };
+  const big = { ...reg, gp: 20, min: 800, pts: 640, fgm: 240, fga: 470, reb: 120, ast: 120, stl: 30, blk: 6, tov: 50, pf: 40, ftm: 120, fta: 140, tpm: 40, oreb: 24, dreb: 96 };
+  const plain = card(p, reg), riser = card(p, reg, { post: big }), famed = card(p, reg, { post: big, honors: { mvp: 1, nba1: 2 } });
+  assert.ok(riser.po > riser.reg && riser.ovr > plain.ovr, `${plain.ovr} -> ${riser.ovr}`);
+  assert.ok(famed.ovr > riser.ovr && famed.h.mvp === 1);
+});
+
+test('pedigree: champions in the lineup, reunited teammates, a real championship five', async () => {
+  const { pedigreeOf } = await import('../client/src/game.js');
+  const five = ['a', 'b', 'c', 'd', 'e'].map((i, k) => ({ i, n: `P ${i}`, team: k < 2 ? '24' : String(k), decade: 2000, h: k === 0 ? { ring: 2 } : undefined }));
+  const mine = pedigreeOf(five);
+  assert.deepEqual(mine.map(x => x.value), [0.5, 1]);
+  assert.match(mine[1].label, /Teammates: a & b/);
+  assert.deepEqual(pedigreeOf(five.map(p => ({ ...p, h: { ring: 1 } })), { together: true }).map(x => x.value), [2.5, 2]);
 });

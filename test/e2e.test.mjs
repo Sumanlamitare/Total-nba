@@ -65,6 +65,13 @@ test('/api/game: franchises, eras with rated players, cached at the edge', async
   assert.deepEqual(mia.map(p => p.n), ['LeBron James']);
   assert.ok(mia[0].ovr >= 90 && mia[0].ovr <= 99);
   assert.deepEqual(mia[0].slots, ['SF', 'PF']);
+  // Playoffs and reputation: LeBron's Cleveland 2010s include the 2016 title run, Finals MVP and ring.
+  const cle = era('5', 2010).players[0];
+  assert.equal(cle.n, 'LeBron James');
+  assert.deepEqual(cle.h, { fmvp: 1, ring: 1 });
+  assert.ok(cle.po >= 90 && cle.pgp > 50);
+  assert.ok(cle.rep > 3 && cle.ovr >= cle.reg);
+  assert.equal(era('10', 2010).players[0].h, undefined, 'awards that don\'t count are ignored');
   // A franchise's decade holds every player with 25+ games there, best first.
   const hou = era('10', 2010).players;
   assert.equal(hou[0].n, 'James Harden');

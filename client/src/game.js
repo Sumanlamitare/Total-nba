@@ -44,14 +44,14 @@ export function spin(eras, lineup, r) {
   return ok.length ? pick(r, ok) : null;
 }
 
-// The hand a spin deals: four players from the era who fit an open spot, drawn at random with the era's regulars
-// (more minutes a game) likelier than its deep bench. Best first.
+// The hand a spin deals: four players from the era who fit an open spot, drawn at random with its regulars (more
+// minutes a game) and its best players likelier than the deep bench. Best first.
 export const HAND = 4;
 export function deal(era, lineup, r, n = HAND) {
   const pool = eligible(era, lineup);
   const out = [];
   while (out.length < n && pool.length) {
-    const w = pool.map(p => (p.mpg || 10) ** 2);
+    const w = pool.map(p => (p.mpg || 10) ** 2 * (p.ovr - 55) ** 2);
     let x = r() * w.reduce((s, v) => s + v, 0), k = 0;
     while (k < pool.length - 1 && (x -= w[k]) > 0) k++;
     out.push(pool.splice(k, 1)[0]);

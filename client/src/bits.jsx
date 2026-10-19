@@ -69,3 +69,23 @@ export function Court({ lineup, label, eraOf, highlight = [], compact }) {
     </div>
   );
 }
+
+// A player's reputation and playoff form as small chips: his biggest honors there, and how he played in the playoffs
+// against his regular season.
+const HONOR_ORDER = [['mvp', 'MVP'], ['fmvp', 'Finals MVP'], ['ring', 'Ring'], ['allnba', 'All-NBA'], ['dpoy', 'DPOY'], ['alldef', 'All-Defense'], ['cfmvp', 'Conf. Finals MVP'], ['smoy', '6th Man'], ['roy', 'ROY'], ['mip', 'MIP']];
+export function honorChips(p, max = 3) {
+  const h = p.h || {};
+  const n = { ...h, allnba: (h.nba1 || 0) + (h.nba2 || 0) + (h.nba3 || 0), alldef: (h.def1 || 0) + (h.def2 || 0) };
+  return HONOR_ORDER.filter(([k]) => n[k]).slice(0, max).map(([k, label]) => ({ k, text: n[k] > 1 ? `${n[k]}× ${label}${k === 'ring' ? 's' : ''}` : label }));
+}
+export const form = p => (p.po == null ? null : p.po - p.reg >= 3 ? 'up' : p.po - p.reg <= -3 ? 'down' : null);
+export function Rep({ p, max = 3 }) {
+  const chips = honorChips(p, max), f = form(p);
+  if (!chips.length && !f) return null;
+  return (
+    <span className="rep">
+      {chips.map(c => <i key={c.k} className={`chip ${c.k}`}>{c.text}</i>)}
+      {f && <i className={`chip form ${f}`} title={`Playoffs ${p.po} against ${p.reg} in the regular season (${p.pgp} games)`}>{f === 'up' ? '▲' : '▼'} Playoffs {p.po}</i>}
+    </span>
+  );
+}

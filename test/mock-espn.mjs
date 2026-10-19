@@ -15,8 +15,12 @@ export function mockEspn() {
   });
   const routes = [
     [/\/statistics\/byathlete/, season],
-    [/\/web\/athletes\/1966\/stats$/, () => raw('stats_lebron')],
-    [/\/web\/athletes\/3992\/stats$/, () => raw('stats_harden')],
+    [/\/web\/athletes\/1966\/stats$/, u => (u.searchParams.get('seasontype') === '3' ? raw('stats_post_lebron') : raw('stats_lebron'))],
+    [/\/web\/athletes\/3992\/stats$/, u => (u.searchParams.get('seasontype') === '3' ? null : raw('stats_harden'))],
+    // Awards: 2016 has LeBron's Finals MVP with Cleveland (so Cleveland are champions) and an award that doesn't count.
+    [/\/core\/seasons\/\d+\/awards$/, u => ({ items: u.pathname.includes('/2016/') ? [{ $ref: `${base}/core/seasons/2016/awards/43` }, { $ref: `${base}/core/seasons/2016/awards/77` }] : [] })],
+    [/\/core\/seasons\/2016\/awards\/43$/, () => ({ id: '43', name: 'Finals MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/2016/athletes/1966` }, team: { $ref: `${base}/core/seasons/2016/teams/5` } }] })],
+    [/\/core\/seasons\/2016\/awards\/77$/, () => ({ id: '77', name: 'Twyman-Stokes Teammate of the Year Award', winners: [{ athlete: { $ref: `${base}/core/seasons/2016/athletes/3992` }, team: { $ref: `${base}/core/seasons/2016/teams/10` } }] })],
     // The id scan: a player before the game's era (kept by the scan, dropped for having no 1980s-on seasons) and
     // one without a debut year.
     [/\/core\/athletes\/2$/, () => ({ displayName: 'Old Timer', debutYear: 1950 })],
@@ -28,8 +32,9 @@ export function mockEspn() {
     hits.push(u.pathname + u.search);
     const r = routes.find(([re]) => re.test(u.pathname));
     res.setHeader('content-type', 'application/json');
-    if (!r) { res.statusCode = 404; return res.end('{"code":404}'); }
-    res.end(JSON.stringify(r[1](u)));
+    const body = r && r[1](u);
+    if (!body) { res.statusCode = 404; return res.end('{"code":404}'); }
+    res.end(JSON.stringify(body));
   });
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     base = `http://127.0.0.1:${server.address().port}`;

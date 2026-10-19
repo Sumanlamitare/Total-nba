@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion as M, AnimatePresence } from 'motion/react';
 import { seriesOdds, gameProb, topScorer, shareText, surname } from './game.js';
-import { CountUp, Court, Face, Ovr } from './bits.jsx';
+import { CountUp, Court, Face, Ovr, Rep } from './bits.jsx';
 import { sfx } from './sound.js';
 
 const pct = p => `${Math.round(p * 100)}%`;
@@ -50,13 +50,13 @@ export function Tape({ mine, theirs, rated, names, colors, eraOf, onTip }) {
           return (
             <M.li key={m.slot} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + k * 0.12 }}
               className={m.winner === 'mine' ? 'won' : m.winner === 'theirs' ? 'lost' : 'even'}>
-              <div className="mu-side mine"><Face p={a} size={44} ring="var(--orange)" /><span><b>{a.n}</b><small>{eraOf(a)}</small></span><Ovr v={a.ovr} /></div>
+              <div className="mu-side mine"><Face p={a} size={44} ring="var(--orange)" /><span className="mu-name"><b>{a.n}</b><small>{eraOf(a)}</small><Rep p={a} max={2} /></span><Ovr v={a.ovr} /></div>
               <div className="mu-mid">
                 <span className="mu-slot">{m.slot}</span>
                 <span className="mu-bar"><M.i style={{ background: 'var(--orange)' }} initial={{ width: '50%' }} animate={{ width: `${(a.ovr / total) * 100}%` }} transition={{ delay: 0.4 + k * 0.12, duration: 0.6 }} /><i style={{ background: colors.theirs, flex: 1 }} /></span>
                 <span className="mu-res">{m.winner === 'mine' ? 'You +0.5' : m.winner === 'theirs' ? `${names.theirs} +0.5` : 'Even'}</span>
               </div>
-              <div className="mu-side theirs"><Ovr v={b.ovr} /><span><b>{b.n}</b><small>{eraOf(b)}</small></span><Face p={b} size={44} ring={colors.theirs} /></div>
+              <div className="mu-side theirs"><Ovr v={b.ovr} /><span className="mu-name"><b>{b.n}</b><small>{eraOf(b)}</small><Rep p={b} max={2} /></span><Face p={b} size={44} ring={colors.theirs} /></div>
             </M.li>
           );
         })}

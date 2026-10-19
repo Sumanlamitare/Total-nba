@@ -132,7 +132,7 @@ export default function App() {
           </M.div>
         </AnimatePresence>
       </main>
-      <footer className="foot">Ratings come from each player's real per-game numbers with that franchise in that decade. Dynasties are rated on their championship season.</footer>
+      <footer className="foot">Ratings come from each player's real regular-season and playoff numbers and awards with that franchise in that decade. Dynasties are rated on their championship season, with the reputation each starter had built by then.</footer>
     </div>
   );
 }
@@ -192,8 +192,9 @@ function Home({ data, beaten, onPlay }) {
         <h2>How it plays</h2>
         <ol>
           <li><b>Draft.</b> Each spin lands on a franchise and a decade and deals four of its players. Sign one for an open position.</li>
-          <li><b>Rate.</b> Every player-era is rated 60–99 from his real per-game numbers in that stretch.</li>
+          <li><b>Rate.</b> Every player-era is rated 60–99 from his real numbers in that stretch, with playoff games counting double, plus up to +7 for reputation: the MVPs, All-NBA teams and rings he won there.</li>
           <li><b>Fit.</b> +2 for a ball-handler, two shooters and a rim protector; −3 for three centers or no point guard; +1 for three from the same decade.</li>
+          <li><b>Pedigree.</b> +0.5 for every champion in the lineup; teammates from the same era click (+1); a dynasty's real five played together all year (+2).</li>
           <li><b>Matchups.</b> Each position battle you win adds half a point.</li>
           <li><b>Series.</b> The rating gap sets the odds: even is 50%, +5 about 65%, −10 about 22%. The dynasty has home court; Game 7 is wilder.</li>
         </ol>
