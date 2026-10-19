@@ -108,7 +108,8 @@ p { margin: 0; }
 .banner-avg { font-size: 12px; color: var(--muted); }
 .banner-avg b { color: var(--ink); font-family: var(--cond); font-size: 15px; }
 .banner-state { font: 800 13px/1 var(--cond); letter-spacing: .16em; text-transform: uppercase; color: var(--team); margin-top: 4px; }
-.banner.locked { filter: grayscale(.85) brightness(.55); animation: none; }
+.banner.locked { filter: grayscale(.85) brightness(.6); animation: none; }
+.banner.locked .banner-year, .banner.locked .banner-state { color: var(--muted); }
 .banner.won .banner-state { color: var(--gold); }
 .banner.boss { background: linear-gradient(180deg, color-mix(in srgb, var(--team) 40%, #1a1206) 0%, #120d05 100%); }
 .banner.boss .banner-name { color: var(--gold); text-shadow: 0 0 18px rgba(242, 199, 92, .45); }
