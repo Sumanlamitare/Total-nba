@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: ingest, snapshot or players (with names)
+        description: ingest, snapshot, players (names) or awards (seasons in names)
         default: ingest
       names:
         description: players to look up, comma-separated (task players)
@@ -40,6 +40,12 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           node tools/probe-players.mjs "$NAMES" 2>&1 | tee probe/report.txt
+        env:
+          NAMES: ${{ inputs.names }}
+      - if: inputs.task == 'awards'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/probe-awards.mjs "$NAMES" 2>&1 | tee probe/report.txt
         env:
           NAMES: ${{ inputs.names }}
       - name: Push results to the probe branch
