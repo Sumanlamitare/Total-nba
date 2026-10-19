@@ -1,11 +1,11 @@
-name: Probe ESPN for the player library
+name: Build or snapshot the game data
 
-# Also runs the catalog ingest on demand from a branch (the scheduled ingest lives in ingest.yml).
+# Runs the game-data ingest on demand from a branch (the scheduled one lives in ingest.yml), or saves a snapshot.
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: probe, ingest or snapshot
+        description: ingest or snapshot
         default: ingest
 
 permissions:
@@ -21,8 +21,6 @@ jobs:
         with:
           node-version: 22
       - run: mkdir -p probe
-      - if: inputs.task == 'probe'
-        run: node tools/probe-library.mjs
       - if: inputs.task == 'snapshot'
         run: |
           npm ci --no-audit --no-fund

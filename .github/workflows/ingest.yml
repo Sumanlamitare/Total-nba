@@ -1,9 +1,9 @@
-name: Build the library catalog
+name: Build the game data
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 9 * * 1'   # Mondays: pick up new players, trades and awards
+    - cron: '17 9 * * 1'   # Mondays: new seasons and players
 
 jobs:
   ingest:
