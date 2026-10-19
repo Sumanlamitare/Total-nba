@@ -5,8 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: ingest or snapshot
+        description: ingest, snapshot or players (with names)
         default: ingest
+      names:
+        description: players to look up (task players)
+        default: ''
 
 permissions:
   contents: write
@@ -33,6 +36,10 @@ jobs:
           node scripts/ingest.mjs --scan 8000 2>&1 | tee probe/report.txt
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      - if: inputs.task == 'players'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/probe-players.mjs ${{ inputs.names }} 2>&1 | tee probe/report.txt
       - name: Push results to the probe branch
         if: always()
         run: |
