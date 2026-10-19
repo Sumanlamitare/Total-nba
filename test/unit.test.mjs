@@ -1,44 +1,37 @@
-// Unit tests on real ESPN responses (trimmed, in test/fixtures/espn) and the real catalog snapshot.
+// Unit tests: ESPN parsing on real responses (trimmed, in test/fixtures/espn), the rating engine, and the game rules.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseStats, compose, foldGamelog, newHighs, scrub, statRow, isoDate, parseHonors } from '../lib/book.js';
-import { foldSeason, awardRows, countHonors, finishSpans, foldCareer, publicRecord, entry, sortKey, currentSeason, leaderOf } from '../lib/catalog.js';
-import { shelve, span, seasonLabel, spineOf, spineColor, inkOn, luminance, contrast, RETIRED } from '../client/src/shelves.js';
-import { assignTeam, rosterAthletes } from '../lib/catalog.js';
-import { localSearch } from '../client/src/search.js';
-import { perSeason, byTeam, best, coverageGap } from '../client/src/bookdata.js';
+import { parseStats, scrub, statRow } from '../lib/stats.js';
+import { foldSeason, entry, sortKey, currentSeason, seasonLabel } from '../lib/catalog.js';
+import { buildEras, buildDynasty, assignSlots, gameScore, ratingOf, totals, sum, decadeOf, positionOf, slotsFor, LADDER } from '../lib/dynasty.js';
+import { rng, spin, eligible, fits, openSlots, fitOf, rateSeries, winProb, gameProb, seriesOdds, simulate, daily, shareText, topScorer, SLOTS } from '../client/src/game.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
-const fixture = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/${f}`, import.meta.url)));
-const catalog = fixture('catalog.json');
+const gamePath = new URL('./fixtures/game.json', import.meta.url);
 
 test('statRow splits made-attempted pairs and reads numbers', () => {
   assert.deepEqual(statRow(['avgPoints', 'avgFieldGoalsMade-avgFieldGoalsAttempted', 'x'], ['27.1', '9.8-19.4', '--']),
     { avgPoints: 27.1, avgFieldGoalsMade: 9.8, avgFieldGoalsAttempted: 19.4, x: null });
 });
 
-test('parseStats: LeBron James regular season', () => {
+test('parseStats: LeBron James, rows by team with team ids', () => {
   const s = parseStats(raw('stats_lebron'));
   assert.equal(s.rows[0].label, '2003-04');
   assert.equal(s.rows[0].team, 'CLE');
+  assert.equal(s.rows[0].teamId, '5');
   assert.equal(s.rows[0].avg.avgPoints, 20.9);
   assert.equal(s.rows[0].tot.points, 1654);
   assert.equal(s.career.tot.points, 43440);
   assert.equal(s.first, 2004);
-  assert.ok(s.seasons >= 22);
 });
 
-test('parseStats: traded seasons keep team rows and a combined row, counted once', () => {
+test('parseStats: traded seasons keep team rows and a combined row without a team', () => {
   const s = parseStats(raw('stats_harden'));
   const y2021 = s.rows.filter(r => r.season === 2021);
   assert.deepEqual(y2021.map(r => r.combined ? 'total' : r.team), ['HOU', 'BKN', 'total']);
+  assert.equal(y2021[2].teamId, null);
   assert.equal(y2021[2].avg.gamesPlayed, y2021[0].avg.gamesPlayed + y2021[1].avg.gamesPlayed);
-  assert.equal(perSeason(s).filter(r => r.season === 2021).length, 1);
-  assert.equal(perSeason(s).find(r => r.season === 2021).combined, true);
-  // Per-team sums never double count the combined row.
-  const games = byTeam(s).reduce((a, t) => a + t.games, 0);
-  assert.equal(games, s.career.avg.gamesPlayed);
 });
 
 test('scrub: zeros for stats not yet recorded become null; real zeros stay', () => {
@@ -48,230 +41,200 @@ test('scrub: zeros for stats not yet recorded become null; real zeros stay', () 
   assert.deepEqual(modern, { avgSteals: 0, avgThreePointFieldGoalsMade: 0, gamesStarted: 0 });
 });
 
-test('parseStats: a career line is blank when some seasons lack the stat', () => {
-  const j = raw('stats_lebron');
-  const avg = j.categories.find(c => c.name === 'averages');
-  // Pretend the first season is from 1972, before steals were recorded.
-  avg.statistics[0].season.year = 1972;
-  const i = avg.names.indexOf('avgSteals');
-  avg.statistics[0].stats[i] = '0.0';
-  const s = parseStats(j);
-  assert.equal(s.rows[0].avg.avgSteals, null);
-  assert.equal(s.career.avg.avgSteals, null);
-  assert.ok(s.career.avg.avgPoints > 0);
-});
-
-test('compose: a full book from athlete, bio and stats', () => {
-  const b = compose({ id: '1966', web: raw('athlete_lebron'), bioJson: raw('bio_lebron'), reg: raw('stats_lebron'), post: raw('stats_post_lebron'), leaders: [{ season: 2008, stat: 'pts', value: 30 }] });
-  assert.equal(b.name, 'LeBron James');
-  assert.equal(b.born, '1984-12-30');
-  assert.equal(b.debut, 2003);
-  assert.ok(b.honors.length > 5);
-  assert.equal(b.honors[0].key, 'mvp');
-  assert.ok(b.playoffs.seasons > 10);
-  assert.equal(b.leaders[0].label, '2007-08');
-  assert.ok(b.teams.length >= 3);
-});
-
-test('compose: a player with no stats still gets a book (no invented numbers)', () => {
-  const b = compose({ id: '2335', core: { displayName: 'Larry Bird', firstName: 'Larry', lastName: 'Bird', debutYear: '1978', position: { abbreviation: 'NA' }, dateOfBirth: '1956-12-07T08:00Z' }, bioJson: null, reg: null, post: null, awardRows: [{ season: 1984, name: 'MVP' }, { season: 1985, name: 'MVP' }] });
-  assert.equal(b.regular, null);
-  assert.equal(b.pos, null);
-  assert.equal(b.born, '1956-12-07');
-  assert.deepEqual(b.honors.map(h => [h.name, h.count]), [['MVP', 2]]);
-  assert.equal(b.teams.length, 0);
-});
-
-test('isoDate reads ESPN day/month/year', () => {
-  assert.equal(isoDate('17/2/1963'), '1963-02-17');
-  assert.equal(isoDate(''), null);
-});
-
-test('parseHonors prefers the bio and drops other leagues', () => {
-  const h = parseHonors({ awards: [{ league: 'nba', name: 'MVP', displayCount: '3x', seasons: ['1986', '1984', '1985'] }, { league: 'ncaam', name: 'Wooden Award', displayCount: '1x' }] });
-  assert.deepEqual(h, [{ name: 'MVP', count: 3, seasons: [1984, 1985, 1986], key: 'mvp' }]);
-});
-
-test('foldGamelog: highs, 40-point games and preseason ignored', () => {
-  const acc = newHighs();
-  const n = foldGamelog(acc, 2016, raw('gamelog_lebron_2016'));
-  // ESPN logs 71 of the 76 regular-season games that season; the reader reports logged games, not games played.
-  assert.equal(acc.games.regular, 71);
-  assert.equal(acc.games.playoffs, 21);
-  assert.equal(n, 92);
-  assert.equal(acc.highs.playoffs.points.value, 41);
-  assert.equal(acc.highs.regular.points.games[0].season, 2016);
-  assert.ok(acc.highs.regular.points.games[0].opp);
-  // Threshold games: every 40 is also a 30; the first and last 40-point games carry their date and points.
-  assert.ok(acc.thirty.regular >= acc.forty.regular && acc.thirty.playoffs >= acc.forty.playoffs);
-  assert.ok(acc.thirty.regular > 0);
-  assert.ok(acc.twentyTen.regular + acc.twentyTen.playoffs >= 0);
-  if (acc.firstForty) assert.ok(acc.firstForty.points >= 40 && acc.firstForty.date <= acc.lastForty.date);
-});
-
-test('catalog: season lists, awards, spans and the public record', () => {
+test('catalog helpers: season lists, sort keys, seasons', () => {
   const players = new Map();
-  const season = { categories: [{ name: 'general', names: ['gamesPlayed'] }], athletes: [
-    { athlete: { id: '1', displayName: 'Ann Able', firstName: 'Ann', lastName: 'Able', debutYear: 2014, position: { abbreviation: 'G' }, teams: [{ id: '2', abbreviation: 'BOS' }] }, categories: [{ name: 'general', values: [70] }] },
-  ] };
-  assert.equal(foldSeason(players, 2016, season), 1);
-  foldSeason(players, 2017, { ...season, athletes: [{ ...season.athletes[0], athlete: { ...season.athletes[0].athlete, teams: [{ id: '18', abbreviation: 'NYK' }] } }] });
-  const rows = awardRows(1960, { id: '33', name: 'MVP', winners: [{ athlete: { $ref: 'http://x/seasons/1960/athletes/4142?lang=en' }, team: { $ref: 'http://x/seasons/1960/teams/9' } }] });
-  assert.deepEqual(rows[0], { _id: '1960-33-4142', season: 1960, award: '33', name: 'MVP', id: '4142', team: '9' });
-  players.set('4142', entry({ id: '4142', name: 'Wilt Chamberlain', debut: 1959, src: 'awards' }));
-  countHonors(players, rows);
-  finishSpans(players, rows);
-  const a = players.get('1'), w = players.get('4142');
-  assert.deepEqual([a.y0, a.y1, a.g, a.t, a.ls], [2015, 2017, 140, ['BOS', 'NYK'], '18'], 'the latest season\'s team');
-  assert.equal(w.la, '9', 'the team on the latest award');
-  assert.deepEqual([w.y0, w.y1, w.y1min, w.h], [1960, 1960, true, { mvp: 1 }]);
-  assert.deepEqual(publicRecord(w), { i: '4142', n: 'Wilt Chamberlain', l: 'Chamberlain', k: 'chamberlain wilt', y0: 1960, y1: 1960, y1m: 1, h: { mvp: 1 } });
-});
-
-test('catalog: career stats give exact spans and clear the lower-bound flag', () => {
-  const p = entry({ id: '3992', name: 'James Harden', src: 'seasons' });
-  p.y1 = 2000; p.y1min = true;
-  assert.equal(foldCareer(p, raw('stats_harden')), true);
-  assert.equal(p.y0, 2010); assert.equal(p.y1min, false);
-  assert.ok(p.t.includes('OKC') && p.t.includes('HOU'));
-});
-
-test('leaderOf reads the leader value from the right column', () => {
-  const l = leaderOf(2016, 'reb', { categories: [{ name: 'general', names: ['gamesPlayed', 'avgRebounds'] }], athletes: [{ athlete: { id: '9', displayName: 'X' }, categories: [{ name: 'general', values: [81, 14.78] }] }] });
-  assert.deepEqual(l, { _id: '2016-reb', season: 2016, stat: 'reb', id: '9', name: 'X', value: 14.8 });
-});
-
-test('sortKey, seasons and the current season', () => {
+  assert.equal(foldSeason(players, 2016, { athletes: [{ athlete: { id: 1966, displayName: 'LeBron James', position: { abbreviation: 'F' } } }] }), 1);
+  assert.deepEqual(players.get('1966'), { ...entry({ id: 1966, name: 'LeBron James', src: 'seasons' }), p: 'F' });
   assert.equal(sortKey('Dončić', 'Luka'), 'doncic luka');
   assert.equal(seasonLabel(2000), '1999-00');
   assert.equal(currentSeason(new Date('2026-10-15')), 2027);
   assert.equal(currentSeason(new Date('2026-06-01')), 2026);
 });
 
-test('shelving: active players on their team\'s shelf, every retired player on one shelf, A to Z', () => {
-  const players = catalog.players, teams = catalog.meta.teams || [];
-  assert.ok(players.length > 5000);
-  const lib = shelve(players, teams);
-  const all = [...lib.retired, ...lib.active];
-  assert.equal(all.length, players.length, 'one book per player');
-  assert.equal(new Set(all).size, players.length);
-  assert.ok(lib.active.every(i => players[i].a), '"All teams" holds every active player');
-  const onTeams = lib.teams.flatMap(t => t.books);
-  assert.equal(new Set(onTeams).size, onTeams.length, 'no one on two team shelves');
-  assert.ok(lib.active.filter(i => !onTeams.includes(i)).every(i => !lib.teamById.has(players[i].tm)), 'only players with no team are missing from the team shelves');
-  assert.ok(lib.retired.every(i => !players[i].a), 'the retired shelf holds only retired players');
-  for (const t of lib.teams) {
-    assert.ok(t.books.every(i => players[i].a), 'team shelves hold only active players');
-    assert.ok(t.books.every(i => players[i].tm === t.id), `${t.name}: its own players`);
+// ---- Ratings ----------------------------------------------------------------------------------------------------
+const lebron = () => parseStats(raw('stats_lebron')).rows;
+const harden = () => parseStats(raw('stats_harden')).rows;
+const players = new Map([['1966', { _id: '1966', n: 'LeBron James', p: 'F' }], ['3992', { _id: '3992', n: 'James Harden', p: 'G' }]]);
+const franchises = new Set(['5', '14', '13', '10', '25', '17', '20', '12']);
+
+test('decades and game score', () => {
+  assert.equal(decadeOf(1990), 1980);
+  assert.equal(decadeOf(1991), 1990);
+  assert.equal(decadeOf(2020), 2010);
+  const t = sum([totals(lebron().find(r => r.season === 2013))]);
+  const g = gameScore(t);
+  assert.ok(g > 20 && g < 30, `game score ${g}`);
+  assert.equal(ratingOf(0), 60);
+  assert.equal(ratingOf(100), 99);
+});
+
+test('player-eras: one per franchise and decade, rated from that stretch only', () => {
+  const eras = buildEras(players, new Map([['1966', lebron()], ['3992', harden()]]), franchises);
+  const of = (team, decade, id) => eras.find(e => e.team === team && e.decade === decade)?.players.find(p => p.i === id);
+  const mia = of('14', 2010, '1966');
+  assert.ok(mia && mia.ovr >= 90, `LeBron MIA ${mia?.ovr}`);
+  assert.equal(mia.from, 2011); assert.equal(mia.to, 2014);
+  assert.ok(mia.ppg > 25 && mia.ppg < 28);
+  const okc = of('25', 2000, '3992');
+  const hou = of('10', 2010, '3992');
+  assert.ok(okc.ovr < hou.ovr, 'rookie Harden rates below MVP Harden');
+  // Combined (traded) rows never count.
+  assert.ok(eras.every(e => e.players.every(p => p.gp >= 25)));
+});
+
+test('positions: listed role blended with the numbers', () => {
+  assert.deepEqual(slotsFor('F', { rpg: 6.3, apg: 12.2, bpg: 0.5 }), ['PG', 'SG'], 'Magic Johnson runs the point');
+  assert.deepEqual(slotsFor('', { rpg: 6.7, apg: 2.6, bpg: 1.2 }), ['PF', 'C']);
+  assert.deepEqual(slotsFor('C', { rpg: 12.7, apg: 3.7, bpg: 2.8 }), ['PF', 'C']);
+  assert.deepEqual(slotsFor('F', { rpg: 8, apg: 7.3, bpg: 0.9 }), ['SF', 'PF']);
+  assert.ok(positionOf('G', { rpg: 1.3, apg: 2.3, bpg: 0 }) < 2);
+  const five = [5, 1.2, 3.1, 2.2, 4].map((x, k) => ({ n: `p${k}`, x }));
+  assert.deepEqual(assignSlots(five).map(p => p.n), ['p1', 'p3', 'p2', 'p4', 'p0']);
+});
+
+test('dynasty: the named starting five, rated on that season', () => {
+  const entryHeat = { ...LADDER.find(x => x.key === 'mia13') };
+  const d = buildDynasty(entryHeat, '14', players, new Map([['1966', lebron()], ['3992', harden()]]));
+  // Only LeBron of the five is in the fixture, so the others are filled by whoever played; with one player there
+  // aren't five, so no dynasty.
+  assert.equal(d, null);
+  const many = new Map([['1966', lebron()]]);
+  const pl = new Map(players);
+  for (let k = 0; k < 5; k++) {
+    const id = `x${k}`;
+    pl.set(id, { _id: id, n: `Bench ${k}`, p: 'G' });
+    many.set(id, [{ season: 2013, teamId: '14', combined: false, avg: { gamesPlayed: 60, avgMinutes: 20 - k, avgPoints: 8 } }]);
   }
-  for (const list of [lib.retired, lib.active, ...lib.teams.map(t => t.books)]) {
-    for (let n = 1; n < list.length; n++) assert.ok(players[list[n - 1]].k <= players[list[n]].k, 'A to Z');
-  }
-  assert.deepEqual(lib.teams.map(t => t.name), [...lib.teams.map(t => t.name)].sort((x, y) => x.localeCompare(y)));
-  const russell = players.find(p => p.n === 'Bill Russell');
-  assert.equal(lib.placeOf.get(russell.i).shelf, RETIRED);
-  // Without team data every active player still has a place.
-  const flat = shelve(players.slice(0, 500), []);
-  assert.equal(flat.retired.length + flat.active.length, 500);
+  const d2 = buildDynasty(entryHeat, '14', pl, many);
+  assert.equal(d2.five.length, 5);
+  assert.equal(d2.five[2].n, 'LeBron James');
+  assert.equal(d2.five[2].slot, 'SF');
+  assert.ok(d2.missing.includes('Dwyane Wade'));
 });
 
-test('team assignment: the latest team — current roster, then latest season, last-team field, latest award', () => {
-  const fr = new Set(['2', '13', '25']);
-  const p = { rt: '13', lg: '2', ls: '25', lt: '25', la: '2' };
-  assert.equal(assignTeam(p, fr), '13'); assert.equal(p.tms, 'roster');
-  const q = { rt: null, lg: '2', ls: '25', lt: '13' }; assert.equal(assignTeam(q, fr), '2'); assert.equal(q.tms, 'career');
-  assert.equal(assignTeam({ ls: '25', lt: '13', la: '2' }, fr), '25');
-  const r = { lt: '13', la: '2' }; assert.equal(assignTeam(r, fr), '13'); assert.equal(r.tms, 'last');
-  assert.equal(assignTeam({ la: '2' }, fr), '2');
-  assert.equal(assignTeam({ lg: '99' }, fr), null, 'unknown team ids are not shelved under a franchise');
+// ---- Game rules -------------------------------------------------------------------------------------------------
+const P = (i, ovr, slots, extra = {}) => ({ i, n: `Player ${i}`, ovr, slots, ppg: 15, rpg: 5, apg: 3, ...extra });
+const eraA = { key: 'a', team: '1', decade: 1990, players: [P('1', 90, ['PG', 'SG']), P('2', 80, ['C'])] };
+const eraB = { key: 'b', team: '2', decade: 2000, players: [P('3', 85, ['C'])] };
+
+test('rng: seeded streams repeat', () => {
+  const a = rng('daily:2026-10-19'), b = rng('daily:2026-10-19'), c = rng('daily:2026-10-20');
+  const xs = [a(), a(), a()];
+  assert.deepEqual(xs, [b(), b(), b()]);
+  assert.notDeepEqual(xs, [c(), c(), c()]);
+  assert.ok(xs.every(x => x >= 0 && x < 1));
 });
 
-test('team assignment: a traded season ends with the team he finished with', () => {
-  const p = entry({ id: '3992', name: 'James Harden', src: 'seasons' });
-  assert.equal(foldCareer(p, raw('stats_harden')), true);
-  assert.equal(p.lg, '5', 'traded from the Clippers to Cleveland in 2025-26');
+test('draft: spins only land on eras with someone who fits an open spot', () => {
+  const lineup = { C: P('9', 70, ['C']) };
+  assert.deepEqual(openSlots(lineup), ['PG', 'SG', 'SF', 'PF']);
+  assert.deepEqual(eligible(eraB, lineup), []);
+  assert.deepEqual(eligible(eraA, lineup).map(p => p.i), ['1']);
+  assert.deepEqual(fits(eraA.players[0], lineup), ['PG', 'SG']);
+  const r = rng('x');
+  for (let k = 0; k < 20; k++) assert.equal(spin([eraA, eraB], lineup, r).key, 'a');
+  assert.equal(spin([eraB], lineup, r), null);
+  // A player already signed can't be signed again from another era.
+  assert.deepEqual(eligible({ players: [P('9', 70, ['PF'])] }, lineup), []);
 });
 
-test('rosters: flat and grouped responses', () => {
-  assert.deepEqual(rosterAthletes({ athletes: [{ id: '1' }, { id: '2' }] }).map(a => a.id), ['1', '2']);
-  assert.deepEqual(rosterAthletes({ athletes: [{ position: 'G', items: [{ id: '3' }] }, { items: [{ id: '4' }] }] }).map(a => a.id), ['3', '4']);
-  assert.deepEqual(rosterAthletes(null), []);
+test('fit: the bonus, the penalties and same-era chemistry', () => {
+  const handler = P('h', 80, ['PG'], { apg: 8, tpm: 2 });
+  const shooter = P('s', 80, ['SG'], { tpm: 2.5 });
+  const wing = P('w', 80, ['SF'], { tpm: 0.3 });
+  const big = P('b', 80, ['PF'], { tpm: 0, bpg: 0.5 });
+  const rim = P('r', 80, ['C'], { bpg: 2.4, p: 'C' });
+  assert.deepEqual(fitOf([handler, shooter, wing, big, rim]).map(f => f.value), [2]);
+  // Three-pointers weren't recorded: free throws stand in for shooting, rebounds for rim protection.
+  const old = [P('1', 80, ['PG'], { apg: 9, tpm: null, ftp: 85 }), P('2', 80, ['SG'], { tpm: null, ftp: 88 }), wing, big, P('5', 80, ['C'], { bpg: null, rpg: 13 })];
+  assert.deepEqual(fitOf(old).map(f => f.value), [2]);
+  const centers = [rim, { ...rim, i: 'r2' }, { ...rim, i: 'r3' }, handler, shooter];
+  assert.ok(fitOf(centers).some(f => f.value === -3 && /centers/.test(f.label)));
+  const noPG = [shooter, wing, big, rim, { ...wing, i: 'w2' }].map(p => ({ ...p, apg: 2 }));
+  assert.ok(fitOf(noPG).some(f => f.value === -3 && /offense/.test(f.label)));
+  const era = [handler, shooter, wing, big, rim].map((p, k) => ({ ...p, decade: k < 3 ? 1990 : 2000 }));
+  assert.ok(fitOf(era).some(f => f.value === 1));
 });
 
-test('spine colours: the team colour, darker for earlier decades, with readable lettering', () => {
-  const celtics = { color: '#008348', alt: '#ffffff' };
-  const old = spineColor({ i: '1', y0: 1960 }, celtics), recent = spineColor({ i: '1', y0: 2020 }, celtics);
-  assert.ok(luminance(old) < luminance(recent));
-  assert.equal(inkOn('#fdb927'), '#15161a');
-  assert.equal(inkOn('#0e2240'), '#f6f4ef');
+const lineupOf = (ovr, extra = {}) => Object.fromEntries(SLOTS.map((s, k) => [s, P(`${s}${ovr}${extra.tag || ''}`, ovr, [s], { apg: s === 'PG' ? 6 : 2, ...extra })]));
+
+test('rating: average, fit and matchup wins', () => {
+  const r = rateSeries(lineupOf(85), lineupOf(80));
+  assert.equal(r.matchups.filter(m => m.winner === 'mine').length, 5);
+  assert.equal(r.mine.base, 85);
+  assert.equal(r.mine.boost, 2.5);
+  assert.equal(r.theirs.boost, 0);
+  assert.equal(r.mine.rating, 85 + 2.5 + r.mine.fit.reduce((s, f) => s + f.value, 0));
 });
 
-test('spines: thickness follows career length; MVPs get gold bands; lettering is readable', () => {
-  const lakers = { color: '#552583', alt: '#fdb927' };
-  assert.ok(spineOf({ i: '1', y0: 2004, y1: 2026 }, lakers).w > spineOf({ i: '1', y0: 2020, y1: 2021 }, lakers).w);
-  const mvp = spineOf({ i: '2', y0: 2004, y1: 2026, h: { mvp: 4, fmvp: 4 } }, lakers);
-  assert.deepEqual([mvp.deco, mvp.mvp, mvp.fmvp], ['bands', 4, 4]);
-  for (const p of catalog.players.slice(0, 400)) {
-    const sp = spineOf(p, (catalog.meta.teams || []).find(t => t.id === p.tm));
-    assert.ok(contrast(sp.fg, sp.bg) >= 3, `${p.n}: lettering stands out`);
-  }
+test('odds: even 50%, +5 about 65%, -10 about 22-25%; home court and a wilder Game 7', () => {
+  assert.equal(winProb(0), 0.5);
+  assert.ok(Math.abs(winProb(5) - 0.65) < 0.01);
+  assert.ok(winProb(-10) > 0.2 && winProb(-10) < 0.26);
+  assert.ok(gameProb(0, 0) < 0.5 && gameProb(0, 2) > 0.5, 'dynasty home in Game 1, you in Game 3');
+  assert.ok(Math.abs(gameProb(20, 6) - 0.5) < Math.abs(gameProb(20, 4) - 0.5), 'Game 7 is closer to a coin flip');
+  assert.ok(seriesOdds(0) < 0.5, 'home court makes an even series a little worse than even');
+  assert.ok(seriesOdds(10) > 0.85 && seriesOdds(-10) < 0.15);
 });
 
-test('span labels', () => {
-  assert.equal(span({ y0: 1985, y1: 2003 }), '1984–2003');
-  assert.equal(span({ y0: 2004, y1: 2026, a: 1 }), '2003–now');
-  assert.equal(span({ y0: 1957, y1: 1960, y1m: 1 }), 'from 1956');
-  assert.equal(span({ y0: 2000, y1: 2000 }), '1999-00');
-  assert.equal(span({}), '');
-});
-
-test('search finds legends and moderns, accents ignored', () => {
-  const names = q => localSearch(catalog.players, q, 5).map(p => p.n);
-  assert.equal(names('bill russell')[0], 'Bill Russell');
-  assert.equal(names('wemb')[0], 'Victor Wembanyama');
-  assert.ok(names('doncic').includes('Luka Doncic') || names('doncic').includes('Luka Dončić'));
-  assert.equal(names('jordan michael')[0], 'Michael Jordan');
-  assert.deepEqual(names('zzzzqx'), []);
-});
-
-test('every snapshot book is consistent with what the reader shows', () => {
-  for (const f of fs.readdirSync(new URL('./fixtures/books/', import.meta.url)).filter(f => !f.includes('highs'))) {
-    const b = fixture(`books/${f}`);
-    assert.ok(b.name, f);
-    if (!b.regular) continue;
-    for (const r of b.regular.rows) {
-      for (const v of Object.values(r.avg || {})) assert.ok(v == null || Number.isFinite(v), `${b.name} ${r.label}`);
-      // No zero rebounds over a real season: those are ESPN placeholders.
-      if (r.avg?.gamesPlayed >= 5) assert.notEqual(r.avg.avgRebounds, 0, `${b.name} ${r.label} rebounds`);
+test('series: best of seven, winners outscore losers, box scores add up, headlines every game', () => {
+  const mine = lineupOf(85), theirs = lineupOf(85, { tag: 't' });
+  let wins = 0;
+  for (let k = 0; k < 200; k++) {
+    const s = simulate({ mine, theirs, gap: 3, names: { mine: 'Your Five', theirs: 'Bulls' }, seed: `t${k}` });
+    assert.ok(s.games.length >= 4 && s.games.length <= 7);
+    assert.ok((s.w === 4) !== (s.l === 4));
+    assert.equal(s.won, s.w === 4);
+    for (const g of s.games) {
+      assert.equal(g.won, g.mine.total > g.theirs.total);
+      for (const side of [g.mine, g.theirs]) {
+        assert.equal(side.rows.reduce((a, r) => a + r.pts, 0) + side.bench, side.total);
+        assert.ok(side.bench >= 0);
+        assert.ok(side.rows.every(r => r.pts >= 0));
+      }
+      assert.ok(g.headline.length > 5);
+      assert.ok(topScorer(g.mine).pts >= 0);
     }
-    const bs = best(b.regular, 'avgPoints');
-    if (bs) assert.ok(bs.games >= 20);
-    const gap = coverageGap(b);
-    if (gap) assert.ok(gap.recordFrom > gap.from);
+    if (s.won) wins++;
   }
+  assert.ok(wins > 90 && wins < 160, `a +3 team wins most series: ${wins}/200`);
+  // The same seed gives the same series.
+  const a = simulate({ mine, theirs, gap: 0, names: { mine: 'A', theirs: 'B' }, seed: 'same' });
+  const b = simulate({ mine, theirs, gap: 0, names: { mine: 'A', theirs: 'B' }, seed: 'same' });
+  assert.deepEqual(a, b);
 });
 
-test('derived measures: true shooting, age, best stretch, season clubs, milestones, playoff shift', async () => {
-  const { trueShooting, ageInSeason, prime, clubs, milestones, playoffShift } = await import('../client/src/bookdata.js');
-  // True shooting from totals: 100 points on 50 FGA and 25 FTA -> 100 / (2 × 61) = 81.97%.
-  assert.equal(Math.round(trueShooting({ points: 100, fieldGoalsAttempted: 50, freeThrowsAttempted: 25 }) * 100) / 100, 81.97);
-  assert.equal(trueShooting({ points: 10 }), null);
-  // Age on 1 February of the season's second year (LeBron, born 30 December 1984: 21 in 2005-06).
-  assert.equal(ageInSeason('1984-12-30', 2006), 21);
-  assert.equal(ageInSeason('1984-02-01', 2006), 22);
-  assert.equal(ageInSeason('1984-02-02', 2006), 21);
-  const reg = parseStats(raw('stats_lebron')), post = parseStats(raw('stats_post_lebron'));
-  const p = prime(reg);
-  assert.equal(p.to.season - p.from.season, 4, 'five consecutive seasons');
-  assert.ok(p.ppg >= reg.career.avg.avgPoints, 'the best stretch scores at least the career average');
-  const cl = Object.fromEntries(clubs(reg).map(c => [c.key, c.seasons.length]));
-  assert.ok(cl.p25 >= 10, '25-point seasons');
-  assert.equal(cl.s504090, undefined, 'no 50-40-90 season');
-  const ms = milestones(reg).map(m => `${m.value} ${m.word}`);
-  assert.ok(ms.includes('30000 points') && ms.includes('10000 assists'));
-  assert.ok(milestones(reg).every((m, k, a) => k === 0 || a[k - 1].season <= m.season), 'in order');
-  const shift = playoffShift({ regular: reg, playoffs: post });
-  assert.equal(shift.rows[0].label, 'Points');
-  assert.equal(Math.round(shift.rows[0].diff * 10) / 10, Math.round((post.career.avg.avgPoints - reg.career.avg.avgPoints) * 10) / 10);
-  assert.equal(playoffShift({ regular: reg, playoffs: null }), null);
+test('daily: everyone gets the same opponent and seed for a day', () => {
+  const ds = LADDER.map(x => ({ ...x }));
+  assert.deepEqual(daily(ds, '2026-10-19'), daily(ds, '2026-10-19'));
+  const seen = new Set(Array.from({ length: 40 }, (_, k) => daily(ds, `2026-11-${String(k % 28 + 1).padStart(2, '0')}`).dynasty.key));
+  assert.ok(seen.size >= 4);
+});
+
+test('share text: result, games and lineup', () => {
+  const mine = lineupOf(85);
+  const s = simulate({ mine, theirs: lineupOf(80, { tag: 't' }), gap: 6, names: { mine: 'Your Five', theirs: 'Bulls' }, seed: 's' });
+  const text = shareText({ lineup: mine, eraOf: () => 'CHI \'90s', dynasty: { label: "'96 Bulls" }, series: s, rating: 87.5, daily: '2026-10-19' });
+  assert.match(text, /Beat the Dynasty · Daily 2026-10-19/);
+  assert.match(text, /'96 Bulls/);
+  assert.equal(text.split('\n').length, 3 + 5);
+});
+
+// ---- The real data snapshot (test/fixtures/game.json) ----------------------------------------------------------
+test('snapshot: every era rated 60-99 and playable, the ladder complete', { skip: !fs.existsSync(gamePath) && 'no snapshot' }, () => {
+  const g = JSON.parse(fs.readFileSync(gamePath));
+  assert.equal(g.teams.length, 30);
+  assert.equal(g.dynasties.length, LADDER.length);
+  assert.ok(g.eras.length >= 140);
+  for (const e of g.eras) for (const p of e.players) {
+    assert.ok(p.ovr >= 60 && p.ovr <= 99, `${p.n} ${p.ovr}`);
+    assert.ok(p.slots.length === 2 && p.slots.every(s => SLOTS.includes(s)));
+    assert.ok(p.gp >= 25);
+  }
+  for (const d of g.dynasties) {
+    assert.deepEqual(d.five.map(p => p.slot), SLOTS);
+    assert.equal(new Set(d.five.map(p => p.i)).size, 5);
+  }
+  const bulls = g.dynasties.find(d => d.key === 'chi96');
+  assert.ok(bulls.five.some(p => p.n === 'Michael Jordan' && p.ovr >= 90));
 });

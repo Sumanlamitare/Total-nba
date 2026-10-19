@@ -18,27 +18,13 @@ for (const h of hits) {
   show('web stats keys', raw ? Object.keys(raw) : raw);
   const s = raw && parseStats(raw);
   show('web rows', (s?.rows || []).slice(0, 14).map(r => [r.season, r.teamId, r.team, r.avg?.gamesPlayed]));
-  const urls = [
-    `${espn.CORE}/seasons/1986/types/2/athletes/${h.id}/statistics`,
-    `${espn.CORE}/seasons/1986/types/2/athletes/${h.id}/statistics/0`,
-    `${espn.CORE}/athletes/${h.id}/statistics`,
-    `${espn.CORE}/athletes/${h.id}/statistics/0`,
-    `${espn.WEB}/athletes/${h.id}/overview`,
-    `${espn.WEB}/athletes/${h.id}/splits?season=1986`,
-    `${espn.WEB}/athletes/${h.id}/gamelog?season=1986`,
-    `${espn.WEB}/athletes/${h.id}`,
-  ];
-  for (const u of urls) {
-    const r = await fetch(u.replace('http://', 'https://')).then(async x => ({ status: x.status, body: (await x.text()).slice(0, 700) })).catch(e => ({ error: e.message }));
+  const sp = await espn.fetchJson(`${espn.WEB}/athletes/${h.id}/splits?season=1986`, 2).catch(e => ({ error: e.message }));
+  show('splits keys', sp && Object.keys(sp));
+  show('splits names', sp?.names);
+  show('splits categories', (sp?.splitCategories || []).map(c => ({ name: c.name, splits: (c.splits || []).slice(0, 2) })).slice(0, 2));
+  for (const u of [`${espn.CORE}/seasons/1986/athletes/${h.id}`, `${espn.CORE}/seasons/1986/types/2/athletes/${h.id}`]) {
+    const r = await fetch(u).then(async x => ({ status: x.status, body: (await x.text()).slice(0, 1500) })).catch(e => ({ error: e.message }));
     show(u.replace(/^https?:\/\/[^/]+/, ''), r);
   }
 }
 
-for (const y of [1985, 1986, 1990]) {
-  for (const q of [false, true]) {
-    const j = await espn.byAthlete(y, { qualified: q }).catch(() => null);
-    const list = j?.athletes || [];
-    const bird = list.find(x => x.athlete?.displayName === 'Larry Bird');
-    console.log('byathlete', y, 'qualified', q, list.length, 'pagination', JSON.stringify(j?.pagination), 'bird', JSON.stringify(bird)?.slice(0, 900));
-  }
-}
