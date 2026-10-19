@@ -1,5 +1,5 @@
 // The game data (one request, cached in localStorage until the next ingest) and small local storage helpers.
-const GAME_KEY = 'btd.game.v1';
+const GAME_KEY = 'btd.game.v2'; // v2: ratings with playoffs and reputation
 
 export const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
