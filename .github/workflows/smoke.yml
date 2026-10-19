@@ -1,4 +1,4 @@
-name: Smoke test the live library
+name: Smoke test the live game
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check pages and API against live ESPN data
+      - name: Check the page and the game data
         env:
           URL: ${{ inputs.url || github.event.deployment_status.environment_url || 'https://total-nba-ja9d.vercel.app' }}
         run: |
@@ -24,18 +24,14 @@ jobs:
             body=$(curl -s -w '\n%{http_code}' --max-time 60 "$URL$1"); code=${body##*$'\n'}
             if [ "$code" = "$2" ] && grep -q -- "$3" <<<"$body"; then echo "ok   $1"; else echo "FAIL $1 ($code)"; echo "${body:0:300}"; fail=1; fi
           }
-          check / 200 'The Player Library'
-          check /book/1966/lebron-james 200 'id="root"'
-          check /api/catalog 200 '"Bill Russell"'
-          for id in 1966 1035 3975 5104157 3992 4142 4152 2335 4145 2334 215 609 6583 3202; do
-            check "/api/book?id=$id" 200 '"name"'
-          done
-          check '/api/book?id=1966&part=highs' 200 '"covered"'
-          check '/api/book?id=4152&part=highs' 200 '"covered"'
-          check '/api/search?q=wembanyama' 200 'Wembanyama'
-          check '/api/book?id=abc' 400 'error'
-          n=$(curl -s "$URL/api/catalog" | grep -o '"i":"' | wc -l); echo "catalog size: $n"; [ "$n" -gt 5000 ] || fail=1
-          t=$(curl -s "$URL/api/catalog" | grep -o '"tm":"' | wc -l); echo "books shelved with a team: $t"; [ "$t" -gt 3000 ] || fail=1
-          a=$(curl -s "$URL/api/catalog" | grep -o '"a":1' | wc -l); echo "active players (team shelves): $a"; [ "$a" -gt 400 ] || fail=1
-          check /api/catalog 200 '"Boston Celtics"'
+          check / 200 'Beat the Dynasty'
+          check /api/game 200 "'96 Bulls"
+          check /api/game 200 "'17 Warriors"
+          check /api/game 200 '"Michael Jordan"'
+          check /api/game 200 '"Boston Celtics"'
+          check /api/catalog 404 ''
+          game=$(curl -s "$URL/api/game")
+          e=$(grep -o '"decade":' <<<"$game" | wc -l); echo "franchise-decades: $e"; [ "$e" -gt 120 ] || fail=1
+          p=$(grep -o '"ovr":' <<<"$game" | wc -l); echo "player-eras: $p"; [ "$p" -gt 5000 ] || fail=1
+          d=$(grep -o '"slot":' <<<"$game" | wc -l); echo "dynasty starters: $d"; [ "$d" -eq 40 ] || fail=1
           exit $fail

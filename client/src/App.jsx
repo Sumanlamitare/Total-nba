@@ -151,7 +151,7 @@ function Home({ data, beaten, onPlay }) {
       <div className="hero">
         <p className="eyebrow">Five spins · five picks · one series</p>
         <h1>Beat the <span>Dynasty</span></h1>
-        <p className="lede">Spin a franchise and a decade, sign one player from that era, and do it five times: one per position, no take-backs. Then take your five into a best-of-seven against one of the greatest teams ever.</p>
+        <p className="lede">Spin a franchise and a decade, sign one of the players it deals, and do it five times: one per position, no take-backs. Then take your five into a best-of-seven against one of the greatest teams ever.</p>
       </div>
 
       <div className="daily" style={{ '--glow': d.dynasty.glow }}>
@@ -191,7 +191,7 @@ function Home({ data, beaten, onPlay }) {
       <div className="rules">
         <h2>How it plays</h2>
         <ol>
-          <li><b>Draft.</b> Each spin lands on a franchise and a decade. Pick one player from that era for an open position.</li>
+          <li><b>Draft.</b> Each spin lands on a franchise and a decade and deals four of its players. Sign one for an open position.</li>
           <li><b>Rate.</b> Every player-era is rated 60–99 from his real per-game numbers in that stretch.</li>
           <li><b>Fit.</b> +2 for a ball-handler, two shooters and a rim protector; −3 for three centers or no point guard; +1 for three from the same decade.</li>
           <li><b>Matchups.</b> Each position battle you win adds half a point.</li>

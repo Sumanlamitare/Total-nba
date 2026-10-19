@@ -17,23 +17,16 @@ function serveStatic(req, res) {
 }
 const port = +process.env.PORT || 5173;
 
-// MOCK_API=dir serves saved API responses (dir/catalog.json, dir/books/{id}.json, dir/books/{id}.highs.json) so
-// the interface can be worked on and tested without MongoDB or ESPN.
+// MOCK_API=dir serves a saved /api/game response (dir/game.json) so the interface can be worked on and tested without
+// MongoDB or ESPN.
 function mockApi(name, url, res) {
   const dir = path.resolve(process.env.MOCK_API);
   const send = (code, body) => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.end(typeof body === 'string' ? body : JSON.stringify(body)); };
-  const file = f => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null);
-  const delay = +process.env.MOCK_DELAY || 0;
   setTimeout(() => {
-    if (name === 'catalog') return send(200, file(path.join(dir, 'catalog.json')));
-    if (name === 'book') {
-      const id = (url.searchParams.get('id') || '').replace(/\D/g, '');
-      const body = file(path.join(dir, 'books', `${id}${url.searchParams.get('part') === 'highs' ? '.highs' : ''}.json`));
-      return body ? send(200, body) : send(404, { error: 'There is no record of this player' });
-    }
-    if (name === 'search') return send(200, { results: [], added: [] });
+    const f = path.join(dir, 'game.json');
+    if (name === 'game' && fs.existsSync(f)) return send(200, fs.readFileSync(f, 'utf8'));
     send(404, { error: 'Not found' });
-  }, delay);
+  }, +process.env.MOCK_DELAY || 0);
 }
 
 http.createServer(async (req, res) => {
@@ -46,4 +39,4 @@ http.createServer(async (req, res) => {
     req.query = Object.fromEntries(url.searchParams);
     await fn(req, res);
   } catch (e) { console.error(e); res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); }
-}).listen(port, () => console.log(`Library dev on http://localhost:${port}`));
+}).listen(port, () => console.log(`Beat the Dynasty dev on http://localhost:${port}`));

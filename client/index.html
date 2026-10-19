@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Player Library</title>
-    <meta name="description" content="A library where every NBA player has a book: active players on their current team's shelf, retired players on one long shelf." />
+    <title>Beat the Dynasty</title>
+    <meta name="description" content="Draft a starting five from random franchise and decade spins, then take on the '96 Bulls, the '17 Warriors and other NBA dynasties in a best-of-seven." />
     <meta name="theme-color" content="#08080a" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Oswald:wght@500&family=Playfair+Display:wght@700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" />
     <style>
       /* The loading page — tip-off in an empty arena. Drawn before any script runs; the app fills in the scoreboard and
-         the ticker from the real catalogue, then closes the scene into the ball. Everything is prefixed bt-. */
+         the ticker from the real ratings, then closes the scene into the ball. Everything is prefixed bt-. */
       #boot { --p: .18; position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #fff; background: #08080a; font-family: Barlow, 'Helvetica Neue', Arial, sans-serif;
         clip-path: circle(150% at 50% 62%); transition: clip-path .85s cubic-bezier(.7,0,.2,1), --p 1.2s ease; }
       #boot.done { clip-path: circle(0% at 50% 62%); pointer-events: none; }
@@ -30,7 +30,7 @@
       #boot .bt-court .c1 { stroke: rgba(255,240,220,.35); }
       #boot .bt-court .c2 { rx: min(260px, 36vw); } #boot .bt-court .c3 { rx: min(72px, 10vw); }
       #boot .bt-court .c2 { animation-delay: .5s; } #boot .bt-court .c3 { animation-delay: .8s; }
-      /* the giant title, filling with colour as the library loads */
+      /* the giant title, filling with colour as the game loads */
       #boot .bt-title { position: absolute; left: 0; right: 0; top: 11vh; margin: 0; text-align: center; font: 800 clamp(64px, 17vw, 250px)/.82 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif; letter-spacing: -.01em; text-transform: uppercase;
         color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.28);
         background: linear-gradient(to top, #ff8a2b 0, #ffd28a calc(var(--p) * 100%), transparent calc(var(--p) * 100%)) no-repeat; -webkit-background-clip: text; background-clip: text;
@@ -64,7 +64,7 @@
     </style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Opening the Player Library">
+    <div id="boot" role="status" aria-label="Loading Beat the Dynasty">
       <div class="bt-glow"></div>
       <div class="bt-beam"></div>
       <div class="bt-floor"></div>
@@ -72,17 +72,17 @@
       <svg class="bt-court" aria-hidden="true">
         <line class="c1" x1="0" y1="74%" x2="100%" y2="74%" /><ellipse class="c2" cx="50%" cy="74%" rx="240" ry="34" /><ellipse class="c3" cx="50%" cy="74%" rx="70" ry="10" />
       </svg>
-      <h1 class="bt-title" aria-hidden="true"><span>Player</span><span>Library</span></h1>
+      <h1 class="bt-title" aria-hidden="true"><span>Beat the</span><span>Dynasty</span></h1>
       <div class="bt-ball-wrap" aria-hidden="true">
         <div class="bt-shadow"></div>
         <div class="bt-ball"><svg viewBox="0 0 100 100"><defs><radialGradient id="btg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb066"/><stop offset=".55" stop-color="#e8701f"/><stop offset="1" stop-color="#9c3f0c"/></radialGradient></defs>
           <circle cx="50" cy="50" r="48" fill="url(#btg)"/><g fill="none" stroke="#2a1306" stroke-width="2.6" stroke-linecap="round"><path d="M50 2v96M2 50h96"/><path d="M15 16c14 12 14 56 0 68"/><path d="M85 16c-14 12-14 56 0 68"/></g></svg></div>
       </div>
-      <div class="bt-board"><span class="bt-n" id="boot-n">—</span><span class="bt-l"><b>Players</b><span id="boot-msg">Tipping off…</span></span></div>
-      <div class="bt-ticker" aria-hidden="true"><div class="bt-run" id="boot-run"><span>Every player</span><i>●</i><span>Every season</span><i>●</i><span>Every book</span><i>●</i><span>Active and retired</span><i>●</i><span>All 30 teams</span></div></div>
+      <div class="bt-board"><span class="bt-n" id="boot-n">—</span><span class="bt-l"><b>Player-eras</b><span id="boot-msg">Tipping off…</span></span></div>
+      <div class="bt-ticker" aria-hidden="true"><div class="bt-run" id="boot-run"><span>Five spins</span><i>●</i><span>Five picks</span><i>●</i><span>One series</span><i>●</i><span>'96 Bulls</span><i>●</i><span>'17 Warriors</span></div></div>
     </div>
     <div id="root"></div>
-    <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">The Player Library needs JavaScript to open its books.</p></noscript>
+    <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">Beat the Dynasty needs JavaScript to play.</p></noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

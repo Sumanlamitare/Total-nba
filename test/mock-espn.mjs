@@ -7,36 +7,21 @@ const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`,
 export function mockEspn() {
   let base = '';
   const hits = [];
-  const season = (y, qualified) => {
-    const row = (id, name, first, last, team, gp, pts, reb) => ({
-      athlete: { id, displayName: name, firstName: first, lastName: last, debutYear: id === '1966' ? 2003 : 2015, position: { abbreviation: 'F' }, teams: [{ id: { CLE: '5', BOS: '2', NYK: '18' }[team], abbreviation: team }] },
-      categories: [{ name: 'general', values: [gp, 30, reb] }, { name: 'offensive', values: [pts] }, { name: 'defensive', values: [1, 1] }],
-    });
-    const athletes = [row('1966', 'LeBron James', 'LeBron', 'James', 'CLE', 76, 25.3, 7.4), row('100', 'Ann Able', 'Ann', 'Able', y === 2016 ? 'BOS' : 'NYK', 60, 8.1, 3.2)];
-    return {
-      categories: [{ name: 'general', names: ['gamesPlayed', 'avgMinutes', 'avgRebounds'] }, { name: 'offensive', names: ['avgPoints'] }, { name: 'defensive', names: ['avgSteals', 'avgBlocks'] }],
-      athletes: qualified ? athletes.slice(0, 1) : athletes,
-    };
-  };
+  const season = () => ({
+    athletes: [
+      { athlete: { id: '1966', displayName: 'LeBron James', position: { abbreviation: 'F' }, debutYear: 2003 } },
+      { athlete: { id: '3992', displayName: 'James Harden', position: { abbreviation: 'G' }, debutYear: 2009 } },
+    ],
+  });
   const routes = [
-    [/\/statistics\/byathlete/, u => season(+u.searchParams.get('season'), u.searchParams.get('isqualified') === 'true')],
-    [/\/web\/athletes\/1966$/, () => raw('athlete_lebron')],
-    [/\/web\/athletes\/1966\/bio$/, () => raw('bio_lebron')],
-    [/\/web\/athletes\/1966\/stats$/, u => (u.searchParams.get('seasontype') === '3' ? raw('stats_post_lebron') : raw('stats_lebron'))],
-    [/\/web\/athletes\/1966\/gamelog$/, u => (u.searchParams.get('season') === '2016' ? raw('gamelog_lebron_2016') : { filters: [] })],
+    [/\/statistics\/byathlete/, season],
+    [/\/web\/athletes\/1966\/stats$/, () => raw('stats_lebron')],
     [/\/web\/athletes\/3992\/stats$/, () => raw('stats_harden')],
-    [/\/web\/athletes\/3992\/bio$/, () => raw('bio_harden')],
-    [/\/core\/athletes\/3992$/, () => ({ displayName: 'James Harden', firstName: 'James', lastName: 'Harden', debutYear: '2009', active: true, position: { abbreviation: 'G' } })],
-    [/\/core\/athletes\/4142$/, () => ({ displayName: 'Wilt Chamberlain', firstName: 'Wilt', lastName: 'Chamberlain', debutYear: '1959', active: false, position: { abbreviation: 'NA' } })],
-    [/\/core\/athletes\/3$/, () => ({ displayName: 'Old Timer', firstName: 'Old', lastName: 'Timer', debutYear: '1950', active: false })],
-    [/\/core\/athletes\/7777$/, () => ({ displayName: 'Forgotten Guard', firstName: 'Forgotten', lastName: 'Guard', debutYear: '1955', active: false, position: { abbreviation: 'G' } })],
-    [/\/core\/seasons\/\d+\/awards$/, u => ({ items: u.pathname.includes('/1960/') || u.pathname.includes('/2016/') ? [{ $ref: `${base}${u.pathname}/33` }] : [] })],
-    [/\/core\/seasons\/1960\/awards\/33$/, () => ({ id: '33', name: 'MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/1960/athletes/4142` }, team: { $ref: `${base}/core/seasons/1960/teams/9` } }] })],
-    [/\/core\/seasons\/2016\/awards\/33$/, () => ({ id: '33', name: 'MVP', winners: [{ athlete: { $ref: `${base}/core/seasons/2016/athletes/1966` } }] })],
-    [/\/core3\/athletes$/, () => ({ items: [{ id: '1966', displayName: 'LeBron James', firstName: 'LeBron', lastName: 'James' }, { id: '5000001', displayName: 'Rookie Newman', firstName: 'Rookie', lastName: 'Newman' }] })],
-    [/\/site\/teams$/, () => ({ sports: [{ leagues: [{ teams: [['1', 'ATL', 'Atlanta Hawks'], ['2', 'BOS', 'Boston Celtics'], ['5', 'CLE', 'Cleveland Cavaliers'], ['9', 'GS', 'Golden State Warriors'], ['13', 'LAL', 'Los Angeles Lakers'], ['14', 'MIA', 'Miami Heat'], ['18', 'NY', 'New York Knicks']].map(([id, abbreviation, displayName]) => ({ team: { id, abbreviation, displayName, shortDisplayName: displayName.split(' ').pop(), color: '112233', alternateColor: 'ddeeff' } })) }] }] })],
-    [/\/site\/teams\/\d+\/roster$/, u => ({ athletes: u.pathname.includes('/teams/5/') ? [{ id: '1966', displayName: 'LeBron James', firstName: 'LeBron', lastName: 'James' }] : [] })],
-    [/\/search$/, u => ({ results: [{ type: 'player', contents: /forgotten/i.test(u.searchParams.get('query')) ? [{ uid: 's:40~l:46~a:7777', displayName: 'Forgotten Guard' }, { uid: 's:20~l:28~a:5', displayName: 'Football Person' }] : [] }] })],
+    // The id scan: a player before the game's era (kept by the scan, dropped for having no 1980s-on seasons) and
+    // one without a debut year.
+    [/\/core\/athletes\/2$/, () => ({ displayName: 'Old Timer', debutYear: 1950 })],
+    [/\/core\/athletes\/3$/, () => ({ displayName: 'No Stats Anywhere', position: { abbreviation: 'F' } })],
+    [/\/site\/teams$/, () => ({ sports: [{ leagues: [{ teams: [['5', 'CLE', 'Cleveland Cavaliers'], ['10', 'HOU', 'Houston Rockets'], ['13', 'LAL', 'Los Angeles Lakers'], ['14', 'MIA', 'Miami Heat'], ['17', 'BKN', 'Brooklyn Nets'], ['20', 'PHI', 'Philadelphia 76ers'], ['25', 'OKC', 'Oklahoma City Thunder']].map(([id, abbreviation, displayName]) => ({ team: { id, abbreviation, displayName, shortDisplayName: displayName.split(' ').pop(), location: displayName.split(' ').slice(0, -1).join(' '), color: '112233', alternateColor: 'ddeeff' } })) }] }] })],
   ];
   const server = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://x');
@@ -49,7 +34,7 @@ export function mockEspn() {
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     base = `http://127.0.0.1:${server.address().port}`;
     resolve({
-      env: { ESPN_WEB: `${base}/web`, ESPN_CORE: `${base}/core`, ESPN_CORE3: `${base}/core3`, ESPN_SEARCH: `${base}/search`, ESPN_SITE: `${base}/site` },
+      env: { ESPN_WEB: `${base}/web`, ESPN_CORE: `${base}/core`, ESPN_SITE: `${base}/site` },
       hits, close: () => new Promise(r => server.close(r)),
     });
   }));

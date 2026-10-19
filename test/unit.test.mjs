@@ -3,9 +3,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { parseStats, scrub, statRow } from '../lib/stats.js';
-import { foldSeason, entry, sortKey, currentSeason, seasonLabel } from '../lib/catalog.js';
+import { foldSeason, entry, sortKey, currentSeason, seasonLabel } from '../lib/ingest.js';
 import { buildEras, buildDynasty, assignSlots, gameScore, ratingOf, totals, sum, decadeOf, positionOf, slotsFor, LADDER } from '../lib/dynasty.js';
-import { rng, spin, eligible, fits, openSlots, fitOf, rateSeries, winProb, gameProb, seriesOdds, simulate, daily, shareText, topScorer, SLOTS } from '../client/src/game.js';
+import { rng, spin, deal, HAND, eligible, fits, openSlots, fitOf, rateSeries, winProb, gameProb, seriesOdds, simulate, daily, shareText, topScorer, SLOTS } from '../client/src/game.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
 const gamePath = new URL('./fixtures/game.json', import.meta.url);
@@ -138,6 +138,20 @@ test('draft: spins only land on eras with someone who fits an open spot', () => 
   assert.deepEqual(eligible({ players: [P('9', 70, ['PF'])] }, lineup), []);
 });
 
+test('deal: four players who fit, the regulars likelier, the same for the same seed', () => {
+  const era = { players: Array.from({ length: 30 }, (_, k) => P(String(k), 60 + k, k % 2 ? ['C'] : ['PG'], { mpg: k < 5 ? 36 : 6 })) };
+  const lineup = { C: P('c', 70, ['C']) };
+  const h = deal(era, lineup, rng('d'));
+  assert.equal(h.length, HAND);
+  assert.ok(h.every(p => p.slots.includes('PG')));
+  assert.deepEqual(h.map(p => p.ovr), [...h.map(p => p.ovr)].sort((a, b) => b - a));
+  assert.deepEqual(deal(era, lineup, rng('d')), h);
+  let regulars = 0;
+  for (let k = 0; k < 200; k++) regulars += deal(era, lineup, rng(`x${k}`)).filter(p => p.mpg === 36).length;
+  assert.ok(regulars / 200 > 2, `the three regulars who fit show up most of the time: ${regulars / 200}`);
+  assert.equal(deal({ players: [P('z', 70, ['SF'])] }, lineup, rng('y')).length, 1);
+});
+
 test('fit: the bonus, the penalties and same-era chemistry', () => {
   const handler = P('h', 80, ['PG'], { apg: 8, tpm: 2 });
   const shooter = P('s', 80, ['SG'], { tpm: 2.5 });
@@ -243,4 +257,11 @@ test('ladder order: weakest first, then the Bulls, then the Warriors', async () 
   const { orderLadder } = await import('../lib/dynasty.js');
   const mk = (key, ovr, boss) => ({ key, boss, five: Array.from({ length: 5 }, () => ({ ovr })) });
   assert.deepEqual(orderLadder([mk('gs17', 80, true), mk('chi96', 70), mk('a', 85), mk('b', 75)]).map(d => d.key), ['b', 'a', 'chi96', 'gs17']);
+});
+
+test('surnames skip suffixes', async () => {
+  const { surname } = await import('../client/src/game.js');
+  assert.equal(surname('Wendell Carter Jr.'), 'Carter');
+  assert.equal(surname('Gary Payton II'), 'Payton');
+  assert.equal(surname('Nene'), 'Nene');
 });

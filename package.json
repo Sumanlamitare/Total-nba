@@ -1,9 +1,9 @@
 {
-  "name": "nba-player-library",
+  "name": "beat-the-dynasty",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "NBA Player Library — every player a book on the shelves of a 3D reading room. Data from ESPN.",
+  "description": "Beat the Dynasty: draft a starting five from random franchise and decade spins, then take on an NBA dynasty in a best-of-seven. Ratings from ESPN's season statistics.",
   "engines": {
     "node": ">=20"
   },

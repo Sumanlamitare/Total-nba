@@ -1,98 +1,53 @@
-# The Player Library
+# Beat the Dynasty
 
-Every NBA player ESPN has on record gets a book. Active players stand on their current team's shelf; every retired player stands on one long shelf. Pick a team, find a book, take it down and read its chapters: the player, career, records, honors, teams, the full statistical record and what it all adds up to.
+Draft a starting five from random franchise + decade spins, then take on one of the NBA's great teams in a best-of-seven. Can your five take down the '96 Bulls?
 
 Live: https://total-nba-ja9d.vercel.app
 
-## Using it
+## How it plays
 
-- **One shelf at a time.** *Active players* starts on *All teams*: every active player on one shelf. The dropdown narrows it to one team's shelf. *Retired players* is a single shelf for everyone who has retired. The long shelves have letters to jump along them. Books run A to Z by surname, and the pointer above the shelf (and the giant letter behind it) shows where you are.
-  - Scroll the shelf sideways (trackpad, mouse wheel, the arrow buttons, or a swipe on a phone).
-  - With the keyboard, Tab to the shelf and use ← → (Home, End, Page Up/Down).
-  - The look is a basketball arena: dark stands and spotlights, a hardwood shelf with court paint, scoreboard lettering for counts, letter chips that light up as basketballs. *Shelf back* changes the arena lighting.
-- **Find a player.** Search (`/`) looks across every shelf. Enter takes you to the player's shelf and brings the book under the pointer; Shift+Enter (or *Open*) takes it straight down. Players the catalogue doesn't hold are found through ESPN's search and shelved.
-- **Take a book down.** Click a book. It tips out by the top of its spine, comes off the shelf and turns to face you, cover first: the player's photo, name, team and years. Closing puts it back in its gap on the shelf.
-- **The book.** Ten chapters: *By the numbers* (the career at a glance), *The player*, *Career* (by season or by age), *Prime* (the signature season, the best five-season stretch, season clubs such as 25-point, 20-and-10 and 50-40-90 seasons), *Records* (league titles, best seasons, single-game highs, 30- and 40-point games, 20-and-10 games, triple-doubles), *Playoffs* (playoff numbers set against the regular season), *Honors*, *Teams*, *Statistical record* (with true shooting) and *Legacy* (career totals, round-number milestones and the season each was passed, where the player stands in games played among everyone in the library). Every figure is the record's own number or plain arithmetic on it, and each derived measure says how it is worked out.
-- **Read.** Tap or swipe the cover to open it. The book has real pages: a two-page spread on wide screens, one page on phones. Drag a page by its corner and it folds over under your finger, showing its back; let go past the middle (or flick) and it turns. Tap the right side to turn forward, the left side to go back, or use ← →.
-  - The pills under the book jump to any chapter; the contents page lists real page numbers.
-  - Turning a page makes a soft paper sound (drawn in the browser, no audio files); the speaker button turns it off.
-  - Esc takes you back to the shelf.
-  - Every book has its own link (`/book/{espn id}/{name}`), and the browser's Back button closes it.
-- The system's reduced-motion setting is honoured: books open and pages turn without animation.
+1. **Draft.** Five spins, five picks, one per position (PG, SG, SF, PF, C). Each spin lands on a franchise and a decade and deals four of that era's players, the regulars likelier than the deep bench. No take-backs.
+2. **Rate.** Every player-era (one player, one franchise, one decade, 25+ games) has an overall rating from 60 to 99, computed from his real per-game numbers in that stretch.
+3. **Fit.** Team rating = the five's average, plus:
+   - +2 for a ball-handler (5+ assists), two shooters (1.2+ threes a game; 82%+ free throws before threes were counted) and a rim protector (1.5+ blocks; 11+ rebounds before blocks were counted);
+   - −3 for three centers, or for no point guard (nobody with 4+ assists);
+   - +1 for three or more players from the same decade.
+4. **Matchups.** Position by position before the series; each one you win adds half a point.
+5. **Simulate.** The rating gap sets each game's odds (even = 50%, +5 ≈ 65%, −10 ≈ 22%). The dynasty has home court in Games 1, 2, 5 and 7, and Game 7 is pulled toward a coin flip.
+6. **Results.** Every game has a box score, a top scorer and a headline. The end card shows your lineup and the series, ready to share.
 
-## What a spine tells you
+**The ladder.** Win a series to unlock the next banner: the '14 Spurs, '04 Pistons, '08 Celtics, '01 Lakers, '13 Heat and '87 Lakers (ordered by their starters' ratings), then the '96 Bulls, then the final boss, the '17 Warriors. Progress is kept in the browser.
 
-| | |
-|---|---|
-| Thickness | Length of the career as far as ESPN's records show it |
-| Gold bands | One per MVP award (up to four) |
-| Stars | One per Finals MVP award |
-| Colour | The player's latest team; a darker shade for an earlier first season |
-| Height, lettering style | Decoration only |
+**Daily challenge.** One dynasty a day, and the same spins and deals for everyone (the draft runs on a random stream seeded by the date).
 
-**Which shelf.** A player ESPN lists as active stands with his latest team: the team whose current roster lists him, or failing that the team he finished his latest season with (a traded player goes with the team he was traded to). Active players ESPN lists on no team (unsigned or between teams) appear under *All teams* only. Everyone else is retired and stands on the retired shelf; the cover still names his last team. Franchises are ESPN's 30, and a franchise keeps its id through moves, so the Seattle SuperSonics count as Oklahoma City.
+## Ratings: real statistics only
 
-## Data: ESPN's free public API, nothing invented
+All numbers come from ESPN's free public API (season-by-season career statistics, by team). Nothing is hand-tuned:
 
-No API key, no paid service. Endpoints used:
-
-| Purpose | Endpoint |
-|---|---|
-| Season stat lists (who played, teams, games), 1984-85 → now | `site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete` |
-| Qualified league leaders per season | the same, `isqualified=true`, sorted by stat |
-| Award winners, every season since 1946-47 | `sports.core.api.espn.com/v2/.../seasons/{y}/awards` |
-| Player records (and the id scan that finds pre-2010 players) | `sports.core.api.espn.com/v2/.../athletes/{id}` |
-| Current players | `sports.core.api.espn.com/v3/.../athletes?active=true` |
-| A book: bio, career stats (regular season and playoffs), honors, teams | `site.web.api.espn.com/.../athletes/{id}`, `/stats`, `/stats?seasontype=3`, `/bio` |
-| Single-game highs | `.../athletes/{id}/gamelog?season={y}` |
-| Search for unshelved players | `site.web.api.espn.com/apis/search/v2` |
-| Portraits | `a.espncdn.com/i/headshots/nba/players/full/{id}.png` (not every player has one) |
-
-**How the catalog is built** (`scripts/ingest.mjs`, weekly in GitHub Actions, about 2 minutes). ESPN has no single "every player ever" list, so the catalog combines several sources:
-
-1. the season stat lists from 1984-85 on;
-2. award winners from every season;
-3. a scan of ESPN's player ids 1–8000, where players who debuted before about 2010 live;
-4. every player's own career stats, giving exact seasons, games and the team of the latest season;
-5. the current-player index and the 30 current team rosters (who is active, and where).
-
-The result is about 5,240 players. Anyone else ESPN knows is added the first time someone searches for them.
-
-**Honesty rules in the code**
-
-- **Recording eras.** ESPN reports `0` for stats the league didn't record yet (steals and blocks before 1973-74, threes before 1979-80, turnovers before 1977-78, starts before 1981-82), and for rebounds it lacks. Those zeros are shown as blanks (`lib/book.js`, `scrub`).
-- **Career lines.** A career figure is blanked when some seasons lack that stat, unless ESPN's own career line covers more than the season rows (for example Wilt Chamberlain). The reader says which case applies.
-- **Traded seasons.** Each team's line is shown, followed by the season total, and the season is counted once.
-- **Single-game highs and counts** (40-point games, triple-doubles) come only from seasons ESPN keeps game logs for. The reader names those seasons, says which are missing, and says how many games were logged.
-- **League leaders** come only from ESPN's qualified leaders. Those exist from 1986-87 on, and the book says so.
-- **What's left out.** ESPN's award lists include neither All-Star selections nor championships, so the books don't claim them. There are no rankings or opinions.
+- **Player-era rating:** Hollinger's Game Score per game over the player's seasons with that franchise in that decade, mapped onto 60–99 (`58 + 1.56 × GmSc`, clamped). An MVP-level 25 a game is about 97; a rotation player's 8 is about 70. Seasons are named by the year they end (1995-96 = 1996, in the 1990s).
+- **Positions:** the listed position blended with what the numbers say (assists pull toward the point, rebounds and blocks toward the rim); every player can play his spot and the one beside it.
+- **Dynasties:** each champion's real starting five, rated on that season with that team alone.
+- **Not in the game:** ESPN has no season statistics at all for some 1980s greats (Larry Bird and Dennis Johnson among them), so they can't be rated; that's why the '86 Celtics aren't on the ladder.
 
 ## How it's built
 
-- **Client** (`client/`): React 18 + Vite, with [Motion](https://motion.dev) for springs and transitions (the sliding tab and chapter markers, numbers that count up as a page comes into view, the closed book floating and leaning towards the pointer).
-  - The shelf is plain HTML and CSS: each spine is a button whose size, colours, decoration and lettering come from the player's record (`client/src/shelves.js`). Only the books near the view are in the page, so the retired shelf (about 4,500 books) scrolls as smoothly as a team's.
-  - Taking a book down is CSS 3D (`client/src/pull.js`): the book is built as a box at the reader's cover size, scaled down over its spine, then tipped, pulled and turned until its cover lands exactly on the reader's.
-  - The reader measures each block of a book's content and packs the blocks into fixed-size pages. A turning page folds along the perpendicular bisector of its corner and your finger (`client/src/fold.js`): the flat part is clipped, the lifted part is reflected across the fold to show the next page's back, and SVG gradients shade the curl and cast a shadow on the page underneath. The cover is stiff and swings without curling.
-  - No image assets: everything is drawn in CSS and SVG; the only images are ESPN's portraits on the covers.
-- **API** (`api/`, Vercel functions):
-  - `catalog` is every book, cached at the edge for an hour.
-  - `book?id=` is a composed book and `book?id=&part=highs` the career highs.
-  - `search?q=` searches the catalog, with ESPN as a fallback.
-  - Composed books are cached in MongoDB with an expiry: 6 hours for active players, 7 days for retired ones. Raw ESPN responses are only cached in memory.
-- **Database:** MongoDB (`LIBRARY_DB`, default `library`), with the collections `players`, `leaders`, `awards`, `meta` and `cache`.
+- **Client** (`client/`): React 18 and Motion, built by Vite. `game.js` holds the rules (spins, deals, fit, matchups, odds, the series sim, headlines, the daily seed) as pure functions; the arena sounds are synthesised with Web Audio.
+- **API** (`api/game.js`, a Vercel function): everything the game needs in one response, cached at the edge for an hour; the browser keeps a copy.
+- **Data** (`lib/ingest.js`, `lib/dynasty.js`): `npm run ingest` scans ESPN's player ids and season lists, fetches every player's season-by-season stats, and builds the eras and the dynasty ladder. It runs weekly (`.github/workflows/ingest.yml`).
+- **Database:** MongoDB (`LIBRARY_DB`, default `library`) with `players`, `eras` and `meta`.
 
 ## Development
 
 ```sh
 npm install
-npm run dev:fixtures   # the full interface on saved real data (test/fixtures), no database or network
+npm run dev:fixtures   # the full game on a saved snapshot of the real data (test/fixtures/game.json), no database
 MONGODB_URI=... npm run ingest && MONGODB_URI=... npm run dev   # the real thing
-npm test               # unit tests (real, trimmed ESPN responses)
-MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> ingest -> API
-npm run test:ui        # Chromium: shelves, search, taking a book down, chapters, deep links, Back, keyboard, phone
+npm test               # unit tests: ESPN parsing, ratings, positions, fit, odds, the sim, the daily seed
+MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> ingest -> /api/game
+npm run test:ui        # Chromium: the ladder, a whole run, the daily seed, a phone
 ```
 
-`tools/snapshot.mjs` refreshes `test/fixtures` from the live database; it runs through the *Probe ESPN* workflow with `task: snapshot`.
+The *Build or snapshot the game data* workflow runs the ingest from a branch (`task: ingest`), saves `game.json` from the live database (`task: snapshot`), or looks players up on ESPN (`task: players`).
 
 ## Free resources and licenses
 
@@ -102,10 +57,7 @@ npm run test:ui        # Chromium: shelves, search, taking a book down, chapters
 | [Motion](https://github.com/motiondivision/motion) 12 | Animation | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
-| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface, spines, covers | SIL Open Font License 1.1 |
-| [Newsreader](https://fonts.google.com/specimen/Newsreader) (Production Type) | Headings, the shelf pointer | SIL Open Font License 1.1 |
-| [Oswald](https://fonts.google.com/specimen/Oswald) (Vernon Adams) and [Playfair Display](https://fonts.google.com/specimen/Playfair+Display) (Claus Eggers Sørensen) | Spine lettering | SIL Open Font License 1.1 |
-| [Literata](https://fonts.google.com/specimen/Literata) (TypeTogether) | Book text | SIL Open Font License 1.1 |
+| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | All type | SIL Open Font License 1.1 |
 | ESPN public API and headshots | All player data and portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
 
-The favicon and all other artwork are original and drawn in code. The held, floating book with page sounds and chapter pills takes its cue from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (an interactive 3D book); no code or assets are copied from it.
+The favicon, the court, the banners and the loading arena are original and drawn in code.
