@@ -238,3 +238,9 @@ test('snapshot: every era rated 60-99 and playable, the ladder complete', { skip
   const bulls = g.dynasties.find(d => d.key === 'chi96');
   assert.ok(bulls.five.some(p => p.n === 'Michael Jordan' && p.ovr >= 90));
 });
+
+test('ladder order: weakest first, then the Bulls, then the Warriors', async () => {
+  const { orderLadder } = await import('../lib/dynasty.js');
+  const mk = (key, ovr, boss) => ({ key, boss, five: Array.from({ length: 5 }, () => ({ ovr })) });
+  assert.deepEqual(orderLadder([mk('gs17', 80, true), mk('chi96', 70), mk('a', 85), mk('b', 75)]).map(d => d.key), ['b', 'a', 'chi96', 'gs17']);
+});
