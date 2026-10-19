@@ -80,10 +80,28 @@ export function fitOf(five) {
   if (n >= 3) out.push({ label: `Same-era chemistry (${n} from the ${decadeLabel(dec)})`, value: 1 });
   return out;
 }
+// Pedigree: what a lineup has won and how well it knows itself. Rings in the lineup (titles won in that stretch, or by
+// that season for a dynasty), and players who were teammates: a real championship five played together all year.
+export const RING_BONUS = 0.5, TOGETHER_BONUS = 2, TEAMMATES_BONUS = 1;
+export function pedigreeOf(five, { together = false } = {}) {
+  const out = [];
+  const rings = five.filter(p => p.h?.ring).length;
+  if (rings) out.push({ label: `${rings} champion${rings > 1 ? 's' : ''} in the lineup`, value: rings * RING_BONUS });
+  if (together) out.push({ label: 'Played together: a real championship five', value: TOGETHER_BONUS });
+  else {
+    const byEra = new Map();
+    for (const p of five) { const k = `${p.team}-${p.decade}`; byEra.set(k, [...(byEra.get(k) || []), p]); }
+    const mates = [...byEra.values()].filter(g => g.length > 1);
+    if (mates.length) out.push({ label: `Teammates: ${mates.map(g => g.map(p => surname(p.n)).join(' & ')).join(', ')}`, value: Math.min(2, mates.reduce((n, g) => n + g.length - 1, 0)) * TEAMMATES_BONUS });
+  }
+  return out;
+}
+
 const avg = list => list.reduce((s, x) => s + x, 0) / list.length;
 const round1 = v => Math.round(v * 10) / 10;
 
 // lineups are { PG: player, ... }. Returns both sides' breakdowns and the matchups.
+// `theirs` is a dynasty's lineup: its five played together.
 export function rateSeries(mine, theirs) {
   const matchups = SLOTS.map(s => {
     const a = mine[s], b = theirs[s];
@@ -92,7 +110,7 @@ export function rateSeries(mine, theirs) {
   const side = (lineup, key) => {
     const five = SLOTS.map(s => lineup[s]);
     const base = avg(five.map(p => p.ovr));
-    const fit = fitOf(five);
+    const fit = [...fitOf(five), ...pedigreeOf(five, { together: key === 'theirs' })];
     const won = matchups.filter(m => m.winner === key).length;
     const total = base + fit.reduce((s, f) => s + f.value, 0) + won * MATCHUP_BOOST;
     return { base: round1(base), fit, won, boost: won * MATCHUP_BOOST, rating: round1(total) };
