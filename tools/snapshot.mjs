@@ -18,4 +18,11 @@ try {
     out(`night_${date}.json`, { date, season: n.season, final: n.final, live: n.live, games: n.games, top: n.top, players: n.players, dates: info.dates });
   }
   console.log('seasons', list.map(s => `${s.label}: ${s.nights} nights`).join(', '));
+  // Examples of stat padding caught: the biggest garbage-time deductions among the season's top tens.
+  const padded = await d.collection('nights').aggregate([
+    { $match: { season: +season } }, { $unwind: { path: '$top', includeArrayIndex: 'rank' } }, { $unwind: '$top.parts' },
+    { $match: { 'top.parts.k': 'padding' } }, { $sort: { 'top.parts.value': 1 } }, { $limit: 8 },
+    { $project: { _id: 1, rank: 1, name: '$top.name', result: '$top.result', score: '$top.score', part: '$top.parts' } },
+  ]).toArray();
+  for (const x of padded) console.log('padding', x._id, `#${x.rank + 1}`, x.name, x.result, x.score, x.part.value, x.part.label);
 } finally { await close(); }

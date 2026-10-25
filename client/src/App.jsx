@@ -48,43 +48,71 @@ export function statline(l) {
 const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
 const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', giveaways: 'Giveaways', padding: 'Padding', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
 
+// The score's parts as a receipt: name, dotted leader, value; what it was for underneath.
 function Breakdown({ parts }) {
-  const max = Math.max(...parts.map(p => Math.abs(p.value)), 1);
   return (
     <ul className="parts">
       {parts.map(p => (
         <li key={p.k} className={p.value < 0 ? 'neg' : ''}>
           <span className="pk">{PART_NAME[p.k] || 'Milestone'}</span>
-          <span className="pl">{p.label}</span>
-          <span className="pbar"><i style={{ width: `${(Math.abs(p.value) / max) * 100}%` }} /></span>
+          <span className="lead" aria-hidden />
           <b className="pv">{p.value > 0 ? '+' : ''}{p.value.toFixed(1)}</b>
+          <span className="pl">{p.label}</span>
         </li>
       ))}
     </ul>
   );
 }
 
+// Chalk and marker marks, drawn by hand (SVG paths through the shared "rough" filter).
+const Rough = () => (
+  <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
+    <filter id="rough" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="4" result="w" />
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+);
+const Ring = () => <svg className="ring" viewBox="0 0 60 60" aria-hidden><path d="M44 9 C 30 1, 8 8, 6 28 C 4 48, 26 58, 42 50 C 56 43, 58 22, 46 12 C 40 7, 30 6, 24 9" /></svg>;
+const Arrow = ({ dir }) => <svg className="arrow" viewBox="0 0 40 24" aria-hidden><path d={dir === 'left' ? 'M36 13 C 26 11, 16 12, 5 12 M13 4 L 4 12 L 14 20' : 'M4 11 C 14 13, 24 12, 35 12 M27 4 L 36 12 L 26 20'} /></svg>;
+// Tally marks, in fives.
+export function Tally({ n }) {
+  const groups = Math.floor(n / 5), rest = n % 5;
+  const marks = [];
+  for (let g = 0; g < groups + (rest ? 1 : 0); g++) {
+    const k = g < groups ? 4 : rest;
+    marks.push(
+      <svg key={g} className="tally" viewBox="0 0 30 24" aria-hidden>
+        {Array.from({ length: k }, (_, i) => <path key={i} d={`M${5 + i * 6} ${3 + (i % 2)} L ${4 + i * 6} ${21 - (i % 2)}`} />)}
+        {g < groups && <path className="slash" d="M1 18 L 29 6" />}
+      </svg>,
+    );
+  }
+  return <span className="tallies" aria-hidden>{marks}</span>;
+}
+
 function PerfCard({ p, rank, hero, onOpen, open }) {
-  const color = p.team?.color || '#ff7a1a';
+  const color = p.team?.color || '#c0392b';
   return (
     <M.li className={`perf${hero ? ' hero' : ''}${open ? ' open' : ''}`} style={{ '--team': color }}
-      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * rank, type: 'spring', stiffness: 220, damping: 24 }}>
+      initial={{ opacity: 0, y: -18, rotate: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 * rank, type: 'spring', stiffness: 260, damping: 22 }}>
+      <i className="tape" aria-hidden />
       <button type="button" className="perf-main" onClick={onOpen} aria-expanded={open} aria-label={`Number ${rank}: ${p.name}, score ${p.score}. Show why`}>
-        <span className="rank">{rank}</span>
-        <Face p={p} size={hero ? 112 : 64} />
+        <span className="rank"><Ring /><b>{rank}</b></span>
+        <Face p={p} size={hero ? 112 : 68} />
         <span className="who">
           <b className="name">{p.name}</b>
           <span className="team"><Logo team={p.team} size={16} /> {p.team?.abbr} {p.home ? 'vs' : '@'} <Logo team={p.opp} size={16} /> {p.opp?.abbr} · <em className={p.result.startsWith('W') ? 'w' : 'l'}>{p.result}</em>{STAGE_LABEL[p.stage] ? <> · <span className="stage">{STAGE_LABEL[p.stage]}</span></> : null}</span>
           <span className="line">{statline(p.line)}</span>
-          {p.tags.length > 0 && <span className="tags">{p.tags.map(t => <i key={t}>{t}</i>)}</span>}
+          {p.tags.length > 0 && <span className="tags">{p.tags.map(t => <i key={t} className={t === 'Padded' ? 'pad' : ''}>{t}</i>)}</span>}
         </span>
-        <span className="score"><b>{p.score.toFixed(1)}</b><small>score</small></span>
+        <span className="score"><b>{p.score.toFixed(1)}</b><small>{open ? 'hide the math' : 'how?'}</small></span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <M.div className="why" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}>
             <Breakdown parts={p.parts} />
-            <p className="fine">{p.line.min} minutes · {p.line.ftm}-{p.line.fta} FT · {p.line.to} turnovers · {p.line.pm > 0 ? '+' : ''}{p.line.pm} plus-minus</p>
+            <p className="fine">{p.line.min} min · {p.line.ftm}-{p.line.fta} FT · {p.line.to} TO · {p.line.pm > 0 ? '+' : ''}{p.line.pm} +/-</p>
           </M.div>
         )}
       </AnimatePresence>
@@ -147,12 +175,12 @@ function NightPage({ date, go, seasons }) {
       <div className="controls">
         {seasons.length > 0 && <SeasonSelect seasons={seasons} value={night?.season} onChange={pickSeason} />}
         <div className="datebar" role="group" aria-label="Choose a night">
-          <button type="button" className="icon-btn" disabled={!prev} onClick={() => go(`/night/${prev}`)} aria-label={prev ? `Previous game night, ${longDay(prev)}` : 'No earlier game night'}>‹</button>
+          <button type="button" className="icon-btn" disabled={!prev} onClick={() => go(`/night/${prev}`)} aria-label={prev ? `Previous game night, ${longDay(prev)}` : 'No earlier game night'}><Arrow dir="left" /></button>
           <label className="day">
             <span className="day-label">{cur !== 'latest' ? longDay(cur) : 'Loading…'}</span>
             <input type="date" aria-label="Pick a date" value={cur !== 'latest' ? isoDay(cur) : ''} min={dates[0] ? isoDay(dates[0]) : undefined} max={dates.length ? isoDay(dates[dates.length - 1]) : undefined} onChange={e => pickDay(e.target.value)} />
           </label>
-          <button type="button" className="icon-btn" disabled={!next || next > today} onClick={() => go(`/night/${next}`)} aria-label={next ? `Next game night, ${longDay(next)}` : 'No later game night'}>›</button>
+          <button type="button" className="icon-btn" disabled={!next || next > today} onClick={() => go(`/night/${next}`)} aria-label={next ? `Next game night, ${longDay(next)}` : 'No later game night'}><Arrow /></button>
         </div>
         <button type="button" className="btn small ghost" onClick={() => go('/')}>Latest</button>
       </div>
@@ -247,7 +275,7 @@ function LeaderboardPage({ season, go, seasons, current }) {
               <button type="button" className="lb-row" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)}>
                 <span className="lb-rank">{k + 1}</span>
                 <span className="lb-who"><Face p={{ id: p.id, name: p.name, headshot: p.headshot }} size={40} /><span><b>{p.name}</b><small><Logo team={p.team} size={14} /> {p.team?.abbr}</small></span></span>
-                <span className="lb-n"><b>{p.count}</b><small>top 5</small></span>
+                <span className="lb-n count"><Tally n={p.count} /><b>{p.count}</b><small>top 5</small></span>
                 <span className="lb-n"><b>{p.firsts}</b><small>No. 1</small></span>
                 <span className="lb-n"><b>{p.points}</b><small>pts</small></span>
                 <span className="lb-n"><b>{p.best.toFixed(1)}</b><small>best</small></span>
@@ -287,9 +315,10 @@ export default function App() {
 
   return (
     <div className="app">
+      <Rough />
       <nav className="nav">
         <Link to="/" go={go} className="brand" aria-label="Performance of the Night, latest night">
-          <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden><circle cx="50" cy="50" r="46" fill="#e8701f" /><g fill="none" stroke="#2a1306" strokeWidth="5" strokeLinecap="round"><path d="M50 4v92M4 50h92" /><path d="M18 17c14 12 14 54 0 66" /><path d="M82 17c-14 12-14 54 0 66" /></g></svg>
+          <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden><g fill="none" stroke="#f4a261" strokeWidth="6" strokeLinecap="round" filter="url(#rough)"><circle cx="50" cy="50" r="42" /><path d="M50 8v84M8 50h84" /><path d="M22 20c13 12 13 48 0 60" /><path d="M78 20c-13 12-13 48 0 60" /></g></svg>
           <span>Performance <em>of the Night</em></span>
         </Link>
         <div className="nav-links">
