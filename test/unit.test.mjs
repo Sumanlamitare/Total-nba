@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { gameOf, linesOf, pointsOffTurnovers, garbageTime, decidedWithout, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
+import { gameOf, linesOf, pointsOffTurnovers, garbageTime, decided, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
 import { seasonLabel, isDate, ymd } from '../lib/nights.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
@@ -139,37 +139,33 @@ test('a loss: no result bonus, no penalty for the result; negative win probabili
   assert.equal(gv.parts.find(p => p.k === 'giveaways').value, -3.6);
 });
 
-test('garbage time: stats after the game was decided', () => {
-  // A blowout: A leads by 22 with 1:40 left (win probability 99.9%); then a close game: B up 4 with 10 seconds left
-  // (also 99%+, but not a 15-point lead, so clutch free throws are not padding).
+test('garbage time: the last two minutes with a 15-point lead', () => {
   const pl = (id, team, type, text, extra = {}) => ({ id, team: { id: team }, type: { text: type }, text, period: { number: 4 }, clock: { displayValue: '1:40' }, ...extra });
   const blowout = {
-    winprobability: [{ playId: '1', homeWinPercentage: 0.999 }, { playId: '2', homeWinPercentage: 0.999 }, { playId: '3', homeWinPercentage: 0.999 }, { playId: '4', homeWinPercentage: 0.999 }],
     plays: [
-      pl('1', 'A', 'Jump Shot', 'a1 makes 18-foot jumper', { homeScore: 112, awayScore: 90, scoringPlay: true, scoreValue: 2, participants: [{ athlete: { id: 'a0' } }] }),
-      pl('2', 'A', 'Three Point Jumper', 'a1 makes three point jumper (a2 assists)', { homeScore: 115, awayScore: 90, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'a1' } }, { athlete: { id: 'a2' } }] }),
-      pl('3', 'A', 'Defensive Rebound', 'a1 defensive rebound', { homeScore: 115, awayScore: 90, participants: [{ athlete: { id: 'a1' } }] }),
-      pl('4', 'B', 'Lost Ball Turnover', 'b1 lost ball turnover (a2 steals)', { homeScore: 115, awayScore: 90, participants: [{ athlete: { id: 'b1' } }, { athlete: { id: 'a2' } }] }),
+      pl('0', 'B', 'Defensive Rebound', 'b1 defensive rebound', { homeScore: 110, awayScore: 98, participants: [{ athlete: { id: 'b1' } }] }),
+      pl('1', 'A', 'Three Point Jumper', 'a0 makes three point jumper', { homeScore: 113, awayScore: 98, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'a0' } }] }),
+      pl('2', 'A', 'Three Point Jumper', 'a1 makes three point jumper (a2 assists)', { homeScore: 116, awayScore: 98, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'a1' } }, { athlete: { id: 'a2' } }] }),
+      pl('3', 'A', 'Defensive Rebound', 'a1 defensive rebound', { homeScore: 116, awayScore: 98, participants: [{ athlete: { id: 'a1' } }] }),
+      pl('4', 'B', 'Lost Ball Turnover', 'b1 lost ball turnover (a2 steals)', { homeScore: 116, awayScore: 98, participants: [{ athlete: { id: 'b1' } }, { athlete: { id: 'a2' } }] }),
     ],
   };
-  const g = garbageTime(blowout, new Map([['a0', 'A'], ['a1', 'A'], ['a2', 'A'], ['b1', 'B']]));
-  assert.equal(g.get('a0'), undefined, 'the basket that made it 112-90 started from 20, before the win probability said decided');
+  const teams = new Map([['a0', 'A'], ['a1', 'A'], ['a2', 'A'], ['b1', 'B']]);
+  const g = garbageTime(blowout, teams);
+  assert.equal(g.get('a0'), undefined, 'the three that made it 113-98 started from a 12-point lead');
   assert.deepEqual([g.get('a1').pts, g.get('a1').tpm, g.get('a1').reb], [3, 1, 1]);
   assert.deepEqual([g.get('a2').ast, g.get('a2').stl], [1, 1]);
-  const close = { winprobability: [{ playId: '9', homeWinPercentage: 0.995 }, { playId: '10', homeWinPercentage: 0.999 }],
-    plays: [pl('9', 'A', 'Free Throw - 1 of 2', 'a1 makes free throw 1 of 2', { homeScore: 100, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] }),
-      pl('10', 'A', 'Free Throw - 2 of 2', 'a1 makes free throw 2 of 2', { homeScore: 101, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] })] };
+  // The same lead with 2:30 left, or in the third quarter: not garbage time, comebacks happen.
+  assert.equal(garbageTime({ plays: blowout.plays.map(x => ({ ...x, clock: { displayValue: '2:30' } })) }, teams).size, 0);
+  assert.equal(garbageTime({ plays: blowout.plays.map(x => ({ ...x, period: { number: 3 } })) }, teams).size, 0);
+  // Clutch free throws in a close game, however likely the win: not padding.
+  const close = { plays: [pl('9', 'A', 'Free Throw - 1 of 2', 'a1 makes free throw 1 of 2', { clock: { displayValue: '8.0' }, homeScore: 100, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] })] };
   assert.equal(garbageTime(close).size, 0);
-  // A 30-point lead in the third quarter at 99.9%: still not garbage time.
-  const early = { ...blowout, plays: blowout.plays.map(x => ({ ...x, period: { number: 3 } })) };
-  assert.equal(garbageTime(early, new Map([['a1', 'A'], ['a2', 'A'], ['b1', 'B']])).size, 0);
-  // Without win probability: the time-and-margin rule.
-  assert.equal(decidedWithout(3, 30, 30), false, 'never before the fourth quarter');
-  assert.equal(decidedWithout(4, 700, 25), true);
-  assert.equal(decidedWithout(4, 600, 22), false);
-  assert.equal(decidedWithout(4, 450, 20), true);
-  assert.equal(decidedWithout(4, 200, 15), true);
-  assert.equal(decidedWithout(4, 200, 12), false);
+  assert.equal(decided(4, 119, 15), true);
+  assert.equal(decided(4, 120, 15), false);
+  assert.equal(decided(4, 30, 14), false);
+  assert.equal(decided(5, 60, 16), true, 'overtime counts');
+  assert.equal(decided(3, 10, 30), false);
 });
 
 test('stat padding: garbage-time stats come off, and a milestone reached in garbage time doesn\'t count', () => {
