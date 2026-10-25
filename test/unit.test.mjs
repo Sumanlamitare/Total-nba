@@ -160,6 +160,9 @@ test('garbage time: stats after the game was decided', () => {
     plays: [pl('9', 'A', 'Free Throw - 1 of 2', 'a1 makes free throw 1 of 2', { homeScore: 100, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] }),
       pl('10', 'A', 'Free Throw - 2 of 2', 'a1 makes free throw 2 of 2', { homeScore: 101, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] })] };
   assert.equal(garbageTime(close).size, 0);
+  // A 30-point lead in the third quarter at 99.9%: still not garbage time.
+  const early = { ...blowout, plays: blowout.plays.map(x => ({ ...x, period: { number: 3 } })) };
+  assert.equal(garbageTime(early, new Map([['a1', 'A'], ['a2', 'A'], ['b1', 'B']])).size, 0);
   // Without win probability: the time-and-margin rule.
   assert.equal(decidedWithout(3, 30, 30), false, 'never before the fourth quarter');
   assert.equal(decidedWithout(4, 700, 25), true);
