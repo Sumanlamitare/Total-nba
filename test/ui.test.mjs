@@ -38,7 +38,7 @@ test('the latest night: five performances, best first, the first one explained',
   assert.equal(await p.locator('.top > .perf').count(), 5);
   const scores = (await p.locator('.perf .score b').allTextContents()).map(Number);
   assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
-  assert.equal(await p.locator('.perf.hero .name').textContent(), 'Jamal Murray');
+  assert.equal(await p.locator('.perf.hero .name').textContent(), 'Devin Booker');
   assert.ok(await p.locator('.perf.hero .parts li').count() >= 4, 'the No. 1 shows why');
   assert.equal(await p.locator('.games li').count(), 8);
   // Another performance opens its breakdown; the next five are a tap away.
