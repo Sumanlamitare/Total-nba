@@ -1,54 +1,52 @@
-# Beat the Dynasty
+# Performance of the Night
 
-Draft a starting five from random franchise + decade spins, then take on one of the NBA's great teams in a best-of-seven. Can your five take down the '96 Bulls?
+The five best individual performances of every NBA night, scored by an algorithm that weighs everything a fan would, and a season leaderboard of who collects them.
 
 Live: https://total-nba-ja9d.vercel.app
 
-## How it plays
+## Using it
 
-1. **Draft.** Five spins, five picks, one per position (PG, SG, SF, PF, C). Each spin lands on a franchise and a decade and deals four of that era's players, its regulars and best players likelier than the deep bench. No take-backs.
-2. **Rate.** Every player-era (one player, one franchise, one decade, 25+ games) has an overall rating from 60 to 99: his real regular-season and playoff numbers in that stretch (playoff games count double), plus up to +7 for reputation, the MVPs, All-NBA teams, Defensive Player of the Year awards and rings he won there. Cards show his honors and whether he rose or faded in the playoffs.
-3. **Fit.** Team rating = the five's average, plus:
-   - +2 for a ball-handler (5+ assists), two shooters (1.2+ threes a game; 82%+ free throws before threes were counted) and a rim protector (1.5+ blocks; 11+ rebounds before blocks were counted);
-   - −3 for three centers, or for no point guard (nobody with 4+ assists);
-   - +1 for three or more players from the same decade.
-   - Pedigree: +0.5 for each champion in the lineup; +1 when teammates from the same era are reunited; +2 for a dynasty's real five, who played together all year.
-4. **Matchups.** Position by position before the series; each one you win adds half a point.
-5. **Simulate.** The rating gap sets each game's odds (even = 50%, +5 ≈ 65%, −10 ≈ 22%). The dynasty has home court in Games 1, 2, 5 and 7, and Game 7 is pulled toward a coin flip.
-6. **Results.** Every game has a box score, a top scorer and a headline. The end card shows your lineup and the series, ready to share.
+- **Tonight** opens on the newest night with finished games. Step through game nights with the arrows, pick any date on the calendar, or switch seasons. While games are on, the ranking updates every minute and is marked live until the last game ends.
+- Each of the top five shows the line, the result and a score; tap one to see every part of its score. The next five are one tap away.
+- **Leaderboard** (`/leaderboard/2025` for 2024-25): players ranked by top-five finishes that season, then No. 1 nights, then points (5 for first down to 1 for fifth). Filter to the regular season or the playoffs, and open a player to see each of his nights.
 
-**The ladder.** Win a series to unlock the next banner: the '04 Pistons, '14 Spurs, '08 Celtics, '13 Heat, '01 Lakers and '87 Lakers (ordered by their starters' ratings), then the '96 Bulls, then the final boss, the '17 Warriors. Progress is kept in the browser.
+Seasons are named by the year they end (2025 = 2024-25). Seasons 2021-22 to now are scored; the current one fills in every morning.
 
-**Daily challenge.** One dynasty a day, and the same spins and deals for everyone (the draft runs on a random stream seeded by the date).
+## The score
 
-## Ratings: real statistics only
+Every player with 10+ minutes in a regular-season, play-in or playoff game is scored. Each part is shown to the user:
 
-All numbers come from ESPN's free public API (season-by-season career statistics, by team). Nothing is hand-tuned:
+| Part | What it measures |
+|---|---|
+| Production | Hollinger's Game Score (points, shooting, rebounds, assists, steals, blocks, turnovers, fouls), × 0.85–1.15 for the opponent's strength (its record before the game, pulled toward .500 early in the season) |
+| Efficiency | Points scored above what an average shooter makes from the same shots (1.14 points per shooting possession), × 0.3 |
+| Impact | Plus-minus × 0.12 (at most ±4) |
+| Clutch | Win probability added: the swing in his team's chance to win on every play he made, from ESPN's win probability (an assist takes 30% of a basket's swing; a block or steal half of what it took away; fouls and violations count for nothing). × 16, from −6 to +8. Games without win probability use crunch-time points (last 5 minutes, within 5) |
+| Result | +2.5 for a win, +0.5 on the road, +0.5 in overtime |
+| Milestones | 40/50/60 points, triple- and quadruple-doubles, 20-20s, 5x5s, 15 assists, 7 steals + blocks, 10 threes, perfect shooting on 8+ shots |
+| Breakout | How far above his own season average Game Score he played (after 5 games), up to +3 |
+| Stage | × 1.05 play-in, × 1.1 playoffs, × 1.15 conference finals, × 1.2 NBA Finals |
 
-- **Player-era rating:** Hollinger's Game Score per game over the player's seasons with that franchise in that decade, regular season and playoffs (a playoff game weighs double), mapped onto 60–99 (`58 + 1.56 × GmSc`), plus reputation: `2.2 × ln(1 + points)`, at most +7, where an MVP is worth 5, a Finals MVP 4, All-NBA 3/2/1.25, DPOY 2.5, All-Defensive 1/0.5, a ring 1.5 (from ESPN's season award lists, each with the team it was won with; the Finals MVP's team is the champion, and everyone in its playoff rotation gets a ring). An MVP-level 25 a game is about 97; a rotation player's 8 is about 70. Seasons are named by the year they end (1995-96 = 1996, in the 1990s).
-- **Positions:** the listed position blended with what the numbers say (assists pull toward the point, rebounds and blocks toward the rim); every player can play his spot and the one beside it.
-- **Dynasties:** each champion's real starting five, rated on that season and its title run with that team, with the reputation each starter had built by then (2014 Tim Duncan is still Tim Duncan).
-- **Not in the game:** ESPN has no season statistics at all for some 1980s greats (Larry Bird and Dennis Johnson among them), so they can't be rated; that's why the '86 Celtics aren't on the ladder.
+The night's ranking is the score, best first (ties go to the higher Game Score). The code is `lib/night.js`.
 
 ## How it's built
 
-- **Client** (`client/`): React 18 and Motion, built by Vite. `game.js` holds the rules (spins, deals, fit, matchups, odds, the series sim, headlines, the daily seed) as pure functions; the arena sounds are synthesised with Web Audio.
-- **API** (`api/game.js`, a Vercel function): everything the game needs in one response, cached at the edge for an hour; the browser keeps a copy.
-- **Data** (`lib/ingest.js`, `lib/dynasty.js`): `npm run ingest` scans ESPN's player ids and season lists, fetches every player's season-by-season stats, and builds the eras and the dynasty ladder. It runs weekly (`.github/workflows/ingest.yml`).
-- **Database:** MongoDB (`LIBRARY_DB`, default `library`) with `players`, `eras` and `meta`.
+- **Client** (`client/`): React 18 and Motion, built by Vite.
+- **API** (`api/`, Vercel functions): `/api/night?date=YYYYMMDD|latest`, `/api/seasons`, `/api/leaderboard?season=YYYY&stage=all|regular|playoffs`. A night is scored from ESPN on first request and stored once every game is final (postponed games don't hold it up); stored nights are cached at the edge for a day.
+- **Data** (`lib/nights.js`): MongoDB (`LIBRARY_DB`, default `library`) with `nights` (each night's games and top ten), `perfs` (every scored Game Score, for season averages) and `meta` (each season's game dates).
+- **Workflows**: *Score the nights* runs every morning for the current season, and backfills seasons on demand (`seasons: 2024,2025`). *Probe ESPN* saves ESPN responses for a date, or API snapshots from the database, to the `probe` branch.
 
 ## Development
 
 ```sh
 npm install
-npm run dev:fixtures   # the full game on a saved snapshot of the real data (test/fixtures/game.json), no database
-MONGODB_URI=... npm run ingest && MONGODB_URI=... npm run dev   # the real thing
-npm test               # unit tests: ESPN parsing, ratings, positions, fit, odds, the sim, the daily seed
-MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> ingest -> /api/game
-npm run test:ui        # Chromium: the ladder, a whole run, the daily seed, a phone
+npm run dev:fixtures   # the interface on saved real API responses (test/fixtures/api), no database or network
+MONGODB_URI=... npm run dev   # the real thing (nights are scored from ESPN on demand)
+MONGODB_URI=... npm run ingest -- --season 2025   # score a whole season
+npm test               # unit tests: reading ESPN's box scores, play-by-play and win probability; every part of the score
+MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> API -> MongoDB
+npm run test:ui        # Chromium: a night, switching dates and seasons, the leaderboard, a phone
 ```
-
-The *Build or snapshot the game data* workflow runs the ingest from a branch (`task: ingest`), saves `game.json` from the live database (`task: snapshot`), or looks players up on ESPN (`task: players`).
 
 ## Free resources and licenses
 
@@ -59,6 +57,4 @@ The *Build or snapshot the game data* workflow runs the ingest from a branch (`t
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
 | [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | All type | SIL Open Font License 1.1 |
-| ESPN public API and headshots | All player data and portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
-
-The favicon, the court, the banners and the loading arena are original and drawn in code.
+| ESPN public API, headshots and logos | Box scores, play-by-play, win probability, records, portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |

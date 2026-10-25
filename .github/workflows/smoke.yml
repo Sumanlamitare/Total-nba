@@ -1,4 +1,4 @@
-name: Smoke test the live game
+name: Smoke test the live site
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check the page and the game data
+      - name: Check the pages and the API
         env:
           URL: ${{ inputs.url || github.event.deployment_status.environment_url || 'https://total-nba-ja9d.vercel.app' }}
         run: |
@@ -24,14 +24,14 @@ jobs:
             body=$(curl -s -w '\n%{http_code}' --max-time 60 "$URL$1"); code=${body##*$'\n'}
             if [ "$code" = "$2" ] && grep -q -- "$3" <<<"$body"; then echo "ok   $1"; else echo "FAIL $1 ($code)"; echo "${body:0:300}"; fail=1; fi
           }
-          check / 200 'Beat the Dynasty'
-          check /api/game 200 "'96 Bulls"
-          check /api/game 200 "'17 Warriors"
-          check /api/game 200 '"Michael Jordan"'
-          check /api/game 200 '"Boston Celtics"'
-          check /api/catalog 404 ''
-          game=$(curl -s "$URL/api/game")
-          e=$(grep -o '"decade":' <<<"$game" | wc -l); echo "franchise-decades: $e"; [ "$e" -gt 120 ] || fail=1
-          p=$(grep -o '"ovr":' <<<"$game" | wc -l); echo "player-eras: $p"; [ "$p" -gt 5000 ] || fail=1
-          d=$(grep -o '"slot":' <<<"$game" | wc -l); echo "dynasty starters: $d"; [ "$d" -eq 40 ] || fail=1
+          check / 200 'Performance of the Night'
+          check /leaderboard/2025 200 'id="root"'
+          check '/api/night?date=20250616' 200 '"Jalen Williams"'
+          check '/api/night?date=latest' 200 '"top"'
+          check '/api/night?date=Jan15' 400 'error'
+          check /api/seasons 200 '"2024-25"'
+          check '/api/leaderboard?season=2025' 200 '"Nikola Jokic"'
+          check /api/game 404 ''
+          n=$(curl -s "$URL/api/night?date=20250115" | grep -o '"score":' | wc -l); echo "performances on 15 Jan 2025: $n"; [ "$n" -eq 10 ] || fail=1
+          s=$(curl -s "$URL/api/seasons" | grep -o '"nights":[0-9]*' | sed 's/.*://' | sort -n | tail -1); echo "most nights in a season: $s"; [ "$s" -gt 200 ] || fail=1
           exit $fail

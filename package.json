@@ -1,20 +1,20 @@
 {
-  "name": "beat-the-dynasty",
+  "name": "performance-of-the-night",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Beat the Dynasty: draft a starting five from random franchise and decade spins, then take on an NBA dynasty in a best-of-seven. Ratings from ESPN's season statistics.",
+  "description": "Performance of the Night: the five best NBA performances of every night, scored from box scores, play-by-play and win probability, with a season leaderboard.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:fixtures": "MOCK_API=test/fixtures node scripts/dev.mjs",
+    "dev:fixtures": "MOCK_API=test/fixtures/api node scripts/dev.mjs",
     "build": "vite build",
     "test": "node --test test/unit.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs",
     "test:ui": "node --test test/ui.test.mjs",
-    "ingest": "node scripts/ingest.mjs --scan 8000"
+    "ingest": "node scripts/ingest.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",

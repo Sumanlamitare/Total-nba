@@ -92,7 +92,8 @@ p { margin: 0; }
 .who { display: grid; gap: 3px; min-width: 0; }
 .name { font: 800 22px/1.05 var(--cond); text-transform: uppercase; letter-spacing: .02em; }
 .perf.hero .name { font-size: clamp(28px, 4.4vw, 40px); }
-.team { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.team { display: block; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.team .logo { margin: 0 2px; }
 .team em { font-style: normal; font-weight: 700; }
 .team em.w { color: var(--win); } .team em.l { color: var(--loss); }
 .stage { color: var(--gold); font-weight: 600; }
@@ -162,9 +163,11 @@ p { margin: 0; }
 
 /* ---- Small screens ---------------------------------------------------------------------------------------------- */
 @media (max-width: 720px) {
-  .brand { font-size: 17px; }
-  .brand span { max-width: 46vw; white-space: normal; line-height: .95; }
-  .nav-links a { padding: 8px; font-size: 13px; letter-spacing: .08em; }
+  .nav { gap: 8px; padding: 0 12px; }
+  .brand { font-size: 15px; gap: 8px; min-width: 0; }
+  .brand svg { width: 24px; height: 24px; }
+  .brand span { white-space: normal; line-height: .95; }
+  .nav-links a { padding: 8px 6px; font-size: 12px; letter-spacing: .06em; }
   .controls .select, .controls .datebar { flex: 1 1 100%; }
   .select select { width: 100%; }
   .perf-main { grid-template-columns: 26px auto 1fr; gap: 10px; padding: 12px; }
@@ -183,6 +186,7 @@ p { margin: 0; }
   .lb-row { grid-template-columns: 30px 1fr repeat(2, 54px); gap: 8px; }
   .lb-row .lb-n:nth-child(5), .lb-row .lb-n:nth-child(6) { display: none; }
   .lb-n small { display: block; }
+  .lb-who b { white-space: normal; font-size: 16px; }
   .lb-nights a { grid-template-columns: 34px 1fr auto; }
   .lb-nights small { grid-column: 2 / -1; grid-row: 2; }
 }
