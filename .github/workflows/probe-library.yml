@@ -48,6 +48,12 @@ jobs:
           node tools/probe-awards.mjs "$NAMES" 2>&1 | tee probe/report.txt
         env:
           NAMES: ${{ inputs.names }}
+      - if: inputs.task == 'night'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/probe-night.mjs "$NAMES" 2>&1 | tee probe/report.txt
+        env:
+          NAMES: ${{ inputs.names }}
       - name: Push results to the probe branch
         if: always()
         run: |
