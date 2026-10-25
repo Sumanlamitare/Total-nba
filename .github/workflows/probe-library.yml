@@ -1,15 +1,12 @@
-name: Build or snapshot the game data
+name: Probe ESPN
 
-# Runs the game-data ingest on demand from a branch (the scheduled one lives in ingest.yml), or saves a snapshot.
+# Saves ESPN responses for a date to the probe branch (test fixtures, diagnostics).
 on:
   workflow_dispatch:
     inputs:
-      task:
-        description: ingest, snapshot, players (names) or awards (seasons in names)
-        default: ingest
-      names:
-        description: players to look up, comma-separated (task players)
-        default: ''
+      date:
+        description: a game date, YYYYMMDD
+        default: '20250115'
 
 permissions:
   contents: write
@@ -17,43 +14,18 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: mkdir -p probe
-      - if: inputs.task == 'snapshot'
-        run: |
+      - run: |
           npm ci --no-audit --no-fund
-          node tools/snapshot.mjs 2>&1 | tee probe/report.txt
+          node tools/probe-night.mjs "$DATE" 2>&1 | tee probe/report.txt
         env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      - if: inputs.task == 'ingest'
-        run: |
-          npm ci --no-audit --no-fund
-          node scripts/ingest.mjs --scan 8000 2>&1 | tee probe/report.txt
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      - if: inputs.task == 'players'
-        run: |
-          npm ci --no-audit --no-fund
-          node tools/probe-players.mjs "$NAMES" 2>&1 | tee probe/report.txt
-        env:
-          NAMES: ${{ inputs.names }}
-      - if: inputs.task == 'awards'
-        run: |
-          npm ci --no-audit --no-fund
-          node tools/probe-awards.mjs "$NAMES" 2>&1 | tee probe/report.txt
-        env:
-          NAMES: ${{ inputs.names }}
-      - if: inputs.task == 'night'
-        run: |
-          npm ci --no-audit --no-fund
-          node tools/probe-night.mjs "$NAMES" 2>&1 | tee probe/report.txt
-        env:
-          NAMES: ${{ inputs.names }}
+          DATE: ${{ inputs.date }}
       - name: Push results to the probe branch
         if: always()
         run: |

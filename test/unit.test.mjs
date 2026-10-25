@@ -1,306 +1,124 @@
-// Unit tests: ESPN parsing on real responses (trimmed, in test/fixtures/espn), the rating engine, and the game rules.
+// Unit tests: reading ESPN's game summaries (real, in test/fixtures/espn) and the performance score.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseStats, scrub, statRow } from '../lib/stats.js';
-import { foldSeason, entry, sortKey, currentSeason, seasonLabel } from '../lib/ingest.js';
-import { buildEras, buildDynasty, assignSlots, gameScore, ratingOf, totals, sum, decadeOf, positionOf, slotsFor, LADDER } from '../lib/dynasty.js';
-import { rng, spin, deal, HAND, eligible, fits, openSlots, fitOf, rateSeries, winProb, gameProb, seriesOdds, simulate, daily, shareText, topScorer, SLOTS } from '../client/src/game.js';
+import { gameOf, linesOf, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
+import { seasonLabel, isDate, ymd } from '../lib/nights.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
-const gamePath = new URL('./fixtures/game.json', import.meta.url);
+const knicks = raw('summary_401705127'), raptors = raw('summary_401705128');
+const L = o => ({ min: 36, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, oreb: 0, dreb: 0, pf: 0, pm: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, ...o });
 
-test('statRow splits made-attempted pairs and reads numbers', () => {
-  assert.deepEqual(statRow(['avgPoints', 'avgFieldGoalsMade-avgFieldGoalsAttempted', 'x'], ['27.1', '9.8-19.4', '--']),
-    { avgPoints: 27.1, avgFieldGoalsMade: 9.8, avgFieldGoalsAttempted: 19.4, x: null });
+test('a game: teams, score, overtime, records, stage', () => {
+  const g = gameOf(knicks);
+  assert.equal(g.completed, true);
+  assert.equal(g.ot, 1);
+  assert.equal(g.stage, 'regular');
+  assert.equal(g.season, 2025);
+  const ny = g.teams.find(t => t.abbr === 'NY'), phi = g.teams.find(t => t.abbr === 'PHI');
+  assert.deepEqual([ny.score, ny.winner, ny.home, phi.home], [125, true, false, true]);
+  assert.deepEqual(phi.record, { w: 15, l: 24 });
 });
 
-test('parseStats: LeBron James, rows by team with team ids', () => {
-  const s = parseStats(raw('stats_lebron'));
-  assert.equal(s.rows[0].label, '2003-04');
-  assert.equal(s.rows[0].team, 'CLE');
-  assert.equal(s.rows[0].teamId, '5');
-  assert.equal(s.rows[0].avg.avgPoints, 20.9);
-  assert.equal(s.rows[0].tot.points, 1654);
-  assert.equal(s.career.tot.points, 43440);
-  assert.equal(s.first, 2004);
+test('box score lines: only players who played, made-attempted split', () => {
+  const lines = linesOf(knicks);
+  const brunson = lines.find(p => p.name === 'Jalen Brunson');
+  assert.deepEqual(brunson.line, { min: 45, pts: 38, reb: 5, ast: 4, stl: 2, blk: 0, to: 5, oreb: 1, dreb: 4, pf: 1, pm: 7, fgm: 14, fga: 22, tpm: 3, tpa: 6, ftm: 7, fta: 9 });
+  assert.equal(brunson.team, '18');
+  assert.ok(!lines.some(p => p.name === 'Matt Ryan'), 'did not play');
+  assert.ok(Math.abs(gameScore(brunson.line) - 28.7) < 0.05);
+  assert.ok(Math.abs(trueShooting(brunson.line) - 0.73) < 0.01);
 });
 
-test('parseStats: traded seasons keep team rows and a combined row without a team', () => {
-  const s = parseStats(raw('stats_harden'));
-  const y2021 = s.rows.filter(r => r.season === 2021);
-  assert.deepEqual(y2021.map(r => r.combined ? 'total' : r.team), ['HOU', 'BKN', 'total']);
-  assert.equal(y2021[2].teamId, null);
-  assert.equal(y2021[2].avg.gamesPlayed, y2021[0].avg.gamesPlayed + y2021[1].avg.gamesPlayed);
+test('opponent strength comes from the record before the game, pulled toward .500', () => {
+  assert.deepEqual(parseRecord('27-15'), { w: 27, l: 15 });
+  assert.equal(strength(null), 0.5);
+  assert.ok(Math.abs(strength({ w: 27, l: 15 }, true) - 31 / 51) < 1e-9, 'this win taken out, 5-5 prior');
+  assert.ok(strength({ w: 1, l: 0 }, true) === 0.5, 'one game tells little');
+  assert.ok(strength({ w: 60, l: 10 }, false) > 0.8);
 });
 
-test('scrub: zeros for stats not yet recorded become null; real zeros stay', () => {
-  const old = scrub({ avgSteals: 0, avgBlocks: 0, avgRebounds: 0, avgThreePointFieldGoalsMade: 0, avgPoints: 14.7, gamesStarted: 0 }, 1957, 48);
-  assert.deepEqual(old, { avgSteals: null, avgBlocks: null, avgRebounds: null, avgThreePointFieldGoalsMade: null, avgPoints: 14.7, gamesStarted: null });
-  const modern = scrub({ avgSteals: 0, avgThreePointFieldGoalsMade: 0, gamesStarted: 0 }, 2016, 60);
-  assert.deepEqual(modern, { avgSteals: 0, avgThreePointFieldGoalsMade: 0, gamesStarted: 0 });
+test('win probability added: credit adds up to the swing, from each player\'s side', () => {
+  const g = gameOf(knicks), lines = linesOf(knicks);
+  const w = winProbabilityAdded(knicks, g.teams.find(t => t.home).id, new Map(lines.map(p => [p.id, p.team])));
+  const of = n => w.get(lines.find(p => p.name === n).id);
+  assert.ok(of('Jalen Brunson') > 0.25, 'the winning team\'s star added the most');
+  assert.ok(of('Paul George') < 0);
+  const ny = lines.filter(p => p.team === '18').reduce((s, p) => s + (w.get(p.id) || 0), 0);
+  assert.ok(ny > 0.5 && ny < 2, `the winners' total: ${ny}`);
+  assert.equal(winProbabilityAdded({ plays: knicks.plays, winprobability: [] }, '20'), null);
 });
 
-test('catalog helpers: season lists, sort keys, seasons', () => {
-  const players = new Map();
-  assert.equal(foldSeason(players, 2016, { athletes: [{ athlete: { id: 1966, displayName: 'LeBron James', position: { abbreviation: 'F' } } }] }), 1);
-  assert.deepEqual(players.get('1966'), { ...entry({ id: 1966, name: 'LeBron James', src: 'seasons' }), p: 'F' });
-  assert.equal(sortKey('Dončić', 'Luka'), 'doncic luka');
-  assert.equal(seasonLabel(2000), '1999-00');
-  assert.equal(currentSeason(new Date('2026-10-15')), 2027);
-  assert.equal(currentSeason(new Date('2026-06-01')), 2026);
-});
-
-// ---- Ratings ----------------------------------------------------------------------------------------------------
-const lebron = () => parseStats(raw('stats_lebron')).rows;
-const harden = () => parseStats(raw('stats_harden')).rows;
-const players = new Map([['1966', { _id: '1966', n: 'LeBron James', p: 'F' }], ['3992', { _id: '3992', n: 'James Harden', p: 'G' }]]);
-const franchises = new Set(['5', '14', '13', '10', '25', '17', '20', '12']);
-
-test('decades and game score', () => {
-  assert.equal(decadeOf(1990), 1980);
-  assert.equal(decadeOf(1991), 1990);
-  assert.equal(decadeOf(2020), 2010);
-  const t = sum([totals(lebron().find(r => r.season === 2013))]);
-  const g = gameScore(t);
-  assert.ok(g > 20 && g < 30, `game score ${g}`);
-  assert.equal(ratingOf(0), 60);
-  assert.equal(ratingOf(100), 99);
-});
-
-test('player-eras: one per franchise and decade, rated from that stretch only', () => {
-  const eras = buildEras(players, new Map([['1966', lebron()], ['3992', harden()]]), franchises);
-  const of = (team, decade, id) => eras.find(e => e.team === team && e.decade === decade)?.players.find(p => p.i === id);
-  const mia = of('14', 2010, '1966');
-  assert.ok(mia && mia.ovr >= 90, `LeBron MIA ${mia?.ovr}`);
-  assert.equal(mia.from, 2011); assert.equal(mia.to, 2014);
-  assert.ok(mia.ppg > 25 && mia.ppg < 28);
-  const okc = of('25', 2000, '3992');
-  const hou = of('10', 2010, '3992');
-  assert.ok(okc.ovr < hou.ovr, 'rookie Harden rates below MVP Harden');
-  // Combined (traded) rows never count.
-  assert.ok(eras.every(e => e.players.every(p => p.gp >= 25)));
-});
-
-test('positions: listed role blended with the numbers', () => {
-  assert.deepEqual(slotsFor('F', { rpg: 6.3, apg: 12.2, bpg: 0.5 }), ['PG', 'SG'], 'Magic Johnson runs the point');
-  assert.deepEqual(slotsFor('', { rpg: 6.7, apg: 2.6, bpg: 1.2 }), ['PF', 'C']);
-  assert.deepEqual(slotsFor('C', { rpg: 12.7, apg: 3.7, bpg: 2.8 }), ['PF', 'C']);
-  assert.deepEqual(slotsFor('F', { rpg: 8, apg: 7.3, bpg: 0.9 }), ['SF', 'PF']);
-  assert.ok(positionOf('G', { rpg: 1.3, apg: 2.3, bpg: 0 }) < 2);
-  const five = [5, 1.2, 3.1, 2.2, 4].map((x, k) => ({ n: `p${k}`, x }));
-  assert.deepEqual(assignSlots(five).map(p => p.n), ['p1', 'p3', 'p2', 'p4', 'p0']);
-});
-
-test('dynasty: the named starting five, rated on that season', () => {
-  const entryHeat = { ...LADDER.find(x => x.key === 'mia13') };
-  const d = buildDynasty(entryHeat, '14', players, new Map([['1966', lebron()], ['3992', harden()]]));
-  // Only LeBron of the five is in the fixture, so the others are filled by whoever played; with one player there
-  // aren't five, so no dynasty.
-  assert.equal(d, null);
-  const many = new Map([['1966', lebron()]]);
-  const pl = new Map(players);
-  for (let k = 0; k < 5; k++) {
-    const id = `x${k}`;
-    pl.set(id, { _id: id, n: `Bench ${k}`, p: 'G' });
-    many.set(id, [{ season: 2013, teamId: '14', combined: false, avg: { gamesPlayed: 60, avgMinutes: 20 - k, avgPoints: 8 } }]);
-  }
-  const d2 = buildDynasty(entryHeat, '14', pl, many);
-  assert.equal(d2.five.length, 5);
-  assert.equal(d2.five[2].n, 'LeBron James');
-  assert.equal(d2.five[2].slot, 'SF');
-  assert.ok(d2.missing.includes('Dwyane Wade'));
-});
-
-// ---- Game rules -------------------------------------------------------------------------------------------------
-const P = (i, ovr, slots, extra = {}) => ({ i, n: `Player ${i}`, ovr, slots, ppg: 15, rpg: 5, apg: 3, ...extra });
-const eraA = { key: 'a', team: '1', decade: 1990, players: [P('1', 90, ['PG', 'SG']), P('2', 80, ['C'])] };
-const eraB = { key: 'b', team: '2', decade: 2000, players: [P('3', 85, ['C'])] };
-
-test('rng: seeded streams repeat', () => {
-  const a = rng('daily:2026-10-19'), b = rng('daily:2026-10-19'), c = rng('daily:2026-10-20');
-  const xs = [a(), a(), a()];
-  assert.deepEqual(xs, [b(), b(), b()]);
-  assert.notDeepEqual(xs, [c(), c(), c()]);
-  assert.ok(xs.every(x => x >= 0 && x < 1));
-});
-
-test('draft: spins only land on eras with someone who fits an open spot', () => {
-  const lineup = { C: P('9', 70, ['C']) };
-  assert.deepEqual(openSlots(lineup), ['PG', 'SG', 'SF', 'PF']);
-  assert.deepEqual(eligible(eraB, lineup), []);
-  assert.deepEqual(eligible(eraA, lineup).map(p => p.i), ['1']);
-  assert.deepEqual(fits(eraA.players[0], lineup), ['PG', 'SG']);
-  const r = rng('x');
-  for (let k = 0; k < 20; k++) assert.equal(spin([eraA, eraB], lineup, r).key, 'a');
-  assert.equal(spin([eraB], lineup, r), null);
-  // A player already signed can't be signed again from another era.
-  assert.deepEqual(eligible({ players: [P('9', 70, ['PF'])] }, lineup), []);
-});
-
-test('deal: four players who fit, the regulars likelier, the same for the same seed', () => {
-  const era = { players: Array.from({ length: 30 }, (_, k) => P(String(k), 70 + (k % 3), k % 2 ? ['C'] : ['PG'], { mpg: k < 5 ? 36 : 6 })) };
-  const lineup = { C: P('c', 70, ['C']) };
-  const h = deal(era, lineup, rng('d'));
-  assert.equal(h.length, HAND);
-  assert.ok(h.every(p => p.slots.includes('PG')));
-  assert.deepEqual(h.map(p => p.ovr), [...h.map(p => p.ovr)].sort((a, b) => b - a));
-  assert.deepEqual(deal(era, lineup, rng('d')), h);
-  let regulars = 0;
-  for (let k = 0; k < 200; k++) regulars += deal(era, lineup, rng(`x${k}`)).filter(p => p.mpg === 36).length;
-  assert.ok(regulars / 200 > 2, `the three regulars who fit show up most of the time: ${regulars / 200}`);
-  assert.equal(deal({ players: [P('z', 70, ['SF'])] }, lineup, rng('y')).length, 1);
-  // Among equal minutes, the better player shows up more.
-  const stars = { players: Array.from({ length: 20 }, (_, k) => P(`s${k}`, k < 2 ? 92 : 64, ['PG'], { mpg: 25 })) };
-  let seen = 0;
-  for (let k = 0; k < 200; k++) seen += deal(stars, {}, rng(`s${k}`)).filter(p => p.ovr === 92).length;
-  assert.ok(seen / 200 > 1.5, `the two stars show up most of the time: ${seen / 200}`);
-});
-
-test('fit: the bonus, the penalties and same-era chemistry', () => {
-  const handler = P('h', 80, ['PG'], { apg: 8, tpm: 2 });
-  const shooter = P('s', 80, ['SG'], { tpm: 2.5 });
-  const wing = P('w', 80, ['SF'], { tpm: 0.3 });
-  const big = P('b', 80, ['PF'], { tpm: 0, bpg: 0.5 });
-  const rim = P('r', 80, ['C'], { bpg: 2.4, p: 'C' });
-  assert.deepEqual(fitOf([handler, shooter, wing, big, rim]).map(f => f.value), [2]);
-  // Three-pointers weren't recorded: free throws stand in for shooting, rebounds for rim protection.
-  const old = [P('1', 80, ['PG'], { apg: 9, tpm: null, ftp: 85 }), P('2', 80, ['SG'], { tpm: null, ftp: 88 }), wing, big, P('5', 80, ['C'], { bpg: null, rpg: 13 })];
-  assert.deepEqual(fitOf(old).map(f => f.value), [2]);
-  const centers = [rim, { ...rim, i: 'r2' }, { ...rim, i: 'r3' }, handler, shooter];
-  assert.ok(fitOf(centers).some(f => f.value === -3 && /centers/.test(f.label)));
-  const noPG = [shooter, wing, big, rim, { ...wing, i: 'w2' }].map(p => ({ ...p, apg: 2 }));
-  assert.ok(fitOf(noPG).some(f => f.value === -3 && /offense/.test(f.label)));
-  const era = [handler, shooter, wing, big, rim].map((p, k) => ({ ...p, decade: k < 3 ? 1990 : 2000 }));
-  assert.ok(fitOf(era).some(f => f.value === 1));
-});
-
-const lineupOf = (ovr, extra = {}) => Object.fromEntries(SLOTS.map((s, k) => [s, P(`${s}${ovr}${extra.tag || ''}`, ovr, [s], { apg: s === 'PG' ? 6 : 2, ...extra })]));
-
-test('rating: average, fit and matchup wins', () => {
-  const r = rateSeries(lineupOf(85), lineupOf(80));
-  assert.equal(r.matchups.filter(m => m.winner === 'mine').length, 5);
-  assert.equal(r.mine.base, 85);
-  assert.equal(r.mine.boost, 2.5);
-  assert.equal(r.theirs.boost, 0);
-  assert.equal(r.mine.rating, 85 + 2.5 + r.mine.fit.reduce((s, f) => s + f.value, 0));
-});
-
-test('odds: even 50%, +5 about 65%, -10 about 22-25%; home court and a wilder Game 7', () => {
-  assert.equal(winProb(0), 0.5);
-  assert.ok(Math.abs(winProb(5) - 0.65) < 0.01);
-  assert.ok(winProb(-10) > 0.2 && winProb(-10) < 0.26);
-  assert.ok(gameProb(0, 0) < 0.5 && gameProb(0, 2) > 0.5, 'dynasty home in Game 1, you in Game 3');
-  assert.ok(Math.abs(gameProb(20, 6) - 0.5) < Math.abs(gameProb(20, 4) - 0.5), 'Game 7 is closer to a coin flip');
-  assert.ok(seriesOdds(0) < 0.5, 'home court makes an even series a little worse than even');
-  assert.ok(seriesOdds(10) > 0.85 && seriesOdds(-10) < 0.15);
-});
-
-test('series: best of seven, winners outscore losers, box scores add up, headlines every game', () => {
-  const mine = lineupOf(85), theirs = lineupOf(85, { tag: 't' });
-  let wins = 0;
-  for (let k = 0; k < 200; k++) {
-    const s = simulate({ mine, theirs, gap: 3, names: { mine: 'Your Five', theirs: 'Bulls' }, seed: `t${k}` });
-    assert.ok(s.games.length >= 4 && s.games.length <= 7);
-    assert.ok((s.w === 4) !== (s.l === 4));
-    assert.equal(s.won, s.w === 4);
-    for (const g of s.games) {
-      assert.equal(g.won, g.mine.total > g.theirs.total);
-      for (const side of [g.mine, g.theirs]) {
-        assert.equal(side.rows.reduce((a, r) => a + r.pts, 0) + side.bench, side.total);
-        assert.ok(side.bench >= 0);
-        assert.ok(side.rows.every(r => r.pts >= 0));
-      }
-      assert.ok(g.headline.length > 5);
-      assert.ok(topScorer(g.mine).pts >= 0);
-    }
-    if (s.won) wins++;
-  }
-  assert.ok(wins > 90 && wins < 160, `a +3 team wins most series: ${wins}/200`);
-  // The same seed gives the same series.
-  const a = simulate({ mine, theirs, gap: 0, names: { mine: 'A', theirs: 'B' }, seed: 'same' });
-  const b = simulate({ mine, theirs, gap: 0, names: { mine: 'A', theirs: 'B' }, seed: 'same' });
-  assert.deepEqual(a, b);
-});
-
-test('daily: everyone gets the same opponent and seed for a day', () => {
-  const ds = LADDER.map(x => ({ ...x }));
-  assert.deepEqual(daily(ds, '2026-10-19'), daily(ds, '2026-10-19'));
-  const seen = new Set(Array.from({ length: 40 }, (_, k) => daily(ds, `2026-11-${String(k % 28 + 1).padStart(2, '0')}`).dynasty.key));
-  assert.ok(seen.size >= 4);
-});
-
-test('share text: result, games and lineup', () => {
-  const mine = lineupOf(85);
-  const s = simulate({ mine, theirs: lineupOf(80, { tag: 't' }), gap: 6, names: { mine: 'Your Five', theirs: 'Bulls' }, seed: 's' });
-  const text = shareText({ lineup: mine, eraOf: () => 'CHI \'90s', dynasty: { label: "'96 Bulls" }, series: s, rating: 87.5, daily: '2026-10-19' });
-  assert.match(text, /Beat the Dynasty · Daily 2026-10-19/);
-  assert.match(text, /'96 Bulls/);
-  assert.equal(text.split('\n').length, 3 + 5);
-});
-
-// ---- The real data snapshot (test/fixtures/game.json) ----------------------------------------------------------
-test('snapshot: every era rated 60-99 and playable, the ladder complete', { skip: !fs.existsSync(gamePath) && 'no snapshot' }, () => {
-  const g = JSON.parse(fs.readFileSync(gamePath));
-  assert.equal(g.teams.length, 30);
-  assert.equal(g.dynasties.length, LADDER.length);
-  assert.ok(g.eras.length >= 140);
-  for (const e of g.eras) for (const p of e.players) {
-    assert.ok(p.ovr >= 60 && p.ovr <= 99, `${p.n} ${p.ovr}`);
-    assert.ok(p.slots.length === 2 && p.slots.every(s => SLOTS.includes(s)));
-    assert.ok(p.gp >= 25);
-  }
-  for (const d of g.dynasties) {
-    assert.deepEqual(d.five.map(p => p.slot), SLOTS);
-    assert.equal(new Set(d.five.map(p => p.i)).size, 5);
-  }
-  const bulls = g.dynasties.find(d => d.key === 'chi96');
-  assert.ok(bulls.five.some(p => p.n === 'Michael Jordan' && p.ovr >= 90));
-});
-
-test('ladder order: weakest first, then the Bulls, then the Warriors', async () => {
-  const { orderLadder } = await import('../lib/dynasty.js');
-  const mk = (key, ovr, boss) => ({ key, boss, five: Array.from({ length: 5 }, () => ({ ovr })) });
-  assert.deepEqual(orderLadder([mk('gs17', 80, true), mk('chi96', 70), mk('a', 85), mk('b', 75)]).map(d => d.key), ['b', 'a', 'chi96', 'gs17']);
-});
-
-test('surnames skip suffixes', async () => {
-  const { surname } = await import('../client/src/game.js');
-  assert.equal(surname('Wendell Carter Jr.'), 'Carter');
-  assert.equal(surname('Gary Payton II'), 'Payton');
-  assert.equal(surname('Nene'), 'Nene');
-});
-
-test('reputation: awards and rings by team, saturating; playoffs count double', async () => {
-  const { honorIndex, countHonors, repOf, repBonus, card, REP_MAX } = await import('../lib/dynasty.js');
-  const awards = [
-    { season: 2016, key: 'fmvp', id: '1966', team: '5' },
-    { season: 2016, key: 'nba1', id: '1966', team: '5' },
-    { season: 2013, key: 'mvp', id: '1966', team: '14' },
+test('clutch points when there is no win probability: last five minutes, within five', () => {
+  const plays = [
+    { period: { number: 4 }, clock: { displayValue: '4:10' }, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'a' } }], homeScore: 100, awayScore: 99 },
+    { period: { number: 4 }, clock: { displayValue: '3:00' }, scoringPlay: true, scoreValue: 2, participants: [{ athlete: { id: 'b' } }], homeScore: 100, awayScore: 101 },
+    { period: { number: 3 }, clock: { displayValue: '1:00' }, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'c' } }], homeScore: 60, awayScore: 60 },
   ];
-  const post = new Map([['1966', [{ season: 2016, teamId: '5', combined: false, avg: { gamesPlayed: 21 } }]], ['9', [{ season: 2016, teamId: '5', combined: false, avg: { gamesPlayed: 3 } }]], ['8', [{ season: 2016, teamId: '9', combined: false, avg: { gamesPlayed: 20 } }]]]);
-  const idx = honorIndex(awards, post);
-  assert.deepEqual(countHonors(idx.get('1966')), { fmvp: 1, nba1: 1, mvp: 1, ring: 1 });
-  assert.deepEqual(countHonors(idx.get('9')), { ring: 1 }, 'everyone in the title run gets a ring');
-  assert.equal(idx.get('8'), undefined, 'the losing finalist gets nothing');
-  assert.equal(repOf({ mvp: 1, ring: 2 }), 8);
-  assert.equal(repBonus(0), 0);
-  assert.ok(repBonus(3) > 2.5 && repBonus(3) < 3.5);
-  assert.equal(repBonus(1000), REP_MAX);
-  // A player who rises in the playoffs rates above his regular season; reputation adds on top.
-  const p = { _id: '1', n: 'A Player', p: 'G' };
-  const reg = { gp: 80, min: 2800, pts: 1600, reb: 400, ast: 400, stl: 80, blk: 20, tov: 200, pf: 160, fgm: 600, fga: 1300, ftm: 300, fta: 360, tpm: 100, oreb: 80, dreb: 320 };
-  const big = { ...reg, gp: 20, min: 800, pts: 640, fgm: 240, fga: 470, reb: 120, ast: 120, stl: 30, blk: 6, tov: 50, pf: 40, ftm: 120, fta: 140, tpm: 40, oreb: 24, dreb: 96 };
-  const plain = card(p, reg), riser = card(p, reg, { post: big }), famed = card(p, reg, { post: big, honors: { mvp: 1, nba1: 2 } });
-  assert.ok(riser.po > riser.reg && riser.ovr > plain.ovr, `${plain.ovr} -> ${riser.ovr}`);
-  assert.ok(famed.ovr > riser.ovr && famed.h.mvp === 1);
+  // The first basket comes when the game is 97-99 (the score before it), so it counts.
+  const c = clutchPoints({ plays: [{ homeScore: 97, awayScore: 99, period: { number: 4 }, clock: { displayValue: '5:00' } }, ...plays] });
+  assert.deepEqual(Object.fromEntries(c), { a: 3, b: 2 });
 });
 
-test('pedigree: champions in the lineup, reunited teammates, a real championship five', async () => {
-  const { pedigreeOf } = await import('../client/src/game.js');
-  const five = ['a', 'b', 'c', 'd', 'e'].map((i, k) => ({ i, n: `P ${i}`, team: k < 2 ? '24' : String(k), decade: 2000, h: k === 0 ? { ring: 2 } : undefined }));
-  const mine = pedigreeOf(five);
-  assert.deepEqual(mine.map(x => x.value), [0.5, 1]);
-  assert.match(mine[1].label, /Teammates: a & b/);
-  assert.deepEqual(pedigreeOf(five.map(p => ({ ...p, h: { ring: 1 } })), { together: true }).map(x => x.value), [2.5, 2]);
+test('milestones', () => {
+  const keys = l => milestonesOf(L(l)).map(m => m.k);
+  assert.deepEqual(keys({ pts: 41 }), ['40']);
+  assert.deepEqual(keys({ pts: 62 }), ['60']);
+  assert.deepEqual(keys({ pts: 12, reb: 11, ast: 10 }), ['td']);
+  assert.deepEqual(keys({ pts: 22, reb: 21 }), ['dd', '2020']);
+  assert.deepEqual(keys({ pts: 10, reb: 10, ast: 10, stl: 10 }), ['qd', 'stocks']);
+  assert.deepEqual(keys({ pts: 9, reb: 6, ast: 5, stl: 5, blk: 5 }), ['5x5', 'stocks']);
+  assert.deepEqual(keys({ pts: 30, fgm: 12, fga: 12 }), ['perfect']);
+  assert.deepEqual(keys({ pts: 33, tpm: 10 }), ['3s']);
+});
+
+const game = (over = {}) => ({ id: 'g', ot: 0, stage: 'regular', teams: [{ id: 'A', home: true, winner: true, record: { w: 20, l: 20 } }, { id: 'B', home: false, winner: false, record: { w: 20, l: 20 } }], ...over });
+const P = l => ({ id: 'p', team: 'A', line: L(l) });
+
+test('the score: production, efficiency, impact, result, opponent, breakout, stage', () => {
+  const base = scorePerformance(P({ pts: 30, fgm: 11, fga: 20, ftm: 6, fta: 7, reb: 6, ast: 5, pm: 10 }), { game: game() });
+  const k = Object.fromEntries(base.parts.map(p => [p.k, p.value]));
+  assert.ok(k.production > 20 && k.efficiency > 0 && k.impact === 1.2 && k.result === 2.5);
+  // A loss drops the result; a road win and overtime add to it.
+  const loss = scorePerformance({ ...P({ pts: 30, fgm: 11, fga: 20 }), team: 'B' }, { game: game() });
+  assert.ok(!loss.parts.some(p => p.k === 'result'));
+  const road = scorePerformance({ ...P({ pts: 30, fgm: 11, fga: 20 }), team: 'B' }, { game: game({ ot: 2, teams: [{ id: 'A', home: true, winner: false }, { id: 'B', home: false, winner: true }] }) });
+  assert.equal(road.parts.find(p => p.k === 'result').label, 'Win on the road in 2OT');
+  // A better opponent makes the same line worth more.
+  const strong = scorePerformance(P({ pts: 30, fgm: 11, fga: 20 }), { game: game({ teams: [{ id: 'A', home: true, winner: true }, { id: 'B', home: false, winner: false, record: { w: 50, l: 12 } }] }) });
+  const weak = scorePerformance(P({ pts: 30, fgm: 11, fga: 20 }), { game: game({ teams: [{ id: 'A', home: true, winner: true }, { id: 'B', home: false, winner: false, record: { w: 10, l: 52 } }] }) });
+  assert.ok(strong.score > weak.score + 2);
+  // Far above his own average: a breakout.
+  const brk = scorePerformance(P({ pts: 35, fgm: 13, fga: 20 }), { game: game(), seasonAvg: 8 });
+  assert.ok(brk.parts.some(p => p.k === 'breakout') && brk.tags.includes('Breakout'));
+  // The playoffs weigh more, the Finals most.
+  const fin = scorePerformance(P({ pts: 30, fgm: 11, fga: 20 }), { game: game({ stage: 'finals' }) });
+  const reg = scorePerformance(P({ pts: 30, fgm: 11, fga: 20 }), { game: game() });
+  assert.ok(Math.abs(fin.score - reg.score * STAGE.finals.mult) < 0.2);
+  // The parts always add up to the score.
+  for (const s of [base, road, strong, brk, fin]) assert.ok(Math.abs(s.parts.reduce((a, p) => a + p.value, 0) - s.score) < 0.15);
+});
+
+test('stages from ESPN season types and game notes', () => {
+  assert.equal(stageOf(2), 'regular');
+  assert.equal(stageOf(5, ''), 'playin');
+  assert.equal(stageOf(3, 'East 1st Round - Game 3'), 'playoffs');
+  assert.equal(stageOf(3, 'East Finals - Game 7'), 'conf');
+  assert.equal(stageOf(3, 'NBA Finals - Game 4'), 'finals');
+});
+
+test('a whole night ranked: the real top of 15 January 2025', () => {
+  const all = [knicks, raptors].flatMap(s => scoreGame(s).perfs);
+  assert.ok(all.every(p => p.line.min >= MIN_MINUTES));
+  const top = rank(all).slice(0, 5);
+  assert.equal(top[0].name, 'Jalen Brunson');
+  assert.equal(top[0].result, 'W 125-119 OT');
+  assert.ok(top.some(p => p.name === 'Josh Hart' && p.tags.includes('Triple-double')));
+  assert.ok(top.some(p => p.name === 'Jakob Poeltl' && p.tags.some(t => /Perfect/.test(t))));
+});
+
+test('dates and seasons', () => {
+  assert.equal(seasonLabel(2025), '2024-25');
+  assert.equal(ymd('2024-10-04T07:00Z'), '20241004');
+  assert.ok(isDate('20250115') && !isDate('2025-01-15'));
 });

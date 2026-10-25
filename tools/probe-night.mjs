@@ -1,4 +1,4 @@
-// Save ESPN's scoreboard and one game summary for a date into probe/ (fixtures for the night app). Diagnostic only.
+// Save ESPN's scoreboard and the first two game summaries for a date into probe/ (test fixtures). Diagnostic only.
 //   node tools/probe-night.mjs 20250115
 import fs from 'node:fs';
 import * as espn from '../lib/espn.js';

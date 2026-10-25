@@ -1,20 +1,19 @@
-// End to end: mock ESPN -> ingest into a real MongoDB -> /api/game served by the dev server.
-// Needs MONGODB_URI (CI starts a MongoDB container).
+// End to end: mock ESPN -> the API functions (served by the dev server) -> MongoDB. Needs MONGODB_URI (CI starts a
+// MongoDB container).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mockEspn } from './mock-espn.mjs';
 
 const MONGO = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
-const DB = `game_test_${process.pid}`;
+const DB = `night_test_${process.pid}`;
 let espn, server, base, lib;
 
 before(async () => {
   espn = await mockEspn();
   Object.assign(process.env, espn.env, { MONGODB_URI: MONGO, LIBRARY_DB: DB });
-  lib = { db: await import('../lib/db.js'), ingest: await import('../lib/ingest.js') };
-  const d = await lib.db.db();
-  await d.dropDatabase();
+  lib = { db: await import('../lib/db.js'), nights: await import('../lib/nights.js') };
+  await (await lib.db.db()).dropDatabase();
   const port = 5300 + (process.pid % 500);
   base = `http://127.0.0.1:${port}`;
   server = spawn(process.execPath, ['scripts/dev.mjs'], { env: { ...process.env, PORT: String(port), NO_VITE: '1' }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -34,55 +33,66 @@ after(async () => {
 
 const get = async path => { const r = await fetch(base + path); return { status: r.status, body: await r.json(), headers: r.headers }; };
 
-test('before the first ingest the game says it is being built', async () => {
-  const { status, body } = await get('/api/game');
-  assert.equal(status, 503);
-  assert.match(body.error, /being built/);
-});
-
-test('ingest: eras rated from real season stats; the library is cleaned away', async () => {
-  const d = await lib.db.db();
-  // Leftovers from the player library.
-  await d.collection('leaders').insertOne({ _id: 'x' });
-  await d.collection('cache').insertOne({ _id: 'x' });
-  await d.collection('meta').insertOne({ _id: 'catalog', players: 1 });
-  const meta = await lib.ingest.ingest(d, { from: 2016, to: 2017, scan: 3 });
-  assert.equal(meta.players, 2, 'only players with seasons from 1980-81 on');
-  const names = (await d.listCollections().toArray()).map(c => c.name).sort();
-  assert.deepEqual(names, ['eras', 'meta', 'players']);
-  assert.equal(await d.collection('meta').countDocuments({ _id: 'catalog' }), 0);
-  assert.ok(espn.hits.some(h => h.startsWith('/core/athletes/3')), 'the id scan ran');
-});
-
-test('/api/game: franchises, eras with rated players, cached at the edge', async () => {
-  const { status, body, headers } = await get('/api/game');
+test('a night: games, the top five with every part explained, stored once final', async () => {
+  const { status, body, headers } = await get('/api/night?date=20250115');
   assert.equal(status, 200);
-  assert.match(headers.get('cache-control'), /s-maxage/);
-  assert.equal(body.teams.length, 7);
-  assert.deepEqual(body.decades, [1980, 1990, 2000, 2010, 2020]);
-  const era = (team, decade) => body.eras.find(e => e.team === team && e.decade === decade);
-  const mia = era('14', 2010).players;
-  assert.deepEqual(mia.map(p => p.n), ['LeBron James']);
-  assert.ok(mia[0].ovr >= 90 && mia[0].ovr <= 99);
-  assert.deepEqual(mia[0].slots, ['SF', 'PF']);
-  // Playoffs and reputation: LeBron's Cleveland 2010s include the 2016 title run, Finals MVP and ring.
-  const cle = era('5', 2010).players[0];
-  assert.equal(cle.n, 'LeBron James');
-  assert.deepEqual(cle.h, { fmvp: 1, ring: 1 });
-  assert.ok(cle.po >= 90 && cle.pgp > 50);
-  assert.ok(cle.rep > 3 && cle.ovr >= cle.reg);
-  assert.equal(era('10', 2010).players[0].h, undefined, 'awards that don\'t count are ignored');
-  // A franchise's decade holds every player with 25+ games there, best first.
-  const hou = era('10', 2010).players;
-  assert.equal(hou[0].n, 'James Harden');
-  assert.ok(era('25', 2000), 'Harden\'s rookie season (2009-10) is in the 2000s');
-  // With two players in the mock there's no full starting five, so no dynasty.
-  assert.deepEqual(body.dynasties, []);
+  assert.equal(body.final, true);
+  assert.equal(body.season, 2025);
+  assert.match(headers.get('cache-control'), /s-maxage=86400/);
+  assert.equal(body.games.length, 2);
+  assert.deepEqual(body.games.find(g => g.id === '401705127').teams.map(t => `${t.abbr} ${t.score}`).sort(), ['NY 125', 'PHI 119']);
+  assert.equal(body.top.length, 10);
+  assert.equal(body.top[0].name, 'Jalen Brunson');
+  assert.deepEqual(body.top.map(p => p.score), [...body.top.map(p => p.score)].sort((a, b) => b - a));
+  const hart = body.top.find(p => p.name === 'Josh Hart');
+  assert.ok(hart.tags.includes('Triple-double'));
+  assert.equal(hart.result, 'W 125-119 OT');
+  for (const p of body.top) {
+    assert.ok(p.parts.some(x => x.k === 'production'));
+    assert.equal(Math.round(p.parts.reduce((s, x) => s + x.value, 0)), Math.round(p.score));
+  }
+  assert.ok(body.dates.includes('20250115'));
+  // Served from the database from now on.
+  const before = espn.hits.length;
+  await get('/api/night?date=20250115');
+  assert.equal(espn.hits.filter(h => h.includes('summary')).length, espn.hits.slice(0, before).filter(h => h.includes('summary')).length);
 });
 
-test('a rebuild gives the same result', async () => {
+test('latest: the newest night with finished games', async () => {
+  const { body } = await get('/api/night?date=latest');
+  assert.equal(body.date, '20250115');
+});
+
+test('a date with no games, and bad dates', async () => {
+  const { status, body } = await get('/api/night?date=20250116');
+  assert.equal(status, 200);
+  assert.deepEqual([body.games.length, body.top.length, body.final], [0, 0, false]);
+  assert.equal((await get('/api/night?date=Jan15')).status, 400);
+});
+
+test('seasons and the leaderboard', async () => {
+  const s = await get('/api/seasons');
+  assert.equal(s.status, 200);
+  assert.equal(s.body.current, 2025);
+  const y = s.body.seasons.find(x => x.year === 2025);
+  assert.equal(y.label, '2024-25');
+  assert.equal(y.nights, 1);
+  assert.ok(y.dates.length > 100 && y.dates.every(x => x >= '20241022' && x <= '20250627'), 'regular season through the Finals, no preseason');
+  const lb = await get('/api/leaderboard?season=2025');
+  assert.equal(lb.status, 200);
+  assert.equal(lb.body.nights, 1);
+  assert.equal(lb.body.players.length, 5, 'the top five count');
+  assert.equal(lb.body.players[0].name, 'Jalen Brunson');
+  assert.deepEqual([lb.body.players[0].count, lb.body.players[0].firsts, lb.body.players[0].points], [1, 1, 5]);
+  assert.equal(lb.body.players[0].nights[0].date, '20250115');
+  assert.equal((await get('/api/leaderboard?season=abc')).status, 400);
+  assert.equal((await get('/api/leaderboard?season=2025&stage=playoffs')).body.players.length, 0);
+});
+
+test('ingesting a season walks its dates in order and keeps final nights', async () => {
   const d = await lib.db.db();
-  const before = await d.collection('eras').countDocuments();
-  await lib.ingest.ingest(d, { from: 2016, to: 2017, scan: 3 });
-  assert.equal(await d.collection('eras').countDocuments(), before);
+  const r = await lib.nights.ingestSeason(d, 2025, { until: '20250120' });
+  assert.ok(r.nights > 50);
+  assert.equal(await d.collection('nights').countDocuments({ final: true }), 1);
+  assert.ok(await d.collection('perfs').countDocuments() > 30);
 });
