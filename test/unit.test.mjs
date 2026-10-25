@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { gameOf, linesOf, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
+import { gameOf, linesOf, pointsOffTurnovers, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
 import { seasonLabel, isDate, ymd } from '../lib/nights.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
@@ -97,6 +97,46 @@ test('the score: production, efficiency, impact, result, opponent, breakout, sta
   assert.ok(Math.abs(fin.score - reg.score * STAGE.finals.mult) < 0.2);
   // The parts always add up to the score.
   for (const s of [base, road, strong, brk, fin]) assert.ok(Math.abs(s.parts.reduce((a, p) => a + p.value, 0) - s.score) < 0.15);
+});
+
+test('points off turnovers: traced to the other team\'s next possession', () => {
+  const lines = linesOf(knicks);
+  const t = pointsOffTurnovers(knicks, new Map(lines.map(p => [p.id, p.team])));
+  // Every turnover in the box score is found in the play-by-play.
+  for (const p of lines.filter(x => x.line.to)) assert.equal(t.get(p.id)?.turnovers, p.line.to, p.name);
+  assert.equal(t.get(lines.find(p => p.name === 'Jalen Brunson').id).points, 9);
+  // A made-up sequence: a turnover, the other team scores 2 + 1 free throw, then his team rebounds; a later turnover
+  // leads to nothing.
+  const play = (team, type, extra = {}) => ({ team: { id: team }, type: { text: type }, period: { number: 1 }, ...extra });
+  const plays = [
+    play('A', 'Bad Pass\nTurnover', { participants: [{ athlete: { id: 'a1' } }] }),
+    play('B', 'Driving Layup Shot', { scoringPlay: true, scoreValue: 2 }),
+    play('A', 'Shooting Foul'),
+    play('B', 'Free Throw - 1 of 1', { scoringPlay: true, scoreValue: 1 }),
+    play('A', 'Jump Shot'),
+    play('B', 'Jump Shot', { scoringPlay: true, scoreValue: 3 }),
+    play('A', 'Traveling', { participants: [{ athlete: { id: 'a1' } }] }),
+    play('A', 'Jump Shot', { scoringPlay: true, scoreValue: 2 }),
+  ];
+  assert.deepEqual(pointsOffTurnovers({ plays }, new Map([['a1', 'A']])).get('a1'), { turnovers: 2, points: 3 });
+});
+
+test('a loss: no result bonus, no penalty for the result; negative win probability not held against him', () => {
+  const g = game({ teams: [{ id: 'A', home: true, winner: true, score: 110 }, { id: 'B', home: false, winner: false, score: 107 }] });
+  const loser = { ...P({ pts: 40, fgm: 15, fga: 26, ftm: 8, fta: 9 }), team: 'B' };
+  const wpa = new Map([['p', -0.3]]);
+  const s = scorePerformance(loser, { game: g, wpa });
+  assert.ok(!s.parts.some(p => p.k === 'clutch'), 'his team\'s chances ending at zero aren\'t counted');
+  assert.equal(s.parts.find(p => p.k === 'result').value, 1, 'a close loss he kept competitive');
+  const blowout = scorePerformance(loser, { game: game({ teams: [{ id: 'A', home: true, winner: true, score: 130 }, { id: 'B', home: false, winner: false, score: 100 }] }), wpa });
+  assert.ok(!blowout.parts.some(p => p.k === 'result'));
+  assert.ok(blowout.score > 30, 'a 40-point game still scores highly');
+  // The same game in a win scores more, but not by a different league.
+  const win = scorePerformance({ ...loser, team: 'A' }, { game: g, wpa: new Map([['p', 0.3]]) });
+  assert.ok(win.score > s.score && win.score - s.score < 10);
+  // Points given away off turnovers.
+  const gv = scorePerformance(loser, { game: g, giveaways: new Map([['p', { turnovers: 4, points: 9 }]]) });
+  assert.equal(gv.parts.find(p => p.k === 'giveaways').value, -3.6);
 });
 
 test('stages from ESPN season types and game notes', () => {

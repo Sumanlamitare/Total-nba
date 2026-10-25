@@ -46,7 +46,7 @@ export function statline(l) {
   return parts.join(' · ');
 }
 const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
-const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
+const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', giveaways: 'Giveaways', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
 
 function Breakdown({ parts }) {
   const max = Math.max(...parts.map(p => Math.abs(p.value)), 1);
@@ -195,7 +195,7 @@ function NightPage({ date, go, seasons }) {
               )}
             </div>
           )}
-          <p className="fine method">The score adds production (Game Score, weighted by the opponent's record), shooting efficiency, plus-minus, win probability added in the moment, the result, milestones, how far above his own season average he played, and the stage. Tap a performance to see its parts.</p>
+          <p className="fine method">The score adds production (Game Score, weighted by the opponent's record), shooting efficiency, plus-minus, win probability added in the moment, the points his turnovers gave away, the result, milestones, how far above his own season average he played, and the stage. A great game in a loss still counts: only a win earns the result bonus, but the loss itself costs nothing. Tap a performance to see its parts.</p>
         </>
       )}
       {night && (

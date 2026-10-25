@@ -25,8 +25,9 @@ Every player with 10+ minutes in a regular-season, play-in or playoff game is sc
 | Production | Hollinger's Game Score (points, shooting, rebounds, assists, steals, blocks, turnovers, fouls), × 0.85–1.15 for the opponent's strength (its record before the game, pulled toward .500 early in the season) |
 | Efficiency | Points scored above what an average shooter makes from the same shots (1.14 points per shooting possession), × 0.3 |
 | Impact | Plus-minus × 0.12 (at most ±4) |
-| Clutch | Win probability added: the swing in his team's chance to win on every play he made, from ESPN's win probability (an assist takes 30% of a basket's swing; a block or steal half of what it took away; fouls and violations count for nothing). × 16, from −6 to +8. Games without win probability use crunch-time points (last 5 minutes, within 5) |
-| Result | +2.5 for a win, +0.5 on the road, +0.5 in overtime |
+| Clutch | Win probability added: the swing in his team's chance to win on every play he made, from ESPN's win probability (an assist takes 30% of a basket's swing; a block or steal half of what it took away; fouls and violations count for nothing). × 16, from −6 to +8. In a loss only a positive number counts, so a player isn't marked down because his team's chances ended at zero. Games without win probability use crunch-time points (last 5 minutes, within 5) |
+| Giveaways | −0.4 for every point the opponent scored off his turnovers (at most −6), traced in the play-by-play: after a turnover, the other team's points until his team has the ball again. This comes on top of the −1 per turnover in Game Score, so a dead-ball turnover the defense doesn't score on costs less than a pick-six |
+| Result | +2.5 for a win, +0.5 on the road, +0.5 in overtime. A loss costs nothing: a great game in a loss keeps all its other parts, and a close loss (5 points or fewer, or overtime) earns +1 |
 | Milestones | 40/50/60 points, triple- and quadruple-doubles, 20-20s, 5x5s, 15 assists, 7 steals + blocks, 10 threes, perfect shooting on 8+ shots |
 | Breakout | How far above his own season average Game Score he played (after 5 games), up to +3 |
 | Stage | × 1.05 play-in, × 1.1 playoffs, × 1.15 conference finals, × 1.2 NBA Finals |
