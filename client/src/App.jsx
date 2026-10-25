@@ -280,7 +280,7 @@ export default function App() {
     if (!ready) return;
     const boot = document.getElementById('boot'); if (!boot) return;
     boot.classList.add('ready');
-    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(600, 1800 - performance.now()));
+    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(600, 2900 - performance.now()));
     return () => clearTimeout(t);
   }, [ready]);
   useEffect(() => { document.title = route.page === 'leaderboard' ? 'Leaderboard · Performance of the Night' : 'Performance of the Night'; }, [route.page]);

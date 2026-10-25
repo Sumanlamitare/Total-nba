@@ -11,76 +11,146 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" />
     <style>
-      /* The loading page — tip-off in an empty arena. Drawn before any script runs; the app fills in the scoreboard and
-         the ticker from the real data, then closes the scene into the ball. Everything is prefixed bt-. */
-      #boot { --p: .18; position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #fff; background: #08080a; font-family: Barlow, 'Helvetica Neue', Arial, sans-serif;
-        clip-path: circle(150% at 50% 62%); transition: clip-path .85s cubic-bezier(.7,0,.2,1), --p 1.2s ease; }
-      #boot.done { clip-path: circle(0% at 50% 62%); pointer-events: none; }
-      #boot.ready { --p: 1; }
-      /* the arena: a warm glow over the floor, a spotlight that sweeps the court */
-      #boot .bt-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 45% at 50% 62%, rgba(255,140,40,.20), transparent 70%), radial-gradient(ellipse 120% 70% at 50% 0%, #1c1a22, transparent 70%); }
-      #boot .bt-beam { position: absolute; left: 50%; top: -20%; width: 70vmax; height: 120vmax; translate: -50% 0; transform-origin: 50% 0;
-        background: conic-gradient(from 168deg at 50% 0%, transparent 0deg, rgba(255,236,200,.14) 12deg, rgba(255,236,200,.04) 24deg, transparent 26deg); animation: bt-sweep 6s ease-in-out infinite alternate; mix-blend-mode: screen; }
-      #boot .bt-floor { position: absolute; left: 50%; top: 74%; width: 240vmax; height: 70vh; translate: -50% 0; transform: perspective(600px) rotateX(58deg); transform-origin: 50% 0;
-        background: repeating-linear-gradient(90deg, #5a3a1c 0 34px, #6b4522 34px 36px, #613f1f 36px 70px, #74502a 70px 72px);
-        -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 44%, #000 56%, transparent 70%); mask-image: linear-gradient(90deg, transparent 30%, #000 44%, #000 56%, transparent 70%); }
-      #boot .bt-haze { position: absolute; left: 0; right: 0; top: calc(74% - 1px); height: 16vh; background: linear-gradient(to bottom, rgba(8,8,10,.85), transparent); }
-      #boot .bt-court { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-      #boot .bt-court * { fill: none; stroke: rgba(255,240,220,.7); stroke-width: 2.5; stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: bt-draw 1.8s .2s cubic-bezier(.6,0,.2,1) forwards; }
-      #boot .bt-court .c1 { stroke: rgba(255,240,220,.35); }
-      #boot .bt-court .c2 { rx: min(260px, 36vw); } #boot .bt-court .c3 { rx: min(72px, 10vw); }
-      #boot .bt-court .c2 { animation-delay: .5s; } #boot .bt-court .c3 { animation-delay: .8s; }
-      /* the giant title, filling with colour as the game loads */
-      #boot .bt-title { position: absolute; left: 0; right: 0; top: 11vh; margin: 0; text-align: center; font: 800 clamp(64px, 17vw, 250px)/.82 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif; letter-spacing: -.01em; text-transform: uppercase;
-        color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.28);
-        background: linear-gradient(to top, #ff8a2b 0, #ffd28a calc(var(--p) * 100%), transparent calc(var(--p) * 100%)) no-repeat; -webkit-background-clip: text; background-clip: text;
-        animation: bt-title 1s .1s cubic-bezier(.2,.7,.2,1) both; }
+      /* The loading page: a night game in an empty arena. A jump shot arcs across the court and swishes through the
+         net, again and again, while the shot clock runs and the scoreboard counts the buckets. When the app is ready
+         the arena closes into the rim. Drawn before any script runs; everything is prefixed bt-. */
+      #boot { position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #fff; background: #07070a; font-family: Barlow, 'Helvetica Neue', Arial, sans-serif;
+        clip-path: circle(150% at 76% 40%); transition: clip-path .9s cubic-bezier(.7,0,.2,1); }
+      #boot.done { clip-path: circle(0% at 76% 40%); pointer-events: none; }
+      #boot .bt-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 55% 45% at 72% 42%, rgba(255,140,40,.18), transparent 70%), radial-gradient(ellipse 120% 60% at 50% 0%, #1b1a22, transparent 70%); }
+      #boot .bt-beam { position: absolute; top: -30%; width: 46vmax; height: 130vmax; transform-origin: 50% 0; mix-blend-mode: screen;
+        background: conic-gradient(from 170deg at 50% 0%, transparent 0deg, rgba(255,236,200,.13) 10deg, rgba(255,236,200,.03) 20deg, transparent 22deg); }
+      #boot .bt-beam.a { left: 10%; animation: bt-sweep 7s ease-in-out infinite alternate; }
+      #boot .bt-beam.b { right: 0; animation: bt-sweep 9s -3s ease-in-out infinite alternate-reverse; }
+      #boot .bt-scene { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
+      #boot .bt-flash { animation: bt-flash 3.1s steps(1) infinite; opacity: 0; }
+      /* the title, in the corner like a broadcast graphic */
+      #boot .bt-title { position: absolute; left: clamp(16px, 5vw, 64px); top: clamp(18px, 7vh, 72px); margin: 0; font: 800 clamp(40px, 6.6vw, 84px)/.84 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif; text-transform: uppercase; letter-spacing: -.005em; animation: bt-in .8s .1s cubic-bezier(.2,.8,.2,1) both; }
       #boot .bt-title span { display: block; }
-      #boot.ready .bt-title { background-size: 100% 100%; }
-      @property --p { syntax: '<number>'; inherits: true; initial-value: .18; }
-      /* the ball: bounces at centre court, spinning, squashing on the floor, with its shadow */
-      #boot .bt-ball-wrap { position: absolute; left: 50%; top: 74%; width: 0; height: 0; }
-      #boot .bt-ball { position: absolute; left: -60px; top: -330px; width: 120px; height: 120px; animation: bt-bounce 1.05s cubic-bezier(.5,0,.5,1) infinite; transform-origin: 50% 100%; }
-      #boot .bt-ball svg { width: 100%; height: 100%; animation: bt-spin 2.1s linear infinite; filter: drop-shadow(0 0 22px rgba(255,120,30,.35)); }
-      #boot .bt-shadow { position: absolute; left: -70px; top: -12px; width: 140px; height: 24px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.75), transparent); animation: bt-shadow 1.05s cubic-bezier(.5,0,.5,1) infinite; }
-      /* scoreboard and ticker */
-      #boot .bt-board { position: absolute; left: 50%; bottom: 58px; translate: -50% 0; display: flex; gap: 14px; align-items: center; padding: 10px 18px; border-radius: 10px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,180,90,.25); box-shadow: 0 0 40px rgba(255,140,40,.12) inset; animation: bt-up .6s .7s ease both; }
-      #boot .bt-n { font: 700 34px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; font-variant-numeric: tabular-nums; color: #ffb347; text-shadow: 0 0 12px rgba(255,160,60,.7); letter-spacing: .04em; min-width: 3.4ch; text-align: right; }
-      #boot .bt-l { font: 600 11px/1.3 Barlow, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.7); }
-      #boot .bt-l b { display: block; color: #fff; font-size: 13px; letter-spacing: .12em; }
-      #boot .bt-ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; overflow: hidden; background: #000; border-top: 1px solid rgba(255,180,90,.25); -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); animation: bt-up .6s .9s ease both; }
-      #boot .bt-run { display: inline-flex; gap: 28px; padding-left: 100%; white-space: nowrap; font: 700 15px/40px 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffb347; text-shadow: 0 0 8px rgba(255,160,60,.6); animation: bt-tick 26s linear infinite; }
+      #boot .bt-title span + span { color: transparent; -webkit-text-stroke: 2px #ff7a1a; text-shadow: 0 0 30px rgba(255,122,26,.35); }
+      #boot .bt-title small { display: block; margin-top: 12px; font: 700 clamp(12px, 1.6vw, 16px)/1 Barlow, sans-serif; letter-spacing: .28em; color: #ffb347; -webkit-text-stroke: 0; }
+      /* the scoreboard: shot clock and buckets */
+      #boot .bt-board { position: absolute; right: clamp(16px, 5vw, 64px); top: clamp(18px, 7vh, 72px); display: flex; gap: 10px; animation: bt-in .7s .4s ease both; }
+      #boot .bt-cell { display: grid; justify-items: center; gap: 4px; padding: 8px 14px 10px; border-radius: 10px; background: rgba(0,0,0,.6); border: 1px solid rgba(255,180,90,.25); box-shadow: 0 0 30px rgba(255,140,40,.1) inset; }
+      #boot .bt-cell b { font: 700 clamp(28px, 4vw, 44px)/1 'Barlow Condensed', 'Arial Narrow', sans-serif; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; color: #ffb347; text-shadow: 0 0 12px rgba(255,160,60,.75); }
+      #boot .bt-cell.clock b { color: #ff5a4a; text-shadow: 0 0 12px rgba(255,90,74,.8); }
+      #boot .bt-cell span { font: 700 10px/1 Barlow, sans-serif; letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+      #boot .bt-cell.pop b { animation: bt-pop .45s ease; }
+      #boot .bt-ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 38px; overflow: hidden; background: #000; border-top: 1px solid rgba(255,180,90,.25); -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+      #boot .bt-run { display: inline-flex; gap: 26px; padding-left: 100%; white-space: nowrap; font: 700 14px/38px 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #ffb347; text-shadow: 0 0 8px rgba(255,160,60,.6); animation: bt-tick 22s linear infinite; }
       #boot .bt-run i { color: rgba(255,255,255,.35); font-style: normal; }
-      @keyframes bt-sweep { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
-      @keyframes bt-draw { to { stroke-dashoffset: 0; } }
-      @keyframes bt-title { from { opacity: 0; transform: translateY(30px) scale(.96); letter-spacing: .08em; } }
-      @keyframes bt-bounce { 0%, 100% { transform: translateY(0) scale(1); } 46% { transform: translateY(204px) scale(1.04, .96); } 50% { transform: translateY(210px) scale(1.14, .84); } 54% { transform: translateY(204px) scale(.97, 1.04); } }
-      @keyframes bt-shadow { 0%, 100% { transform: scale(.45); opacity: .35; } 50% { transform: scale(1.05); opacity: .95; } }
-      @keyframes bt-spin { to { transform: rotate(360deg); } }
-      @keyframes bt-up { from { opacity: 0; transform: translateY(14px); } }
+      @keyframes bt-sweep { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+      @keyframes bt-flash { 0%, 100% { opacity: 0; } 3% { opacity: 1; } 6% { opacity: 0; } }
+      @keyframes bt-in { from { opacity: 0; transform: translateY(18px); } }
+      @keyframes bt-pop { 40% { transform: scale(1.35); } }
       @keyframes bt-tick { to { transform: translateX(-100%); } }
-      @media (max-width: 600px) { #boot .bt-title { top: 15vh; font-size: 25vw; } #boot .bt-ball { left: -42px; top: -290px; width: 84px; height: 84px; } #boot .bt-shadow { left: -50px; width: 100px; } }
-      @media (prefers-reduced-motion: reduce) { #boot *, #boot { animation: none !important; transition: none !important; } #boot .bt-court * { stroke-dashoffset: 0; } #boot .bt-ball { transform: translateY(210px); } }
+      @media (max-aspect-ratio: 1/1) { #boot .bt-board { top: calc(7vh + 19.5vw + 52px); right: auto; left: clamp(16px, 5vw, 64px); } #boot .bt-title { font-size: 11.5vw; } #boot .bt-scene { top: auto; bottom: 38px; height: 62%; } }
+      @media (prefers-reduced-motion: reduce) { #boot, #boot * { animation: none !important; transition: none !important; } }
     </style>
   </head>
   <body>
     <div id="boot" role="status" aria-label="Loading Performance of the Night">
       <div class="bt-glow"></div>
-      <div class="bt-beam"></div>
-      <div class="bt-floor"></div>
-      <div class="bt-haze"></div>
-      <svg class="bt-court" aria-hidden="true">
-        <line class="c1" x1="0" y1="74%" x2="100%" y2="74%" /><ellipse class="c2" cx="50%" cy="74%" rx="240" ry="34" /><ellipse class="c3" cx="50%" cy="74%" rx="70" ry="10" />
+      <div class="bt-beam a"></div><div class="bt-beam b"></div>
+      <svg class="bt-scene" viewBox="0 0 800 500" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="bt-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4f26" /><stop offset="1" stop-color="#3b2410" /></linearGradient>
+          <radialGradient id="bt-ballg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb066" /><stop offset=".55" stop-color="#e8701f" /><stop offset="1" stop-color="#9c3f0c" /></radialGradient>
+          <linearGradient id="bt-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#07070a" /><stop offset="1" stop-color="#07070a" stop-opacity="0" /></linearGradient>
+        </defs>
+        <!-- the crowd in the dark, and its camera flashes -->
+        <g fill="#1a1820">
+          <rect x="0" y="270" width="800" height="150" />
+        </g>
+        <g fill="#2a2730">
+          <circle cx="40" cy="330" r="9" /><circle cx="70" cy="326" r="9" /><circle cx="100" cy="332" r="9" /><circle cx="130" cy="327" r="9" /><circle cx="160" cy="333" r="9" /><circle cx="190" cy="328" r="9" /><circle cx="220" cy="331" r="9" /><circle cx="250" cy="326" r="9" /><circle cx="280" cy="332" r="9" /><circle cx="310" cy="328" r="9" /><circle cx="340" cy="333" r="9" /><circle cx="370" cy="327" r="9" /><circle cx="400" cy="331" r="9" /><circle cx="430" cy="326" r="9" /><circle cx="460" cy="332" r="9" /><circle cx="490" cy="328" r="9" /><circle cx="520" cy="332" r="9" /><circle cx="550" cy="327" r="9" /><circle cx="580" cy="331" r="9" /><circle cx="740" cy="328" r="9" /><circle cx="770" cy="332" r="9" />
+          <circle cx="55" cy="360" r="10" /><circle cx="88" cy="364" r="10" /><circle cx="121" cy="359" r="10" /><circle cx="154" cy="365" r="10" /><circle cx="187" cy="360" r="10" /><circle cx="220" cy="364" r="10" /><circle cx="253" cy="359" r="10" /><circle cx="286" cy="365" r="10" /><circle cx="319" cy="360" r="10" /><circle cx="352" cy="364" r="10" /><circle cx="385" cy="359" r="10" /><circle cx="418" cy="365" r="10" /><circle cx="451" cy="360" r="10" /><circle cx="484" cy="364" r="10" /><circle cx="517" cy="359" r="10" /><circle cx="550" cy="365" r="10" /><circle cx="583" cy="360" r="10" /><circle cx="750" cy="363" r="10" /><circle cx="783" cy="359" r="10" />
+        </g>
+        <g fill="#fff">
+          <circle class="bt-flash" cx="100" cy="326" r="3" style="animation-delay:-.4s" /><circle class="bt-flash" cx="352" cy="360" r="3" style="animation-delay:-1.3s" />
+          <circle class="bt-flash" cx="484" cy="330" r="3" style="animation-delay:-2.2s" /><circle class="bt-flash" cx="220" cy="362" r="3" style="animation-delay:-2.8s" />
+          <circle class="bt-flash" cx="550" cy="328" r="3" style="animation-delay:-.9s" /><circle class="bt-flash" cx="770" cy="330" r="3" style="animation-delay:-1.8s" />
+        </g>
+        <rect x="0" y="270" width="800" height="60" fill="url(#bt-fade)" />
+        <!-- the floor -->
+        <rect x="0" y="420" width="800" height="80" fill="url(#bt-wood)" />
+        <g stroke="rgba(0,0,0,.25)" stroke-width="1"><path d="M0 434H800M0 450H800M0 470H800M0 492H800" /></g>
+        <path d="M0 422H800" stroke="rgba(255,240,220,.55)" stroke-width="2" />
+        <path d="M330 500 Q 540 436 760 422" fill="none" stroke="rgba(255,240,220,.5)" stroke-width="2" />
+        <rect x="560" y="422" width="240" height="78" fill="rgba(255,122,26,.18)" />
+        <!-- the basket: stanchion, backboard, rim, net -->
+        <g>
+          <path d="M760 422V160H700" fill="none" stroke="#3b3f48" stroke-width="12" stroke-linejoin="round" />
+          <rect x="690" y="114" width="10" height="120" rx="2" fill="rgba(220,235,255,.25)" stroke="rgba(255,255,255,.75)" stroke-width="2" />
+          <rect x="694" y="172" width="2" height="34" fill="#ff5a3a" />
+        </g>
+        <path id="bt-arc" d="M150 370 Q 400 40 640 206" fill="none" stroke="rgba(255,179,71,.22)" stroke-width="2" stroke-dasharray="2 9" />
+        <g transform="translate(640 212)">
+          <g>
+            <animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 1.32;1 .86;1 1.08;1 1;1 1" keyTimes="0;.47;.53;.6;.67;.75;1" dur="2.6s" repeatCount="indefinite" />
+            <path d="M-26 0 L-19 46 M-13 0 L-9 46 M0 0 L0 46 M13 0 L9 46 M26 0 L19 46 M-24 12 L23 12 M-22 25 L21 25 M-20 37 L19 37" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1.6" />
+          </g>
+        </g>
+        <!-- the ball: the shot, the swish, the bounce -->
+        <ellipse cx="0" cy="424" rx="20" ry="5" fill="rgba(0,0,0,.55)">
+          <animate attributeName="cx" values="150;400;640;640;650;690;700;150" keyTimes="0;.24;.47;.57;.66;.8;.92;1" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values=".7;.15;.15;.35;.9;.5;.9;0" keyTimes="0;.24;.47;.57;.66;.8;.92;1" dur="2.6s" repeatCount="indefinite" />
+        </ellipse>
+        <g>
+          <animateMotion dur="2.6s" repeatCount="indefinite" calcMode="linear" keyPoints="0;.52;1;1" keyTimes="0;.26;.47;1" path="M150 370 Q 400 40 640 206" />
+          <animateTransform attributeName="transform" additive="sum" type="translate" values="0 0;0 0;0 0;0 70;10 198;30 138;60 198;60 198" keyTimes="0;.26;.47;.57;.66;.73;.8;1" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;.03;.85;.92;1" dur="2.6s" repeatCount="indefinite" />
+          <g>
+            <animateTransform attributeName="transform" type="rotate" from="0" to="-540" dur="2.6s" repeatCount="indefinite" />
+            <circle r="16" fill="url(#bt-ballg)" />
+            <g fill="none" stroke="#2a1306" stroke-width="1.6" stroke-linecap="round"><path d="M0 -16V16M-16 0H16" /><path d="M-11 -11c5 5 5 17 0 22" /><path d="M11 -11c-5 5-5 17 0 22" /></g>
+          </g>
+        </g>
+        <!-- the rim's front edge goes over the ball, so the ball drops through it -->
+        <ellipse cx="640" cy="210" rx="27" ry="6" fill="none" stroke="#ff6a1a" stroke-width="4">
+          <animate attributeName="stroke" values="#ff6a1a;#ff6a1a;#ffd28a;#ff6a1a;#ff6a1a" keyTimes="0;.48;.52;.6;1" dur="2.6s" repeatCount="indefinite" />
+        </ellipse>
+        <text x="590" y="172" text-anchor="middle" font-family="'Barlow Condensed', 'Arial Narrow', sans-serif" font-weight="800" font-size="30" fill="#ffb347" opacity="0" style="letter-spacing:.1em">SWISH
+          <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.5;.54;.66;.74;1" dur="2.6s" repeatCount="indefinite" />
+          <animateTransform attributeName="transform" type="translate" values="0 8;0 8;0 0;0 -10;0 -16;0 -16" keyTimes="0;.5;.54;.66;.74;1" dur="2.6s" repeatCount="indefinite" />
+        </text>
       </svg>
-      <h1 class="bt-title" aria-hidden="true"><span>Top 5</span><span>Tonight</span></h1>
-      <div class="bt-ball-wrap" aria-hidden="true">
-        <div class="bt-shadow"></div>
-        <div class="bt-ball"><svg viewBox="0 0 100 100"><defs><radialGradient id="btg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb066"/><stop offset=".55" stop-color="#e8701f"/><stop offset="1" stop-color="#9c3f0c"/></radialGradient></defs>
-          <circle cx="50" cy="50" r="48" fill="url(#btg)"/><g fill="none" stroke="#2a1306" stroke-width="2.6" stroke-linecap="round"><path d="M50 2v96M2 50h96"/><path d="M15 16c14 12 14 56 0 68"/><path d="M85 16c-14 12-14 56 0 68"/></g></svg></div>
+      <h1 class="bt-title" aria-hidden="true"><span>Performance</span><span>of the Night</span><small>Tonight's top 5</small></h1>
+      <div class="bt-board" aria-hidden="true">
+        <div class="bt-cell clock"><b id="bt-clock">24</b><span>Shot clock</span></div>
+        <div class="bt-cell" id="bt-pts-cell"><b id="bt-pts">0</b><span>Points</span></div>
       </div>
-      <div class="bt-board"><span class="bt-n" id="boot-n">5</span><span class="bt-l"><b>Performance</b><span id="boot-msg">of the night</span></span></div>
-      <div class="bt-ticker" aria-hidden="true"><div class="bt-run" id="boot-run"><span>Production</span><i>●</i><span>Efficiency</span><i>●</i><span>Clutch</span><i>●</i><span>Opponent</span><i>●</i><span>Milestones</span><i>●</i><span>Stage</span><i>●</i><span>Season leaderboard</span></div></div>
+      <div class="bt-ticker" aria-hidden="true"><div class="bt-run"><span>Production</span><i>●</i><span>Efficiency</span><i>●</i><span>Clutch</span><i>●</i><span>Opponent</span><i>●</i><span>Milestones</span><i>●</i><span>Breakout</span><i>●</i><span>Stage</span><i>●</i><span>Season leaderboard</span></div></div>
     </div>
+    <script>
+      // Keep the scoreboard in time with the shot: the shot clock runs down each second and resets on the make; every
+      // swish (1.3 s into each 2.6 s shot) adds 2 or 3 points.
+      (function () {
+        var boot = document.getElementById('boot'), svg = boot && boot.querySelector('svg');
+        if (!boot) return;
+        var fit = function () {
+          if (!svg) return;
+          var tall = innerWidth < innerHeight;
+          // Portrait screens frame the basket closely; the ball flies in from the left edge.
+          svg.setAttribute('viewBox', tall ? '220 110 580 390' : '0 0 800 500');
+          svg.setAttribute('preserveAspectRatio', tall ? 'xMaxYMax slice' : 'xMidYMax slice');
+        };
+        fit(); addEventListener('resize', fit);
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { if (svg && svg.pauseAnimations) svg.pauseAnimations(); return; }
+        var clock = document.getElementById('bt-clock'), pts = document.getElementById('bt-pts'), cell = document.getElementById('bt-pts-cell');
+        var t0 = performance.now(), shot = 2600, score = 0, made = 0, c = 24;
+        var tick = setInterval(function () { if (!boot.isConnected) return clearInterval(tick); c = c > 1 ? c - 1 : 24; clock.textContent = c; }, 1000);
+        (function frame(now) {
+          if (!boot.isConnected) return;
+          var n = Math.floor((now - t0 - shot * 0.52) / shot) + 1;
+          if (n > made) {
+            made = n; score += made % 3 ? 2 : 3; pts.textContent = score; c = 24; clock.textContent = c;
+            cell.classList.remove('pop'); void cell.offsetWidth; cell.classList.add('pop');
+          }
+          requestAnimationFrame(frame);
+        })(t0);
+      })();
+    </script>
     <div id="root"></div>
     <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">Performance of the Night needs JavaScript.</p></noscript>
     <script type="module" src="/src/main.jsx"></script>
