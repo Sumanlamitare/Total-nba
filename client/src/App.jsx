@@ -46,7 +46,7 @@ export function statline(l) {
   return parts.join(' · ');
 }
 const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
-const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', giveaways: 'Giveaways', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
+const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', giveaways: 'Giveaways', padding: 'Padding', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
 
 function Breakdown({ parts }) {
   const max = Math.max(...parts.map(p => Math.abs(p.value)), 1);

@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { gameOf, linesOf, pointsOffTurnovers, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
+import { gameOf, linesOf, pointsOffTurnovers, garbageTime, decidedWithout, gameScore, trueShooting, winProbabilityAdded, clutchPoints, milestonesOf, scorePerformance, scoreGame, rank, strength, parseRecord, stageOf, STAGE, MIN_MINUTES } from '../lib/night.js';
 import { seasonLabel, isDate, ymd } from '../lib/nights.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
@@ -137,6 +137,50 @@ test('a loss: no result bonus, no penalty for the result; negative win probabili
   // Points given away off turnovers.
   const gv = scorePerformance(loser, { game: g, giveaways: new Map([['p', { turnovers: 4, points: 9 }]]) });
   assert.equal(gv.parts.find(p => p.k === 'giveaways').value, -3.6);
+});
+
+test('garbage time: stats after the game was decided', () => {
+  // A blowout: A leads by 22 with 1:40 left (win probability 99.9%); then a close game: B up 4 with 10 seconds left
+  // (also 99%+, but not a 15-point lead, so clutch free throws are not padding).
+  const pl = (id, team, type, text, extra = {}) => ({ id, team: { id: team }, type: { text: type }, text, period: { number: 4 }, clock: { displayValue: '1:40' }, ...extra });
+  const blowout = {
+    winprobability: [{ playId: '1', homeWinPercentage: 0.999 }, { playId: '2', homeWinPercentage: 0.999 }, { playId: '3', homeWinPercentage: 0.999 }, { playId: '4', homeWinPercentage: 0.999 }],
+    plays: [
+      pl('1', 'A', 'Jump Shot', 'a1 makes 18-foot jumper', { homeScore: 112, awayScore: 90, scoringPlay: true, scoreValue: 2, participants: [{ athlete: { id: 'a0' } }] }),
+      pl('2', 'A', 'Three Point Jumper', 'a1 makes three point jumper (a2 assists)', { homeScore: 115, awayScore: 90, scoringPlay: true, scoreValue: 3, participants: [{ athlete: { id: 'a1' } }, { athlete: { id: 'a2' } }] }),
+      pl('3', 'A', 'Defensive Rebound', 'a1 defensive rebound', { homeScore: 115, awayScore: 90, participants: [{ athlete: { id: 'a1' } }] }),
+      pl('4', 'B', 'Lost Ball Turnover', 'b1 lost ball turnover (a2 steals)', { homeScore: 115, awayScore: 90, participants: [{ athlete: { id: 'b1' } }, { athlete: { id: 'a2' } }] }),
+    ],
+  };
+  const g = garbageTime(blowout, new Map([['a0', 'A'], ['a1', 'A'], ['a2', 'A'], ['b1', 'B']]));
+  assert.equal(g.get('a0'), undefined, 'the basket that made it 112-90 started from 20, before the win probability said decided');
+  assert.deepEqual([g.get('a1').pts, g.get('a1').tpm, g.get('a1').reb], [3, 1, 1]);
+  assert.deepEqual([g.get('a2').ast, g.get('a2').stl], [1, 1]);
+  const close = { winprobability: [{ playId: '9', homeWinPercentage: 0.995 }, { playId: '10', homeWinPercentage: 0.999 }],
+    plays: [pl('9', 'A', 'Free Throw - 1 of 2', 'a1 makes free throw 1 of 2', { homeScore: 100, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] }),
+      pl('10', 'A', 'Free Throw - 2 of 2', 'a1 makes free throw 2 of 2', { homeScore: 101, awayScore: 96, scoringPlay: true, scoreValue: 1, participants: [{ athlete: { id: 'a1' } }] })] };
+  assert.equal(garbageTime(close).size, 0);
+  // Without win probability: the time-and-margin rule.
+  assert.equal(decidedWithout(3, 30, 30), false, 'never before the fourth quarter');
+  assert.equal(decidedWithout(4, 700, 25), true);
+  assert.equal(decidedWithout(4, 600, 22), false);
+  assert.equal(decidedWithout(4, 450, 20), true);
+  assert.equal(decidedWithout(4, 200, 15), true);
+  assert.equal(decidedWithout(4, 200, 12), false);
+});
+
+test('stat padding: garbage-time stats come off, and a milestone reached in garbage time doesn\'t count', () => {
+  const g = game({ teams: [{ id: 'A', home: true, winner: true, score: 130 }, { id: 'B', home: false, winner: false, score: 104 }] });
+  const p = P({ pts: 22, reb: 11, ast: 10, fgm: 9, fga: 17, ftm: 4, fta: 4 });
+  const clean = scorePerformance(p, { game: g });
+  assert.ok(clean.tags.includes('Triple-double'));
+  const garbage = new Map([['p', { pts: 4, fgm: 2, tpm: 0, reb: 3, oreb: 0, ast: 1, stl: 0, blk: 0 }]]);
+  const padded = scorePerformance(p, { game: g, garbage });
+  const pad = padded.parts.find(x => x.k === 'padding');
+  assert.match(pad.label, /4 pts, 3 reb, 1 ast after the game was decided; the triple-double came in garbage time/);
+  assert.ok(Math.abs(pad.value + (4 + 0.8 + 0.9 + 0.7)) < 0.05);
+  assert.ok(!padded.parts.some(x => x.k === 'm-td') && padded.tags.includes('Padded') && !padded.tags.includes('Triple-double'));
+  assert.ok(clean.score - padded.score > 8);
 });
 
 test('stages from ESPN season types and game notes', () => {
