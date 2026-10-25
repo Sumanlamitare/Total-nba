@@ -32,6 +32,6 @@ jobs:
           check /api/seasons 200 '"2024-25"'
           check '/api/leaderboard?season=2025' 200 '"Nikola Jokic"'
           check /api/game 404 ''
-          n=$(curl -s "$URL/api/night?date=20250115" | grep -o '"score":' | wc -l); echo "performances on 15 Jan 2025: $n"; [ "$n" -eq 10 ] || fail=1
+          n=$(curl -s "$URL/api/night?date=20250115" | grep -o '"parts":' | wc -l); echo "performances on 15 Jan 2025: $n"; [ "$n" -eq 10 ] || fail=1
           s=$(curl -s "$URL/api/seasons" | grep -o '"nights":[0-9]*' | sed 's/.*://' | sort -n | tail -1); echo "most nights in a season: $s"; [ "$s" -gt 200 ] || fail=1
           exit $fail
