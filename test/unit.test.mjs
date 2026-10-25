@@ -174,7 +174,7 @@ test('garbage time: stats after the game was decided', () => {
 
 test('stat padding: garbage-time stats come off, and a milestone reached in garbage time doesn\'t count', () => {
   const g = game({ teams: [{ id: 'A', home: true, winner: true, score: 130 }, { id: 'B', home: false, winner: false, score: 104 }] });
-  const p = P({ pts: 22, reb: 11, ast: 10, fgm: 9, fga: 17, ftm: 4, fta: 4 });
+  const p = { ...P({ pts: 22, reb: 11, ast: 10, fgm: 9, fga: 17, ftm: 4, fta: 4 }), starter: true };
   const clean = scorePerformance(p, { game: g });
   assert.ok(clean.tags.includes('Triple-double'));
   const garbage = new Map([['p', { pts: 4, fgm: 2, tpm: 0, reb: 3, oreb: 0, ast: 1, stl: 0, blk: 0 }]]);
@@ -184,6 +184,10 @@ test('stat padding: garbage-time stats come off, and a milestone reached in garb
   assert.ok(Math.abs(pad.value + (4 + 0.8 + 0.9 + 0.7)) < 0.05);
   assert.ok(!padded.parts.some(x => x.k === 'm-td') && padded.tags.includes('Padded') && !padded.tags.includes('Triple-double'));
   assert.ok(clean.score - padded.score > 8);
+  // A bench player's garbage time is his real playing time: nothing comes off.
+  const bench = scorePerformance({ ...p, starter: false }, { game: g, garbage });
+  assert.ok(!bench.parts.some(x => x.k === 'padding') && bench.tags.includes('Triple-double'));
+  assert.equal(bench.score, clean.score);
 });
 
 test('stages from ESPN season types and game notes', () => {
