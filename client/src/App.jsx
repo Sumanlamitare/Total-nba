@@ -1,204 +1,307 @@
-// Beat the Dynasty. Draft a starting five from random franchise + decade spins, then take on a champion in a
-// best-of-seven. Beat the ladder of dynasties to reach the '17 Warriors.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+// Performance of the Night: the five best individual games of any NBA night, and who collects them over a season.
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion as M, AnimatePresence } from 'motion/react';
-import { loadGame, store } from './api.js';
-import { SLOTS, daily as dailyOf, decadeLabel, rateSeries, simulate, todayKey } from './game.js';
-import { teamGlow } from './colors.js';
-import { Face } from './bits.jsx';
-import Draft from './Draft.jsx';
-import { Tape, Series, Result } from './Series.jsx';
-import { setSound, soundOn, sfx } from './sound.js';
+import { loadNight, loadSeasons, loadLeaderboard, longDay, shortDay, isoDay, fromDate } from './api.js';
 
-const decadeOfSeason = s => Math.floor((s - 1) / 10) * 10;
-const BEATEN_KEY = 'btd.beaten';
-const DAILY_KEY = 'btd.daily';
+const TOP = 5;
 
-// Shape the API payload for play: every era keyed, every player knowing his franchise and decade, each dynasty's
-// five as a lineup.
-export function prepare(d) {
-  const teamById = new Map(d.teams.map(t => [t.id, t]));
-  const eras = d.eras.filter(e => teamById.has(e.team)).map(e => ({
-    ...e, key: `${e.team}-${e.decade}`,
-    players: e.players.map(p => ({ ...p, team: e.team, decade: e.decade })),
-  }));
-  const dynasties = d.dynasties.map(x => {
-    const team = teamById.get(x.team);
-    const lineup = Object.fromEntries(x.five.map(p => [p.slot, { ...p, team: x.team, decade: decadeOfSeason(x.season), season: x.season }]));
-    return { ...x, lineup, teamInfo: team, glow: teamGlow(team), short: team?.short || x.abbr };
-  });
-  return { ...d, teamById, eras, dynasties, playerEras: eras.reduce((n, e) => n + e.players.length, 0) };
+// ---- Routing: /, /night/YYYYMMDD, /leaderboard, /leaderboard/YYYY ---------------------------------------------------
+function parseRoute(path = location.pathname) {
+  let m;
+  if ((m = path.match(/^\/night\/(\d{8})\/?$/))) return { page: 'night', date: m[1] };
+  if ((m = path.match(/^\/leaderboard(?:\/(\d{4}))?\/?$/))) return { page: 'leaderboard', season: m[1] ? +m[1] : null };
+  return { page: 'night', date: 'latest' };
+}
+function useRoute() {
+  const [route, setRoute] = useState(() => parseRoute());
+  useEffect(() => { const on = () => setRoute(parseRoute()); addEventListener('popstate', on); return () => removeEventListener('popstate', on); }, []);
+  const go = useCallback((path, { replace = false } = {}) => {
+    if (path !== location.pathname) history[replace ? 'replaceState' : 'pushState'](null, '', path);
+    setRoute(parseRoute(path)); scrollTo({ top: 0 });
+  }, []);
+  return [route, go];
+}
+const Link = ({ to, go, children, ...rest }) => <a href={to} onClick={e => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); go(to); }} {...rest}>{children}</a>;
+
+// ---- Small pieces --------------------------------------------------------------------------------------------------
+const initials = n => String(n || '?').split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+function Face({ p, size = 64 }) {
+  const [failed, setFailed] = useState(false);
+  const src = p.headshot || `https://a.espncdn.com/i/headshots/nba/players/full/${p.id}.png`;
+  return (
+    <span className="face" style={{ width: size, height: size }}>
+      {!failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <b style={{ fontSize: size * 0.34 }}>{initials(p.name)}</b>}
+    </span>
+  );
+}
+const Logo = ({ team, size = 22 }) => (team?.logo ? <img className="logo" src={team.logo} alt="" width={size} height={size} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} /> : null);
+
+// "38 PTS · 5 REB · 4 AST · 14-22 FG"
+export function statline(l) {
+  const parts = [`${l.pts} PTS`, `${l.reb} REB`, `${l.ast} AST`];
+  if (l.stl >= 2) parts.push(`${l.stl} STL`);
+  if (l.blk >= 2) parts.push(`${l.blk} BLK`);
+  parts.push(`${l.fgm}-${l.fga} FG`);
+  if (l.tpa) parts.push(`${l.tpm}-${l.tpa} 3PT`);
+  return parts.join(' · ');
+}
+const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
+const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
+
+function Breakdown({ parts }) {
+  const max = Math.max(...parts.map(p => Math.abs(p.value)), 1);
+  return (
+    <ul className="parts">
+      {parts.map(p => (
+        <li key={p.k} className={p.value < 0 ? 'neg' : ''}>
+          <span className="pk">{PART_NAME[p.k] || 'Milestone'}</span>
+          <span className="pl">{p.label}</span>
+          <span className="pbar"><i style={{ width: `${(Math.abs(p.value) / max) * 100}%` }} /></span>
+          <b className="pv">{p.value > 0 ? '+' : ''}{p.value.toFixed(1)}</b>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
-export default function App() {
-  const [data, setData] = useState(null);
+function PerfCard({ p, rank, hero, onOpen, open }) {
+  const color = p.team?.color || '#ff7a1a';
+  return (
+    <M.li className={`perf${hero ? ' hero' : ''}${open ? ' open' : ''}`} style={{ '--team': color }}
+      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * rank, type: 'spring', stiffness: 220, damping: 24 }}>
+      <button type="button" className="perf-main" onClick={onOpen} aria-expanded={open} aria-label={`Number ${rank}: ${p.name}, score ${p.score}. Show why`}>
+        <span className="rank">{rank}</span>
+        <Face p={p} size={hero ? 112 : 64} />
+        <span className="who">
+          <b className="name">{p.name}</b>
+          <span className="team"><Logo team={p.team} size={16} /> {p.team?.abbr} {p.home ? 'vs' : '@'} <Logo team={p.opp} size={16} /> {p.opp?.abbr} · <em className={p.result.startsWith('W') ? 'w' : 'l'}>{p.result}</em>{STAGE_LABEL[p.stage] ? <> · <span className="stage">{STAGE_LABEL[p.stage]}</span></> : null}</span>
+          <span className="line">{statline(p.line)}</span>
+          {p.tags.length > 0 && <span className="tags">{p.tags.map(t => <i key={t}>{t}</i>)}</span>}
+        </span>
+        <span className="score"><b>{p.score.toFixed(1)}</b><small>score</small></span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <M.div className="why" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}>
+            <Breakdown parts={p.parts} />
+            <p className="fine">{p.line.min} minutes · {p.line.ftm}-{p.line.fta} FT · {p.line.to} turnovers · {p.line.pm > 0 ? '+' : ''}{p.line.pm} plus-minus</p>
+          </M.div>
+        )}
+      </AnimatePresence>
+    </M.li>
+  );
+}
+
+function SeasonSelect({ seasons, value, onChange, id = 'season' }) {
+  return (
+    <label className="select">
+      <span className="sr-only">Season</span>
+      <select id={id} value={value || ''} onChange={e => onChange(+e.target.value)}>
+        {seasons.map(s => <option key={s.year} value={s.year}>{s.label} season</option>)}
+      </select>
+    </label>
+  );
+}
+
+// ---- The night -----------------------------------------------------------------------------------------------------
+function NightPage({ date, go, seasons }) {
+  const [night, setNight] = useState(null);
   const [error, setError] = useState(null);
-  const [beaten, setBeaten] = useState(() => new Set(store.get(BEATEN_KEY) || []));
-  const [run, setRun] = useState(null); // { dynasty, seed, daily, lineup, rated, series, screen }
-  const [sound, setSoundState] = useState(soundOn());
+  const [open, setOpen] = useState(0);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    setError(null); setOpen(0); setMore(false);
+    loadNight(date).then(n => { if (!alive) return; setNight(n); if (date === 'latest') go(`/night/${n.date}`, { replace: true }); }).catch(e => alive && setError(e));
+    return () => { alive = false; };
+  }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Live nights refresh every minute.
+  useEffect(() => {
+    if (!night?.live) return;
+    const t = setInterval(() => fetch(`/api/night?date=${night.date}`).then(r => r.json()).then(setNight).catch(() => {}), 60000);
+    return () => clearInterval(t);
+  }, [night?.live, night?.date]);
 
-  useEffect(() => {
-    loadGame().then(d => setData(prepare(d))).catch(e => setError(e));
-  }, []);
+  const dates = night?.dates || [];
+  const cur = night?.date || date;
+  const i = dates.indexOf(cur);
+  const prev = i > 0 ? dates[i - 1] : dates.filter(x => x < cur).pop();
+  const next = i >= 0 ? dates[i + 1] : dates.find(x => x > cur);
+  const today = fromDate(new Date());
+  const pickSeason = y => {
+    const s = seasons.find(x => x.year === y);
+    const last = (s?.dates || []).filter(x => x <= today).pop() || s?.dates?.[0];
+    if (last) go(`/night/${last}`);
+  };
+  const pickDay = v => {
+    const d = v.replace(/-/g, '');
+    if (!/^\d{8}$/.test(d)) return;
+    // Snap to the nearest game night on or before the chosen day.
+    go(`/night/${dates.length && !dates.includes(d) ? (dates.filter(x => x <= d).pop() || dates[0]) : d}`);
+  };
 
-  // The loading page (index.html): fill the scoreboard and ticker from the real data, then close the arena.
+  if (error) return <section className="empty"><h2>Couldn't load that night</h2><p>{error.message}</p><button className="btn" onClick={() => go('/')}>Latest night</button></section>;
+  const top = night?.top || [];
+  return (
+    <section className="night">
+      <div className="controls">
+        {seasons.length > 0 && <SeasonSelect seasons={seasons} value={night?.season} onChange={pickSeason} />}
+        <div className="datebar" role="group" aria-label="Choose a night">
+          <button type="button" className="icon-btn" disabled={!prev} onClick={() => go(`/night/${prev}`)} aria-label={prev ? `Previous game night, ${longDay(prev)}` : 'No earlier game night'}>‹</button>
+          <label className="day">
+            <span className="day-label">{cur !== 'latest' ? longDay(cur) : 'Loading…'}</span>
+            <input type="date" aria-label="Pick a date" value={cur !== 'latest' ? isoDay(cur) : ''} min={dates[0] ? isoDay(dates[0]) : undefined} max={dates.length ? isoDay(dates[dates.length - 1]) : undefined} onChange={e => pickDay(e.target.value)} />
+          </label>
+          <button type="button" className="icon-btn" disabled={!next || next > today} onClick={() => go(`/night/${next}`)} aria-label={next ? `Next game night, ${longDay(next)}` : 'No later game night'}>›</button>
+        </div>
+        <button type="button" className="btn small ghost" onClick={() => go('/')}>Latest</button>
+      </div>
+
+      <header className="night-head">
+        <p className="eyebrow">Performance of the Night{night ? ` · ${night.games.length} game${night.games.length === 1 ? '' : 's'}` : ''}{night?.live ? ' · live' : ''}</p>
+        <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
+        {night && !night.final && night.games.length > 0 && <p className="note">{night.live ? 'Games are still being played: the ranking updates every minute and is final when the last game ends.' : 'Some games haven\'t finished yet.'}</p>}
+      </header>
+
+      {night?.games?.length > 0 && (
+        <ul className="games" aria-label="Games">
+          {night.games.map(g => (
+            <li key={g.id} className={g.state === 'in' ? 'live' : ''}>
+              {g.teams.slice().sort((a, b) => a.home - b.home).map(t => (
+                <span key={t.id} className={t.winner ? 'won' : ''}><Logo team={t} size={18} />{t.abbr}<b>{t.score ?? ''}</b></span>
+              ))}
+              <small>{g.detail}{g.note ? ` · ${g.note}` : ''}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!night && <div className="skeleton" aria-busy="true">{Array.from({ length: 5 }, (_, k) => <div key={k} className={`sk${k ? '' : ' hero'}`} />)}</div>}
+      {night && !top.length && (
+        <div className="empty"><h2>{night.games.length ? 'Waiting for tip-off' : 'No games this night'}</h2><p>{night.games.length ? 'Performances appear once games are under way.' : 'Pick another date, or step to the nearest game night with the arrows.'}</p></div>
+      )}
+      {top.length > 0 && (
+        <>
+          <ol className="top" aria-label="Top five performances">
+            {top.slice(0, TOP).map((p, k) => <PerfCard key={`${p.event}-${p.id}`} p={p} rank={k + 1} hero={k === 0} open={open === k} onOpen={() => setOpen(open === k ? null : k)} />)}
+          </ol>
+          {top.length > TOP && (
+            <div className="also">
+              <button type="button" className="btn small ghost" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Hide' : 'Show'} the next {top.length - TOP}</button>
+              {more && (
+                <ol start={TOP + 1} className="also-list">
+                  {top.slice(TOP).map(p => <li key={`${p.event}-${p.id}`}><span>{p.name}</span><small>{p.team?.abbr} · {statline(p.line)}</small><b>{p.score.toFixed(1)}</b></li>)}
+                </ol>
+              )}
+            </div>
+          )}
+          <p className="fine method">The score adds production (Game Score, weighted by the opponent's record), shooting efficiency, plus-minus, win probability added in the moment, the result, milestones, how far above his own season average he played, and the stage. Tap a performance to see its parts.</p>
+        </>
+      )}
+      {night && (
+        <p className="to-board"><Link to={`/leaderboard/${night.season}`} go={go} className="btn">Season leaderboard →</Link></p>
+      )}
+    </section>
+  );
+}
+
+// ---- The leaderboard -----------------------------------------------------------------------------------------------
+function LeaderboardPage({ season, go, seasons, current }) {
+  const year = season || current || seasons[0]?.year;
+  const [stage, setStage] = useState('all');
+  const [board, setBoard] = useState(null);
+  const [error, setError] = useState(null);
+  const [open, setOpen] = useState(null);
   useEffect(() => {
-    const boot = document.getElementById('boot');
-    if (!boot || !data) return;
-    const n = document.getElementById('boot-n'), msg = document.getElementById('boot-msg'), runEl = document.getElementById('boot-run');
-    if (msg) msg.textContent = 'rated and ready';
-    if (runEl) {
-      const stars = data.eras.map(e => e.players[0]).filter(Boolean).sort((a, b) => b.ovr - a.ovr).slice(0, 16).map(p => `${p.n} ${p.ovr}`);
-      const names = data.dynasties.map(x => x.label).concat(stars);
-      runEl.replaceChildren(...names.flatMap((t, k) => { const a = document.createElement('span'); a.textContent = t; const d = document.createElement('i'); d.textContent = '●'; return k ? [d, a] : [a]; }));
-    }
-    if (n) {
-      const total = data.playerEras, t0 = performance.now();
-      const step = now => { const k = Math.min(1, (now - t0) / 900); n.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US'); if (k < 1 && boot.isConnected) requestAnimationFrame(step); };
-      requestAnimationFrame(step);
-    }
-    boot.classList.add('ready');
-  }, [data]);
+    if (!year) return;
+    let alive = true;
+    setBoard(null); setError(null); setOpen(null);
+    loadLeaderboard(year, stage).then(b => alive && setBoard(b)).catch(e => alive && setError(e));
+    return () => { alive = false; };
+  }, [year, stage]);
+  const info = seasons.find(s => s.year === year);
+
+  return (
+    <section className="board">
+      <div className="controls">
+        {seasons.length > 0 && <SeasonSelect seasons={seasons} value={year} onChange={y => go(`/leaderboard/${y}`)} />}
+        <div className="seg" role="radiogroup" aria-label="Games">
+          {[['all', 'All games'], ['regular', 'Regular season'], ['playoffs', 'Playoffs']].map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={stage === k} className={stage === k ? 'on' : ''} onClick={() => setStage(k)}>{label}</button>
+          ))}
+        </div>
+      </div>
+      <header className="night-head">
+        <p className="eyebrow">Season leaderboard{info ? ` · ${info.label}` : ''}</p>
+        <h1>Most Performances of the Night</h1>
+        <p className="note">A top-five finish on a night counts once; No. 1 nights and points (5 for first down to 1 for fifth) break ties.{board ? ` ${board.nights} nights scored.` : ''}</p>
+      </header>
+      {error && <div className="empty"><p>{error.message}</p></div>}
+      {!board && !error && <div className="skeleton" aria-busy="true">{Array.from({ length: 6 }, (_, k) => <div key={k} className="sk row" />)}</div>}
+      {board && !board.players.length && <div className="empty"><h2>Nothing yet</h2><p>No nights have been scored for this selection yet.</p></div>}
+      {board && board.players.length > 0 && (
+        <ol className="lb">
+          <li className="lb-head" aria-hidden><span>#</span><span>Player</span><span>Top 5</span><span>No. 1</span><span>Points</span><span>Best</span></li>
+          {board.players.map((p, k) => (
+            <li key={p.id} className={open === p.id ? 'open' : ''} style={{ '--team': p.team?.color || '#ff7a1a' }}>
+              <button type="button" className="lb-row" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)}>
+                <span className="lb-rank">{k + 1}</span>
+                <span className="lb-who"><Face p={{ id: p.id, name: p.name, headshot: p.headshot }} size={40} /><span><b>{p.name}</b><small><Logo team={p.team} size={14} /> {p.team?.abbr}</small></span></span>
+                <span className="lb-n"><b>{p.count}</b><small>top 5</small></span>
+                <span className="lb-n"><b>{p.firsts}</b><small>No. 1</small></span>
+                <span className="lb-n"><b>{p.points}</b><small>pts</small></span>
+                <span className="lb-n"><b>{p.best.toFixed(1)}</b><small>best</small></span>
+              </button>
+              {open === p.id && (
+                <ul className="lb-nights">
+                  {[...p.nights].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
+                    <li key={n.date}><Link to={`/night/${n.date}`} go={go}><span className={`badge r${n.rank}`}>#{n.rank}</span><span>{shortDay(n.date)} {n.opp ? `vs ${n.opp}` : ''}</span><small>{n.line ? statline(n.line) : ''} · {n.result}</small><b>{n.score.toFixed(1)}</b></Link></li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+// ---- The app -------------------------------------------------------------------------------------------------------
+export default function App() {
+  const [route, go] = useRoute();
+  const [seasons, setSeasons] = useState([]);
+  const [current, setCurrent] = useState(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => { loadSeasons().then(s => { setSeasons(s.seasons); setCurrent(s.current); }).catch(() => {}).finally(() => setReady(true)); }, []);
+
+  // The loading page (index.html) closes once the first data is in.
   useEffect(() => {
-    if (!data && !error) return;
+    if (!ready) return;
     const boot = document.getElementById('boot'); if (!boot) return;
-    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(1100, 2200 - performance.now()));
+    boot.classList.add('ready');
+    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(600, 1800 - performance.now()));
     return () => clearTimeout(t);
-  }, [data, error]);
-
-  // Each screen starts at the top of the page.
-  useEffect(() => { window.scrollTo({ top: 0 }); }, [run?.screen]);
-
-  const eraOf = useCallback(p => {
-    const t = data?.teamById.get(p.team);
-    return p.season ? `${t?.abbr || ''} '${String(p.season).slice(2)}` : `${t?.abbr || ''} ${decadeLabel(p.decade)}`;
-  }, [data]);
-
-  const start = (dynasty, opts = {}) => {
-    sfx('lock');
-    setRun({ dynasty, seed: opts.seed || `${dynasty.key}:${Date.now()}`, daily: opts.daily || null, screen: 'draft' });
-  };
-  const drafted = lineup => setRun(r => ({ ...r, lineup, rated: rateSeries(lineup, r.dynasty.lineup), screen: 'tape' }));
-  const names = run && { mine: 'Your Five', theirs: run.dynasty.short, theirsFull: run.dynasty.label };
-  const colors = run && { theirs: run.dynasty.glow };
-  const tip = () => {
-    const gap = run.rated.mine.rating - run.rated.theirs.rating;
-    const ids = SLOTS.map(s => run.lineup[s].i).join('.');
-    const series = simulate({ mine: run.lineup, theirs: run.dynasty.lineup, gap, names, seed: `${run.seed}:${ids}` });
-    sfx('buzzer');
-    setRun(r => ({ ...r, series, screen: 'series' }));
-  };
-  const finish = () => {
-    const { series, dynasty, daily } = run;
-    if (series.won && !daily) {
-      const next = new Set(beaten); next.add(dynasty.key);
-      setBeaten(next); store.set(BEATEN_KEY, [...next]);
-    }
-    if (daily) store.set(DAILY_KEY, { day: daily, key: dynasty.key, won: series.won, w: series.w, l: series.l });
-    setRun(r => ({ ...r, screen: 'result' }));
-  };
-
-  const toggleSound = () => { setSound(!sound); setSoundState(!sound); if (!sound) sfx('pick'); };
-
-  if (error) return <main className="fault"><h1>The arena is dark</h1><p>{error.status === 503 ? 'The rosters are still being built. Try again in a few minutes.' : error.message}</p><button className="btn primary" onClick={() => location.reload()}>Try again</button></main>;
-  if (!data) return null;
-
-  const ladderIndex = run ? data.dynasties.findIndex(x => x.key === run.dynasty.key) : -1;
-  const next = ladderIndex >= 0 && !run?.daily ? data.dynasties[ladderIndex + 1] || null : null;
+  }, [ready]);
+  useEffect(() => { document.title = route.page === 'leaderboard' ? 'Leaderboard · Performance of the Night' : 'Performance of the Night'; }, [route.page]);
 
   return (
     <div className="app">
       <nav className="nav">
-        <button type="button" className="brand" onClick={() => setRun(null)} aria-label="Beat the Dynasty, home">
+        <Link to="/" go={go} className="brand" aria-label="Performance of the Night, latest night">
           <svg width="28" height="28" viewBox="0 0 100 100" aria-hidden><circle cx="50" cy="50" r="46" fill="#e8701f" /><g fill="none" stroke="#2a1306" strokeWidth="5" strokeLinecap="round"><path d="M50 4v92M4 50h92" /><path d="M18 17c14 12 14 54 0 66" /><path d="M82 17c-14 12-14 54 0 66" /></g></svg>
-          <span>Beat the <em>Dynasty</em></span>
-        </button>
-        <div className="nav-right">
-          {run && <span className="nav-note">vs {run.dynasty.label}</span>}
-          <button type="button" className="icon-btn" onClick={toggleSound} aria-pressed={sound} aria-label="Sound" title={sound ? 'Sound on' : 'Sound off'}>
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />{sound ? <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /> : <path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}</svg>
-          </button>
+          <span>Performance <em>of the Night</em></span>
+        </Link>
+        <div className="nav-links">
+          <Link to="/" go={go} aria-current={route.page === 'night' ? 'page' : undefined}>Tonight</Link>
+          <Link to={`/leaderboard${current ? `/${current}` : ''}`} go={go} aria-current={route.page === 'leaderboard' ? 'page' : undefined}>Leaderboard</Link>
         </div>
       </nav>
       <main className="stage">
-        <AnimatePresence mode="wait">
-          <M.div key={run ? `${run.seed}-${run.screen}` : 'home'} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.28 }}>
-            {!run && <Home data={data} beaten={beaten} onPlay={start} />}
-            {run?.screen === 'draft' && <Draft data={data} dynasty={run.dynasty} seed={run.seed} eraOf={eraOf} onDone={drafted} onQuit={() => setRun(null)} />}
-            {run?.screen === 'tape' && <Tape mine={run.lineup} theirs={run.dynasty.lineup} rated={run.rated} names={names} colors={colors} eraOf={eraOf} onTip={tip} />}
-            {run?.screen === 'series' && <Series series={run.series} names={names} colors={colors} onEnd={finish} />}
-            {run?.screen === 'result' && <Result lineup={run.lineup} dynasty={run.dynasty} series={run.series} rating={run.rated} names={names} colors={colors} eraOf={eraOf} daily={run.daily}
-              next={next} onAgain={() => start(run.dynasty, run.daily ? { seed: run.seed, daily: run.daily } : {})} onNext={() => next && start(next)} onHome={() => setRun(null)} />}
-          </M.div>
-        </AnimatePresence>
+        {route.page === 'night' && <NightPage key="night" date={route.date} go={go} seasons={seasons} />}
+        {route.page === 'leaderboard' && <LeaderboardPage season={route.season} go={go} seasons={seasons} current={current} />}
       </main>
-      <footer className="foot">Ratings come from each player's real regular-season and playoff numbers and awards with that franchise in that decade. Dynasties are rated on their championship season, with the reputation each starter had built by then.</footer>
+      <footer className="foot">Box scores, play-by-play, win probability and records from ESPN's public data. Not affiliated with the NBA or ESPN.</footer>
     </div>
-  );
-}
-
-function Home({ data, beaten, onPlay }) {
-  const today = todayKey();
-  const d = useMemo(() => dailyOf(data.dynasties, today), [data, today]);
-  const played = store.get(DAILY_KEY);
-  const playedToday = played?.day === today ? played : null;
-  const unlocked = k => k === 0 || beaten.has(data.dynasties[k - 1].key);
-  const count = data.dynasties.filter(x => beaten.has(x.key)).length;
-  const [peek, setPeek] = useState(null);
-
-  return (
-    <section className="home">
-      <div className="hero">
-        <p className="eyebrow">Five spins · five picks · one series</p>
-        <h1>Beat the <span>Dynasty</span></h1>
-        <p className="lede">Spin a franchise and a decade, sign one of the players it deals, and do it five times: one per position, no take-backs. Then take your five into a best-of-seven against one of the greatest teams ever.</p>
-      </div>
-
-      <div className="daily" style={{ '--glow': d.dynasty.glow }}>
-        <div>
-          <p className="eyebrow">Daily challenge · {today}</p>
-          <h2>Today: the {d.dynasty.label}</h2>
-          <p>Everyone gets the same spins. {playedToday ? <b>You {playedToday.won ? 'won' : 'lost'} {playedToday.won ? `${playedToday.w}-${playedToday.l}` : `${playedToday.l}-${playedToday.w}`} today.</b> : 'One shot at bragging rights.'}</p>
-        </div>
-        <button type="button" className="btn primary big" onClick={() => onPlay(d.dynasty, { seed: d.seed, daily: today })}>{playedToday ? 'Play it again' : 'Play the daily'}</button>
-      </div>
-
-      <div className="ladder-head">
-        <h2>The ladder</h2>
-        <p>{count} of {data.dynasties.length} dynasties beaten. Win a series to unlock the next banner.</p>
-      </div>
-      <ol className="banners">
-        {data.dynasties.map((x, k) => {
-          const open = unlocked(k), won = beaten.has(x.key);
-          const avg = SLOTS.reduce((s, sl) => s + x.lineup[sl].ovr, 0) / 5;
-          return (
-            <M.li key={x.key} initial={{ opacity: 0, y: -24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * k, type: 'spring', stiffness: 160, damping: 16 }}>
-              <button type="button" className={`banner${open ? '' : ' locked'}${won ? ' won' : ''}${x.boss ? ' boss' : ''}`} style={{ '--team': x.glow }}
-                onClick={() => (open ? onPlay(x) : setPeek(peek === x.key ? null : x.key))} aria-label={`${x.label}${won ? ', beaten' : open ? '' : ', locked'}`}>
-                <span className="banner-rung">{x.boss ? 'Final boss' : `Rung ${k + 1}`}</span>
-                <span className="banner-year">{x.season - 1}–{String(x.season).slice(2)}</span>
-                <span className="banner-name">{x.short}</span>
-                <span className="banner-faces">{SLOTS.map(s => <Face key={s} p={x.lineup[s]} size={30} ring={x.glow} />)}</span>
-                <span className="banner-avg">Starters avg <b>{avg.toFixed(1)}</b></span>
-                <span className="banner-state">{won ? '✓ Beaten' : open ? 'Play' : '🔒 Locked'}</span>
-              </button>
-              {peek === x.key && !open && <p className="peek">Beat the {data.dynasties[k - 1].label} first.</p>}
-            </M.li>
-          );
-        })}
-      </ol>
-
-      <div className="rules">
-        <h2>How it plays</h2>
-        <ol>
-          <li><b>Draft.</b> Each spin lands on a franchise and a decade and deals four of its players. Sign one for an open position.</li>
-          <li><b>Rate.</b> Every player-era is rated 60–99 from his real numbers in that stretch, with playoff games counting double, plus up to +7 for reputation: the MVPs, All-NBA teams and rings he won there.</li>
-          <li><b>Fit.</b> +2 for a ball-handler, two shooters and a rim protector; −3 for three centers or no point guard; +1 for three from the same decade.</li>
-          <li><b>Pedigree.</b> +0.5 for every champion in the lineup; teammates from the same era click (+1); a dynasty's real five played together all year (+2).</li>
-          <li><b>Matchups.</b> Each position battle you win adds half a point.</li>
-          <li><b>Series.</b> The rating gap sets the odds: even is 50%, +5 about 65%, −10 about 22%. The dynasty has home court; Game 7 is wilder.</li>
-        </ol>
-      </div>
-    </section>
   );
 }

@@ -39,7 +39,8 @@ test('a night: games, the top five with every part explained, stored once final'
   assert.equal(body.final, true);
   assert.equal(body.season, 2025);
   assert.match(headers.get('cache-control'), /s-maxage=86400/);
-  assert.equal(body.games.length, 2);
+  assert.equal(body.games.length, 3);
+  assert.equal(body.games.find(g => g.id === '999').detail, 'Postponed');
   assert.deepEqual(body.games.find(g => g.id === '401705127').teams.map(t => `${t.abbr} ${t.score}`).sort(), ['NY 125', 'PHI 119']);
   assert.equal(body.top.length, 10);
   assert.equal(body.top[0].name, 'Jalen Brunson');

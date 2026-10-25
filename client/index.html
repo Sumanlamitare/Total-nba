@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Beat the Dynasty</title>
-    <meta name="description" content="Draft a starting five from random franchise and decade spins, then take on the '96 Bulls, the '17 Warriors and other NBA dynasties in a best-of-seven." />
+    <title>Performance of the Night</title>
+    <meta name="description" content="The five best individual performances of every NBA night, scored by an algorithm that weighs production, efficiency, clutch plays, the opponent and the stage, plus a season leaderboard." />
     <meta name="theme-color" content="#08080a" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" />
     <style>
       /* The loading page — tip-off in an empty arena. Drawn before any script runs; the app fills in the scoreboard and
-         the ticker from the real ratings, then closes the scene into the ball. Everything is prefixed bt-. */
+         the ticker from the real data, then closes the scene into the ball. Everything is prefixed bt-. */
       #boot { --p: .18; position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #fff; background: #08080a; font-family: Barlow, 'Helvetica Neue', Arial, sans-serif;
         clip-path: circle(150% at 50% 62%); transition: clip-path .85s cubic-bezier(.7,0,.2,1), --p 1.2s ease; }
       #boot.done { clip-path: circle(0% at 50% 62%); pointer-events: none; }
@@ -64,7 +64,7 @@
     </style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Loading Beat the Dynasty">
+    <div id="boot" role="status" aria-label="Loading Performance of the Night">
       <div class="bt-glow"></div>
       <div class="bt-beam"></div>
       <div class="bt-floor"></div>
@@ -72,17 +72,17 @@
       <svg class="bt-court" aria-hidden="true">
         <line class="c1" x1="0" y1="74%" x2="100%" y2="74%" /><ellipse class="c2" cx="50%" cy="74%" rx="240" ry="34" /><ellipse class="c3" cx="50%" cy="74%" rx="70" ry="10" />
       </svg>
-      <h1 class="bt-title" aria-hidden="true"><span>Beat the</span><span>Dynasty</span></h1>
+      <h1 class="bt-title" aria-hidden="true"><span>Top 5</span><span>Tonight</span></h1>
       <div class="bt-ball-wrap" aria-hidden="true">
         <div class="bt-shadow"></div>
         <div class="bt-ball"><svg viewBox="0 0 100 100"><defs><radialGradient id="btg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb066"/><stop offset=".55" stop-color="#e8701f"/><stop offset="1" stop-color="#9c3f0c"/></radialGradient></defs>
           <circle cx="50" cy="50" r="48" fill="url(#btg)"/><g fill="none" stroke="#2a1306" stroke-width="2.6" stroke-linecap="round"><path d="M50 2v96M2 50h96"/><path d="M15 16c14 12 14 56 0 68"/><path d="M85 16c-14 12-14 56 0 68"/></g></svg></div>
       </div>
-      <div class="bt-board"><span class="bt-n" id="boot-n">—</span><span class="bt-l"><b>Player-eras</b><span id="boot-msg">Tipping off…</span></span></div>
-      <div class="bt-ticker" aria-hidden="true"><div class="bt-run" id="boot-run"><span>Five spins</span><i>●</i><span>Five picks</span><i>●</i><span>One series</span><i>●</i><span>'96 Bulls</span><i>●</i><span>'17 Warriors</span></div></div>
+      <div class="bt-board"><span class="bt-n" id="boot-n">5</span><span class="bt-l"><b>Performance</b><span id="boot-msg">of the night</span></span></div>
+      <div class="bt-ticker" aria-hidden="true"><div class="bt-run" id="boot-run"><span>Production</span><i>●</i><span>Efficiency</span><i>●</i><span>Clutch</span><i>●</i><span>Opponent</span><i>●</i><span>Milestones</span><i>●</i><span>Stage</span><i>●</i><span>Season leaderboard</span></div></div>
     </div>
     <div id="root"></div>
-    <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">Beat the Dynasty needs JavaScript to play.</p></noscript>
+    <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">Performance of the Night needs JavaScript.</p></noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

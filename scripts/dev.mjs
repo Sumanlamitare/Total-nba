@@ -17,15 +17,19 @@ function serveStatic(req, res) {
 }
 const port = +process.env.PORT || 5173;
 
-// MOCK_API=dir serves a saved /api/game response (dir/game.json) so the interface can be worked on and tested without
-// MongoDB or ESPN.
+// MOCK_API=dir serves saved API responses so the interface can be worked on and tested without MongoDB or ESPN:
+// dir/seasons.json, dir/night_<YYYYMMDD|latest>.json, dir/leaderboard_<season>_<stage>.json.
 function mockApi(name, url, res) {
   const dir = path.resolve(process.env.MOCK_API);
   const send = (code, body) => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.end(typeof body === 'string' ? body : JSON.stringify(body)); };
+  const file = f => { const p = path.join(dir, f); return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null; };
+  const q = k => String(url.searchParams.get(k) || '').replace(/[^a-z0-9]/gi, '');
   setTimeout(() => {
-    const f = path.join(dir, 'game.json');
-    if (name === 'game' && fs.existsSync(f)) return send(200, fs.readFileSync(f, 'utf8'));
-    send(404, { error: 'Not found' });
+    const body = name === 'seasons' ? file('seasons.json')
+      : name === 'night' ? file(`night_${q('date') || 'latest'}.json`) || JSON.stringify({ date: q('date'), season: null, final: false, games: [], top: [], dates: [] })
+      : name === 'leaderboard' ? file(`leaderboard_${q('season')}_${q('stage') || 'all'}.json`) || JSON.stringify({ season: +q('season'), nights: 0, players: [] })
+      : null;
+    body ? send(200, body) : send(404, { error: 'Not found' });
   }, +process.env.MOCK_DELAY || 0);
 }
 
@@ -39,4 +43,4 @@ http.createServer(async (req, res) => {
     req.query = Object.fromEntries(url.searchParams);
     await fn(req, res);
   } catch (e) { console.error(e); res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); }
-}).listen(port, () => console.log(`Beat the Dynasty dev on http://localhost:${port}`));
+}).listen(port, () => console.log(`Performance of the Night dev on http://localhost:${port}`));

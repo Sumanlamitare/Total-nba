@@ -10,6 +10,9 @@ export function mockEspn() {
   const hits = [];
   const sb = raw('scoreboard_20250115');
   const night = { ...sb, events: sb.events.filter(e => GAMES.includes(String(e.id))) };
+  // A postponed game on the same night doesn't keep it from being final.
+  const postponed = { ...sb.events.find(e => !GAMES.includes(String(e.id))), id: '999', status: { type: { name: 'STATUS_POSTPONED', state: 'post', completed: false, shortDetail: 'Postponed' } } };
+  night.events = [...night.events, postponed];
   const routes = [
     [/\/site\/scoreboard$/, u => {
       const date = u.searchParams.get('dates');
