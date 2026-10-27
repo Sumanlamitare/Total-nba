@@ -24,7 +24,8 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017
       - run: npm run build
       - name: Browser test
+        # The runner's own Google Chrome: no browser download or apt packages (that install has hung on slow mirrors).
+        timeout-minutes: 8
         run: |
           npm i --no-save playwright@1.48.2
-          npx playwright install --with-deps chromium
-          npm run test:ui
+          CHROMIUM_PATH="$(command -v google-chrome || command -v google-chrome-stable)" npm run test:ui
