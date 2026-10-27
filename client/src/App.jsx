@@ -46,21 +46,64 @@ export function statline(l) {
   return parts.join(' · ');
 }
 const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
-const PART_NAME = { production: 'Production', efficiency: 'Efficiency', impact: 'Impact', clutch: 'Clutch', giveaways: 'Giveaways', padding: 'Padding', result: 'Result', breakout: 'Breakout', stage: 'Stage' };
+const CATS = [['result', 'Team result'], ['offense', 'Offense'], ['defense', 'Defense'], ['possession', 'Possession'], ['clutch', 'Crunch time']];
+const sign = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}`;
+const pct = v => (v == null ? '–' : `${Math.round(100 * v)}%`);
 
-// The score's parts as a receipt: name, dotted leader, value; what it was for underneath.
-function Breakdown({ parts }) {
+// One category: a hand-drawn bar from 0 to 100 (the tick is 50, a typical rotation player's game) and what went into it.
+function Category({ name, c }) {
+  if (!c) return <li className="cat none"><span className="ck">{name}</span><span className="cs">no data</span></li>;
   return (
-    <ul className="parts">
-      {parts.map(p => (
-        <li key={p.k} className={p.value < 0 ? 'neg' : ''}>
-          <span className="pk">{PART_NAME[p.k] || 'Milestone'}</span>
-          <span className="lead" aria-hidden />
-          <b className="pv">{p.value > 0 ? '+' : ''}{p.value.toFixed(1)}</b>
-          <span className="pl">{p.label}</span>
-        </li>
-      ))}
-    </ul>
+    <li className="cat">
+      <span className="ck">{name}<small> × {Math.round(100 * c.weight)}%</small></span>
+      <span className="bar" aria-hidden><i style={{ width: `${c.score}%` }} /><em /></span>
+      <b className="cs">{Math.round(c.score)}</b>
+      <ul className="items">
+        {c.items.map((x, k) => <li key={k} className={x.value < 0 ? 'neg' : ''}><span>{x.label}</span><span className="lead" aria-hidden /><b>{sign(x.value)}</b></li>)}
+      </ul>
+    </li>
+  );
+}
+
+// The score explained: the five categories, the deductions and the arithmetic, the full line and how sure we are.
+function Breakdown({ p }) {
+  if (!p.categories) return null;
+  const ded = [...(p.padding?.items || []).map(d => ({ ...d, kind: 'Stat padding' })), ...(p.fouls?.items || []).map(d => ({ ...d, kind: 'Fouls' }))];
+  const l = p.line;
+  return (
+    <div className="breakdown">
+      <ul className="cats">{CATS.map(([k, name]) => <Category key={k} name={name} c={p.categories[k]} />)}</ul>
+      {ded.length > 0 && (
+        <ul className="deductions">
+          {ded.map((d, k) => <li key={k}><span className="dk">{d.kind}</span><span>{d.label}</span><b>{sign(d.value)}</b></li>)}
+        </ul>
+      )}
+      <p className="math">
+        <span>Categories {p.base.toFixed(1)}</span>
+        {p.padding?.value ? <span> − padding {Math.abs(p.padding.value).toFixed(1)}</span> : null}
+        {p.fouls?.value ? <span> − fouls {Math.abs(p.fouls.value).toFixed(1)}</span> : null}
+        <b> = {p.score.toFixed(1)}</b><small> / 100</small>
+      </p>
+      <p className="fine">
+        {l.min} min · {l.pts} pts · {l.reb} reb ({l.oreb} off) · {l.ast} ast · {l.stl} stl · {l.blk} blk · {l.to} to{l.pointsOff != null ? ` (${l.pointsOff} pts off them)` : ''} · {l.fgm}-{l.fga} FG · {l.tpm}-{l.tpa} 3PT · {l.ftm}-{l.fta} FT · {l.pf} PF{l.tech ? ` · ${l.tech} tech` : ''}{l.flagrant ? ` · ${l.flagrant} flagrant` : ''} · {l.pm > 0 ? '+' : ''}{l.pm} +/- · TS {pct(l.ts)} · eFG {pct(l.efg)} · usage {pct(l.usage)}{l.astTo != null ? ` · ${l.astTo} ast/to` : ''}
+      </p>
+      {p.confidence && <p className={`fine conf ${p.confidence.level}`}>Data confidence: {p.confidence.level}{p.confidence.missing.length ? ` — missing ${p.confidence.missing.join('; ')}` : ''}</p>}
+    </div>
+  );
+}
+
+// Why No. 1 won, and how close the next two came.
+function Verdict({ potn, players }) {
+  if (!potn) return null;
+  return (
+    <div className="verdict">
+      <h3>Why {potn.name.split(' ').slice(-1)[0]} won{players ? <small> · No. 1 of {players} players who appeared</small> : null}</h3>
+      <ul>{potn.why.map((w, k) => <li key={k}>{w}</li>)}</ul>
+      {potn.competitors.length > 0 && <>
+        <h3>Closest competitors</h3>
+        <ul>{potn.competitors.map(c => <li key={c.id}><b>{c.name}</b> {c.score.toFixed(1)}, {c.gap.toFixed(1)} behind. {c.text}.</li>)}</ul>
+      </>}
+    </div>
   );
 }
 
@@ -91,7 +134,7 @@ export function Tally({ n }) {
   return <span className="tallies" aria-hidden>{marks}</span>;
 }
 
-function PerfCard({ p, rank, hero, onOpen, open }) {
+function PerfCard({ p, rank, hero, onOpen, open, potn, players }) {
   const color = p.team?.color || '#c0392b';
   return (
     <M.li className={`perf${hero ? ' hero' : ''}${open ? ' open' : ''}`} style={{ '--team': color }}
@@ -111,8 +154,8 @@ function PerfCard({ p, rank, hero, onOpen, open }) {
       <AnimatePresence initial={false}>
         {open && (
           <M.div className="why" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}>
-            <Breakdown parts={p.parts} />
-            <p className="fine">{p.line.min} min · {p.line.ftm}-{p.line.fta} FT · {p.line.to} TO · {p.line.pm > 0 ? '+' : ''}{p.line.pm} +/-</p>
+            {hero && <Verdict potn={potn} players={players} />}
+            <Breakdown p={p} />
           </M.div>
         )}
       </AnimatePresence>
@@ -128,6 +171,25 @@ function SeasonSelect({ seasons, value, onChange, id = 'season' }) {
         {seasons.map(s => <option key={s.year} value={s.year}>{s.label} season</option>)}
       </select>
     </label>
+  );
+}
+
+// How the score works, in brief.
+function Method({ unavailable = [], players }) {
+  return (
+    <details className="method">
+      <summary>How the score works</summary>
+      <p>Every player who appeared tonight{players ? ` (${players})` : ''} is scored from 0 to 100. Five categories are each measured in points added, then compared with thousands of real NBA games (50 is a typical rotation player's night):</p>
+      <ul>
+        <li><b>Team result, 20%</b>: winning counts, scaled by his share of it; a loss costs by his minutes, half as much when it was close. Opponent's record, road, overtime, playoffs, plus-minus and win probability added.</li>
+        <li><b>Offense, 30%</b>: points, with half the points above or below an average shooter on the same shots, and assists.</li>
+        <li><b>Defense, 20%</b>: steals, blocks, defensive rebounds, and the opponent's scoring rate with him on the floor against without him.</li>
+        <li><b>Possession, 15%</b>: offensive rebounds; turnovers against what his touches would predict, each costing more when the opponent scored off it and in a close game late.</li>
+        <li><b>Crunch time, 15%</b>: the last 5 minutes within 5 points: win probability he added there, and the game-winner.</li>
+      </ul>
+      <p>Then deductions. <b>Stat padding</b> (up to 12): garbage-time stats for starters (the last 2 minutes with a 15-point lead), and, for box scores that look impressive, volume without efficiency, high usage with little creation, and turnovers out of proportion. <b>Fouls</b> (up to 7): technicals (more if the free throw went in, and in a close game), costly fouls and foul trouble, fouling out (by the time left and the score), flagrants and ejections. Each event is charged once.</p>
+      {unavailable.length > 0 && <p className="fine">Not in ESPN's data, so not used: {unavailable.join(', ')}.</p>}
+    </details>
   );
 }
 
@@ -211,7 +273,7 @@ function NightPage({ date, go, seasons }) {
       {top.length > 0 && (
         <>
           <ol className="top" aria-label="Top five performances">
-            {top.slice(0, TOP).map((p, k) => <PerfCard key={`${p.event}-${p.id}`} p={p} rank={k + 1} hero={k === 0} open={open === k} onOpen={() => setOpen(open === k ? null : k)} />)}
+            {top.slice(0, TOP).map((p, k) => <PerfCard key={`${p.event}-${p.id}`} p={p} rank={k + 1} hero={k === 0} open={open === k} onOpen={() => setOpen(open === k ? null : k)} potn={night.potn?.id === p.id ? night.potn : null} players={night.players} />)}
           </ol>
           {top.length > TOP && (
             <div className="also">
@@ -223,7 +285,7 @@ function NightPage({ date, go, seasons }) {
               )}
             </div>
           )}
-          <p className="fine method">The score adds production (Game Score, weighted by the opponent's record), shooting efficiency, plus-minus, win probability added in the moment, the points his turnovers gave away, the result, milestones, how far above his own season average he played, and the stage. A great game in a loss still counts: only a win earns the result bonus, but the loss itself costs nothing. Tap a performance to see its parts.</p>
+          <Method unavailable={night.unavailable} players={night.players} />
         </>
       )}
       {night && (

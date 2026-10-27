@@ -40,7 +40,7 @@ for (const [i, date] of calib.entries()) {
   for (const sum of await nightGames(date)) {
     games++;
     const { perfs } = scoreGame(sum);
-    for (const p of perfs.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k]) raws[k].push(p.categories[k].raw);
+    for (const p of perfs.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k] && (k !== 'clutch' || p.categories[k].played)) raws[k].push(p.categories[k].raw);
     if (perfs.some(p => p.tags.includes('Ejected'))) keep('ejection', sum);
     if (perfs.some(p => p.tags.includes('Fouled out'))) keep('foul out', sum);
     if (perfs.some(p => p.fouls.items.some(f => f.k === 'technical' && /missed/.test(f.label)))) keep('missed technical free throw', sum);
@@ -55,13 +55,15 @@ log(`calibration ${JSON.stringify(categories)}`);
 
 // 2. Test on the other nights, with the new calibration
 const cal = categories;
+let top3losses = 0;
 const tops = [], scores = Object.fromEntries(CATEGORIES.map(k => [k, []])), deductions = [];
 for (const [i, date] of test.entries()) {
   if (i % 3) continue;
   const all = rank((await nightGames(date)).flatMap(s => scoreGame(s, new Map(), cal).perfs));
   if (!all.length) continue;
-  for (const p of all.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k]) scores[k].push(p.categories[k].score);
+  for (const p of all.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k] && (k !== 'clutch' || p.categories[k].played)) scores[k].push(p.categories[k].score);
   const top = all[0], scorer = [...all].sort((a, b) => b.line.pts - a.line.pts)[0];
+  top3losses += all.slice(0, 3).filter(p => p.result.startsWith('L')).length;
   tops.push({ date, name: top.name, score: top.score, won: top.result.startsWith('W'), topScorer: scorer.id === top.id, pts: top.line.pts, line: `${top.line.pts}-${top.line.reb}-${top.line.ast}`,
     second: all[1]?.score, deducted: top.padding.value + top.fouls.value });
   for (const p of all.slice(0, 10)) for (const d of [...p.padding.items, ...p.fouls.items]) deductions.push({ date, name: p.name, value: d.value, label: d.label });
@@ -74,6 +76,7 @@ console.log('\n== Held-out nights:', tops.length);
 console.log('category score medians (should be near 50):', JSON.stringify(Object.fromEntries(CATEGORIES.map(k => [k, med(scores[k])]))));
 console.log(`No. 1: won ${pct(tops, t => t.won)}%, was the night's top scorer ${pct(tops, t => t.topScorer)}%, had a deduction ${pct(tops, t => t.deducted < 0)}%`);
 console.log(`No. 1 score: 10th pct ${q(nums, 0.1)}, median ${q(nums, 0.5)}, 90th pct ${q(nums, 0.9)}; margin over No. 2: median ${q(tops.map(t => t.score - t.second), 0.5)?.toFixed(1)}`);
+console.log(`Losses among the nights' top threes: ${Math.round(100 * top3losses / Math.max(1, 3 * tops.length))}%`);
 console.log(`No. 1 points: median ${q(tops.map(t => t.pts), 0.5)}, fewest ${Math.min(...tops.map(t => t.pts))}`);
 for (const t of tops.filter(t => !t.won || !t.topScorer).slice(0, 12)) console.log('  ', t.date, t.name, t.score, t.line, t.won ? 'W' : 'L', t.topScorer ? '' : '(not the top scorer)');
 console.log('\n== Biggest deductions in the top tens');
@@ -86,6 +89,8 @@ for (const [date, who, what] of FAMOUS) {
   const all = rank((await nightGames(date)).flatMap(s => scoreGame(s, new Map(), cal).perfs));
   const at = all.findIndex(p => p.name.normalize('NFD').replace(/[̀-ͯ]/g, '') === who);
   console.log(`${date} ${who} (${what}): ${at < 0 ? 'not found' : `#${at + 1} of ${all.length}`}`);
+  const me = all[at];
+  if (me && at > 0) console.log(`   (${me.name} ${me.score} [${CATEGORIES.map(k => `${k[0]}${Math.round(me.categories[k]?.score ?? -1)}`).join(' ')}] ${me.result}: ${CATEGORIES.map(k => me.categories[k]?.items.map(i => `${i.label} ${i.value}`).join('; ')).join(' | ')} | ded ${JSON.stringify([...me.padding.items, ...me.fouls.items])})`);
   for (const p of all.slice(0, 3)) console.log(`   ${p.name} ${p.score} [${CATEGORIES.map(k => `${k[0]}${Math.round(p.categories[k]?.score ?? -1)}`).join(' ')}] ${p.line.pts}-${p.line.reb}-${p.line.ast} ${p.result} ded ${p.padding.value + p.fouls.value}`);
   const ex = explainNight(all);
   if (ex) { console.log('   why:', ex.why.join(' | ')); for (const c of ex.competitors) console.log(`   vs ${c.name} (−${c.gap}): ${c.text}`); }

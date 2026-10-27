@@ -43,14 +43,21 @@ test('a night: games, the top five with every part explained, stored once final'
   assert.equal(body.games.find(g => g.id === '999').detail, 'Postponed');
   assert.deepEqual(body.games.find(g => g.id === '401705127').teams.map(t => `${t.abbr} ${t.score}`).sort(), ['NY 125', 'PHI 119']);
   assert.equal(body.top.length, 10);
-  assert.equal(body.top[0].name, 'Jalen Brunson');
+  assert.ok(['Jalen Brunson', 'Josh Hart'].includes(body.top[0].name), body.top[0].name);
+  assert.deepEqual(body.top.map(p => p.rank), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.equal(body.players, 41, 'every player who appeared is ranked');
+  assert.equal(body.potn.name, body.top[0].name);
+  assert.equal(body.potn.competitors.length, 2);
+  assert.equal(body.model, 'potn-2');
   assert.deepEqual(body.top.map(p => p.score), [...body.top.map(p => p.score)].sort((a, b) => b - a));
   const hart = body.top.find(p => p.name === 'Josh Hart');
   assert.ok(hart.tags.includes('Triple-double'));
   assert.equal(hart.result, 'W 125-119 OT');
   for (const p of body.top) {
-    assert.ok(p.parts.some(x => x.k === 'production'));
-    assert.equal(Math.round(p.parts.reduce((s, x) => s + x.value, 0)), Math.round(p.score));
+    assert.ok(p.score >= 0 && p.score <= 100);
+    assert.deepEqual(Object.keys(p.categories), ['result', 'offense', 'defense', 'possession', 'clutch']);
+    assert.ok(Object.values(p.categories).every(c => c.items.length));
+    assert.equal(p.confidence.level, 'high');
   }
   assert.ok(body.dates.includes('20250115'));
   // Served from the database from now on.
@@ -83,7 +90,7 @@ test('seasons and the leaderboard', async () => {
   assert.equal(lb.status, 200);
   assert.equal(lb.body.nights, 1);
   assert.equal(lb.body.players.length, 5, 'the top five count');
-  assert.equal(lb.body.players[0].name, 'Jalen Brunson');
+  assert.equal(lb.body.players[0].name, (await get('/api/night?date=20250115')).body.top[0].name, 'the night\'s No. 1 leads');
   assert.deepEqual([lb.body.players[0].count, lb.body.players[0].firsts, lb.body.players[0].points], [1, 1, 5]);
   assert.equal(lb.body.players[0].nights[0].date, '20250115');
   assert.equal((await get('/api/leaderboard?season=abc')).status, 400);

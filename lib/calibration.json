@@ -5,6 +5,6 @@
     "offense": { "median": 9, "scale": 8 },
     "defense": { "median": 2.4, "scale": 1.8 },
     "possession": { "median": 0.3, "scale": 1.2 },
-    "clutch": { "median": 0, "scale": 0.8 }
+    "clutch": { "median": 0, "scale": 2 }
   }
 }

@@ -149,13 +149,36 @@ p { margin: 0; }
 /* the math, as a receipt */
 .why { padding: 0 22px; }
 .why > :last-child { padding-bottom: 18px; }
-.parts { list-style: none; margin: 0 0 8px; padding: 12px 0 0; border-top: 2px dashed rgba(35, 33, 29, .25); display: grid; gap: 7px; font-family: var(--type); }
-.parts li { display: grid; grid-template-columns: auto 1fr auto; column-gap: 8px; align-items: baseline; }
-.pk { font: 700 15px/1.2 var(--type); text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
 .lead { border-bottom: 2px dotted rgba(35, 33, 29, .35); translate: 0 -4px; }
-.pv { font: 700 16px/1.2 var(--type); color: var(--ink); }
-.pl { grid-column: 1 / -1; font: 18px/1.15 var(--hand); color: var(--pencil); }
-.parts li.neg .pv, .parts li.neg .pk { color: var(--red); }
+.breakdown { border-top: 2px dashed rgba(35, 33, 29, .25); padding-top: 12px; display: grid; gap: 12px; }
+.cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cat { display: grid; grid-template-columns: 150px 1fr 40px; column-gap: 10px; align-items: center; }
+.ck { font: 700 15px/1.2 var(--type); text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
+.ck small { font-weight: 400; color: var(--pencil); text-transform: none; letter-spacing: 0; }
+.cs { font: 400 22px/1 var(--marker); color: var(--red); text-align: right; }
+.cat.none .cs { font: 16px var(--hand); color: var(--pencil); grid-column: 2 / -1; text-align: left; }
+/* a bar filled in with pencil strokes; the tick at 50 is a typical rotation player's night */
+.bar { position: relative; height: 14px; border: 2px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(-55deg, var(--red) 0 3px, transparent 3px 6px); opacity: .8; }
+.bar em { position: absolute; left: 50%; top: -2px; bottom: -2px; border-left: 2px dashed var(--ink); opacity: .45; }
+.items { grid-column: 1 / -1; list-style: none; margin: 4px 0 0; padding: 0 0 0 14px; display: grid; gap: 2px; }
+.items li { display: grid; grid-template-columns: auto 1fr auto; column-gap: 8px; align-items: baseline; font: 17px/1.15 var(--hand); color: var(--pencil); }
+.items li span:first-child { max-width: 52ch; }
+.items b { font: 700 14px/1 var(--type); color: var(--ink); }
+.items li.neg b { color: var(--red); }
+.deductions { list-style: none; margin: 0; padding: 10px 0 0; border-top: 2px dashed rgba(35, 33, 29, .25); display: grid; gap: 6px; }
+.deductions li { display: grid; grid-template-columns: auto 1fr auto; column-gap: 10px; align-items: baseline; font: 17px/1.2 var(--hand); color: var(--ink); }
+.dk { font: 700 13px/1 var(--type); text-transform: uppercase; letter-spacing: .06em; color: var(--red); }
+.deductions b { font: 700 15px/1 var(--type); color: var(--red); }
+.math { margin: 0; font: 700 16px/1.3 var(--type); color: var(--ink); border-top: 3px double rgba(35, 33, 29, .45); padding-top: 8px; }
+.math b { font: 400 22px/1 var(--marker); color: var(--red); }
+.math small { color: var(--pencil); }
+.conf.medium, .conf.low { color: var(--red); }
+.verdict { margin: 4px 0 14px; padding: 12px 14px; background: rgba(243, 211, 107, .35); border-radius: var(--sketch); color: var(--ink); }
+.verdict h3 { margin: 0 0 6px; font: 400 21px/1.1 var(--marker); color: var(--ink); }
+.verdict h3 small { font: 700 17px var(--hand); color: var(--pencil); }
+.verdict ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 4px; font: 18px/1.2 var(--hand); }
+.verdict ul:last-child { margin-bottom: 0; }
 
 .also { margin-top: 26px; }
 .also-list { margin: 10px 0 0; padding: 0 0 0 34px; display: grid; gap: 4px; color: var(--chalk-dim); font: 700 22px/1.3 var(--hand); }
@@ -163,6 +186,10 @@ p { margin: 0; }
 .also-list small { font: 18px/1.2 var(--hand); color: var(--chalk-dim); }
 .also-list b { color: var(--yellow); }
 .method { margin-top: 26px; max-width: 760px; font: 19px/1.35 var(--hand); color: var(--chalk-dim); }
+.method summary { cursor: pointer; font: 400 22px/1.2 var(--marker); color: var(--chalk); }
+.method ul { padding-left: 22px; display: grid; gap: 4px; }
+.method b { color: var(--chalk); }
+.method .fine { color: var(--chalk-dim); font: 17px/1.3 var(--hand); }
 .to-board { margin-top: 24px; }
 .empty { padding: 40px 20px; text-align: center; display: grid; gap: 10px; justify-items: center; border: 2px dashed var(--chalk-faint); border-radius: var(--sketch); }
 .empty h2 { font: 400 32px/1.1 var(--marker); }
@@ -231,6 +258,9 @@ p { margin: 0; }
   .name { font-size: 22px; }
   .line, .perf.hero .line { font-size: 14px; }
   .why { padding: 0 14px; }
+  .cat { grid-template-columns: 1fr 34px; }
+  .cat .bar { grid-column: 1 / -1; grid-row: 2; }
+  .items li { font-size: 16px; }
   .lb { padding: 18px 10px 24px 44px; rotate: none; }
   .lb::before { left: 8px; width: 14px; }
   .lb-head { display: none; }
