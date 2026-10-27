@@ -13,6 +13,7 @@ export default route({
     // Final nights never change; a night with games still to finish is refreshed every minute.
     cache(res, night.final ? 86400 : night.live ? 60 : 300);
     return { date, season: night.season, final: night.final, live: night.live, games: night.games, top: night.top, players: night.players,
+      potn: night.potn || null, model: night.model || null, unavailable: night.unavailable || [], scoredAt: night.at || null,
       dates: info?.dates || [] };
   },
 });

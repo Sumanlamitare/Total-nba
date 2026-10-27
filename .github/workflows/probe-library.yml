@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: night (ESPN responses for a date) or snapshot (API responses from the database)
+        description: night (ESPN responses for a date), snapshot (API responses from the database) or calibrate (calibrate and backtest the score)
         default: night
       date:
-        description: a game date, YYYYMMDD (night); or "season dates" (snapshot), e.g. "2025 20250115,20250616"
+        description: a game date, YYYYMMDD (night); "season dates" (snapshot), e.g. "2025 20250115,20250616"; or seasons (calibrate), e.g. "2024,2025"
         default: '20250115'
 
 permissions:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,6 +37,12 @@ jobs:
         env:
           DATE: ${{ inputs.date }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      - if: inputs.task == 'calibrate'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/calibrate.mjs $DATE 2>&1 | tee probe/report.txt
+        env:
+          DATE: ${{ inputs.date }}
       - name: Push results to the probe branch
         if: always()
         run: |

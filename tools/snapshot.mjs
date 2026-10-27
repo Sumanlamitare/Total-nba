@@ -15,14 +15,16 @@ try {
   const info = await ensureSeason(d, +season);
   for (const date of dates.split(',').filter(Boolean)) {
     const n = await loadNight(d, date, { write: false });
-    out(`night_${date}.json`, { date, season: n.season, final: n.final, live: n.live, games: n.games, top: n.top, players: n.players, dates: info.dates });
+    out(`night_${date}.json`, { date, season: n.season, final: n.final, live: n.live, games: n.games, top: n.top, players: n.players, potn: n.potn, model: n.model, unavailable: n.unavailable, scoredAt: n.at, dates: info.dates });
   }
   console.log('seasons', list.map(s => `${s.label}: ${s.nights} nights`).join(', '));
-  // Examples of stat padding caught: the biggest garbage-time deductions among the season's top tens.
-  const padded = await d.collection('nights').aggregate([
-    { $match: { season: +season } }, { $unwind: { path: '$top', includeArrayIndex: 'rank' } }, { $unwind: '$top.parts' },
-    { $match: { 'top.parts.k': 'padding' } }, { $sort: { 'top.parts.value': 1 } }, { $limit: 8 },
-    { $project: { _id: 1, rank: 1, name: '$top.name', result: '$top.result', score: '$top.score', part: '$top.parts' } },
-  ]).toArray();
-  for (const x of padded) console.log('padding', x._id, `#${x.rank + 1}`, x.name, x.result, x.score, x.part.value, x.part.label);
+  // Examples of deductions: the biggest stat-padding and foul deductions among the season's top tens.
+  for (const kind of ['padding', 'fouls']) {
+    const rows = await d.collection('nights').aggregate([
+      { $match: { season: +season } }, { $unwind: { path: '$top', includeArrayIndex: 'rank' } }, { $unwind: `$top.${kind}.items` },
+      { $sort: { [`top.${kind}.items.value`]: 1 } }, { $limit: 8 },
+      { $project: { _id: 1, rank: 1, name: '$top.name', result: '$top.result', score: '$top.score', item: `$top.${kind}.items` } },
+    ]).toArray();
+    for (const x of rows) console.log(kind, x._id, `#${x.rank + 1}`, x.name, x.result, x.score, x.item.value, x.item.label);
+  }
 } finally { await close(); }
