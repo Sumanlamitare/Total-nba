@@ -4,177 +4,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Performance of the Night</title>
-    <meta name="description" content="The five best individual performances of every NBA night, scored by an algorithm that weighs production, efficiency, clutch plays, the opponent and the stage, plus a season leaderboard." />
-    <meta name="theme-color" content="#1f2a25" />
+    <meta name="description" content="The best individual performances of every NBA night, scored 0 to 100 on winning, offense, defense, possessions, crunch time, stat padding and fouls, plus a season leaderboard." />
+    <meta name="theme-color" content="#0d0f12" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preload" href="/fonts/permanent-marker-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/caveat-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
     <style>
-      /* The fonts are served with the site (SIL Open Font License / Apache 2.0; licenses in /fonts). */
-      @font-face { font-family: 'Permanent Marker'; src: url(/fonts/permanent-marker-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
-      @font-face { font-family: Caveat; src: url(/fonts/caveat-latin-500-normal.woff2) format('woff2'); font-weight: 500; font-display: swap; }
-      @font-face { font-family: Caveat; src: url(/fonts/caveat-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-      @font-face { font-family: 'Courier Prime'; src: url(/fonts/courier-prime-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
-      @font-face { font-family: 'Courier Prime'; src: url(/fonts/courier-prime-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-      @font-face { font-family: 'Barlow Condensed'; src: url(/fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
-      @font-face { font-family: 'Barlow Condensed'; src: url(/fonts/barlow-condensed-latin-800-normal.woff2) format('woff2'); font-weight: 800; font-display: swap; }
-      /* The loading page: a coach's chalkboard. Somebody diagrams a play while the night loads — the half court, the
-         X's and O's, a screen, a cut, a pass — and the ball goes in. Tally marks count to five on the side. When the
-         app is ready an eraser wipes the board clean. Everything is drawn in chalk: SVG strokes revealed one after
-         another, roughened by a turbulence filter so no line is quite straight. Prefixed bt-. */
-      #boot { --chalk: rgba(244,242,232,.92); --yellow: #f3d36b; --pink: #f2a0a0; --orange: #f4a261;
-        position: fixed; inset: 0; z-index: 100; overflow: hidden; color: var(--chalk); font-family: Caveat, 'Comic Sans MS', cursive; }
-      #boot .bt-surface { position: absolute; inset: 0; background: radial-gradient(ellipse 90% 80% at 45% 40%, #2c3a34 0%, #212c27 55%, #161d1a 100%); }
-      #boot .bt-surface::before { content: ''; position: absolute; inset: 0; opacity: .5; pointer-events: none;
-        background: radial-gradient(ellipse 30% 18% at 22% 30%, rgba(255,255,255,.05), transparent 70%), radial-gradient(ellipse 34% 20% at 70% 64%, rgba(255,255,255,.045), transparent 70%), radial-gradient(ellipse 20% 30% at 85% 20%, rgba(255,255,255,.035), transparent 70%); }
-      #boot .bt-dust { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; pointer-events: none; }
-      #boot svg .s { fill: none; stroke: var(--chalk); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: bt-draw var(--d, .5s) var(--t, 0s) cubic-bezier(.45,.05,.6,.95) forwards; }
-      #boot svg .dash { stroke-dasharray: .045 .04; stroke-dashoffset: 0; opacity: 0; animation: bt-show var(--d, .3s) var(--t, 0s) forwards; }
-      #boot svg .faint { stroke: rgba(244,242,232,.55); stroke-width: 2; }
-      #boot svg .y { stroke: var(--yellow); }
-      #boot svg .p { stroke: var(--pink); }
-      #boot svg .o { stroke: var(--orange); }
-      #boot svg .w { fill: var(--chalk); font-family: Caveat, cursive; font-weight: 700; opacity: 0; animation: bt-show .25s var(--t, 0s) forwards; }
-      #boot .bt-court { position: absolute; right: 2vw; top: 50%; width: min(56vw, 760px); height: min(92vh, 640px); translate: 0 -52%; rotate: -1.2deg; }
-      #boot .bt-words { position: absolute; left: clamp(20px, 6vw, 90px); top: 50%; translate: 0 -56%; width: min(40vw, 520px); rotate: -2.5deg; }
-      #boot .bt-title { margin: 0; font: 400 clamp(40px, 5.4vw, 78px)/.98 'Permanent Marker', 'Marker Felt', cursive; color: var(--chalk); letter-spacing: .01em;
-        clip-path: inset(0 100% 0 0); animation: bt-write 1.2s .1s steps(24, end) forwards; }
-      #boot .bt-title span { display: block; }
-      #boot .bt-title span + span { color: var(--yellow); margin-left: .6em; }
-      #boot .bt-under { display: block; width: 92%; height: 26px; margin-top: 2px; }
-      #boot .bt-note { margin: 18px 0 0 6px; font-size: clamp(22px, 2.3vw, 30px); line-height: 1.15; color: var(--chalk); opacity: 0; animation: bt-show .5s 1.2s forwards; }
-      #boot .bt-note b { color: var(--yellow); font-weight: 700; }
-      #boot .bt-tally { display: flex; align-items: center; gap: 14px; margin: 26px 0 0 4px; font-size: clamp(20px, 2vw, 26px); opacity: 0; animation: bt-show .4s 1.4s forwards; }
-      #boot .bt-tally svg { width: 92px; height: 46px; overflow: visible; }
-      #boot .bt-tally .s { animation: bt-tally 3s var(--t, 0s) infinite; }
-      #boot .bt-ledge { position: absolute; left: -2%; right: -2%; bottom: 0; height: 26px; background: linear-gradient(#7a5532, #5b3d22 60%, #3e2915); box-shadow: 0 -6px 14px rgba(0,0,0,.4); }
-      #boot .bt-chalk { position: absolute; bottom: 14px; left: 18%; width: 54px; height: 9px; border-radius: 5px; background: linear-gradient(#fbfaf3, #d9d6c8); rotate: -6deg; }
-      #boot .bt-chalk.y2 { left: 24%; width: 30px; background: linear-gradient(#f7e08c, #d8b84e); rotate: 4deg; }
-      #boot .bt-eraser { position: absolute; z-index: 2; bottom: 12px; right: 14%; width: 110px; height: 32px; border-radius: 4px; background: linear-gradient(#b48a55 0 55%, #3a3a3a 55% 100%); box-shadow: 0 4px 10px rgba(0,0,0,.45); }
-      /* the wipe: the eraser sweeps up and across; the board clears behind it */
-      #boot.done { pointer-events: none; }
-      #boot.done .bt-surface { -webkit-mask-image: linear-gradient(100deg, transparent 0 40%, #000 52%); mask-image: linear-gradient(100deg, transparent 0 40%, #000 52%);
-        -webkit-mask-size: 260% 100%; mask-size: 260% 100%; -webkit-mask-position: 100% 0; mask-position: 100% 0; animation: bt-wipe .75s .12s cubic-bezier(.5,0,.4,1) forwards; }
-      #boot.done .bt-eraser { animation: bt-sweep .87s cubic-bezier(.5,0,.4,1) forwards; }
-      @keyframes bt-draw { to { stroke-dashoffset: 0; } }
-      @keyframes bt-show { to { opacity: 1; } }
-      @keyframes bt-write { to { clip-path: inset(0 0 0 0); } }
-      @keyframes bt-tally { 0% { stroke-dashoffset: 1; opacity: 1; } 12% { stroke-dashoffset: 0; } 82% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
-      @keyframes bt-wipe { from { -webkit-mask-position: 100% 0; mask-position: 100% 0; } to { -webkit-mask-position: 0 0; mask-position: 0 0; } }
-      @keyframes bt-sweep { 0% { right: 14%; bottom: 12px; rotate: 0deg; } 14% { right: 96%; bottom: 52vh; rotate: -12deg; } 40% { bottom: 44vh; rotate: 6deg; } 65% { bottom: 54vh; rotate: -8deg; } 100% { right: -20%; bottom: 46vh; rotate: 8deg; opacity: .9; } }
-      @media (max-aspect-ratio: 1/1) {
-        #boot .bt-words { top: 7vh; translate: 0 0; width: auto; right: 20px; }
-        #boot .bt-title { font-size: 11vw; }
-        #boot .bt-court { left: 0; right: 0; top: auto; bottom: 24px; width: 100%; height: 54vh; translate: 0 0; }
-        #boot .bt-tally { margin-top: 14px; }
-        #boot .bt-note { margin-top: 10px; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #boot *, #boot *::before { animation: none !important; }
-        #boot svg .s { stroke-dashoffset: 0; } #boot svg .w, #boot .bt-note, #boot .bt-tally { opacity: 1; } #boot .bt-title { clip-path: none; }
-        #boot.done .bt-surface, #boot.done .bt-eraser { animation: none; } #boot.done { opacity: 0; transition: opacity .3s; }
-      }
+      /* The loading screen: the wordmark and a ball bouncing on a baseline while the first night loads; it fades out
+         when the app is ready. */
+      html { background: #0d0f12; }
+      #boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #0d0f12; color: #e7e9ec;
+        font: 500 13px/1 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: opacity .35s ease; }
+      #boot .bt { display: grid; justify-items: center; gap: 18px; }
+      #boot .bt-court { position: relative; width: 120px; height: 56px; border-bottom: 1px solid #2a2f37; }
+      #boot .bt-ball { position: absolute; left: 50%; bottom: 0; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #f28b30;
+        animation: bt-bounce .9s cubic-bezier(.3, 0, .7, 1) infinite alternate, bt-roll 1.8s linear infinite; }
+      #boot .bt-shadow { position: absolute; left: 50%; bottom: -3px; width: 16px; height: 4px; margin-left: -8px; border-radius: 50%; background: rgba(242, 139, 48, .25);
+        animation: bt-shadow .9s cubic-bezier(.3, 0, .7, 1) infinite alternate, bt-roll 1.8s linear infinite; }
+      #boot .bt-word { letter-spacing: .14em; text-transform: uppercase; color: #8b929c; }
+      #boot .bt-word b { color: #e7e9ec; font-weight: 600; }
+      #boot.done { opacity: 0; pointer-events: none; }
+      @keyframes bt-bounce { from { transform: translateY(-40px) scale(1, 1); } 92% { transform: translateY(0) scale(1, 1); } to { transform: translateY(0) scale(1.15, .85); } }
+      @keyframes bt-shadow { from { transform: scale(.4); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+      @keyframes bt-roll { from { left: 20%; } 50% { left: 80%; } to { left: 20%; } }
+      @media (prefers-reduced-motion: reduce) { #boot .bt-ball, #boot .bt-shadow { animation: none; } }
     </style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Loading Performance of the Night">
-      <div class="bt-surface">
-      <svg class="bt-dust" aria-hidden="true"><filter id="bt-noise"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch" /><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 -.18" /></filter><rect width="100%" height="100%" filter="url(#bt-noise)" /></svg>
-
-      <div class="bt-words">
-        <h1 class="bt-title" aria-hidden="true"><span>Performance</span><span>of the Night</span></h1>
-        <svg class="bt-under" viewBox="0 0 400 26" preserveAspectRatio="none" aria-hidden="true"><path class="s y" pathLength="1" style="--t:1.05s;--d:.45s" filter="url(#bt-rough)" d="M6 16 C 90 8, 200 6, 300 12 S 380 20, 394 8" /></svg>
-        <p class="bt-note">the five best games of every night.<br />scored, not voted. <b>→</b></p>
-        <div class="bt-tally" aria-hidden="true">
-          <svg viewBox="0 0 92 46">
-            <g filter="url(#bt-rough)">
-              <path class="s" pathLength="1" style="--t:1.5s" d="M10 6 L 12 40" />
-              <path class="s" pathLength="1" style="--t:1.72s" d="M24 5 L 25 41" />
-              <path class="s" pathLength="1" style="--t:1.95s" d="M38 7 L 37 40" />
-              <path class="s" pathLength="1" style="--t:2.17s" d="M52 5 L 53 41" />
-              <path class="s y" pathLength="1" style="--t:2.4s" d="M2 34 L 62 10" />
-            </g>
-          </svg>
-          <span>counting tonight's top 5…</span>
-        </div>
+    <div id="boot" role="status" aria-label="Loading">
+      <div class="bt">
+        <div class="bt-court" aria-hidden="true"><i class="bt-shadow"></i><i class="bt-ball"></i></div>
+        <div class="bt-word"><b>Performance</b> of the Night</div>
       </div>
-
-      <svg class="bt-court" viewBox="0 0 420 470" aria-hidden="true">
-        <defs>
-          <!-- chalk: every line wobbles a little and breaks up where the chalk skipped -->
-          <filter id="bt-rough" x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7" result="w" />
-            <feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G" result="d" />
-            <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="1" seed="3" result="g" />
-            <feColorMatrix in="g" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.7" result="holes" />
-            <feComposite in="d" in2="holes" operator="in" />
-          </filter>
-          <marker id="bt-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L 9 5 L 1 9" fill="none" stroke="rgba(244,242,232,.92)" stroke-width="1.6" stroke-linecap="round" /></marker>
-          <marker id="bt-arrow-y" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L 9 5 L 1 9" fill="none" stroke="#f3d36b" stroke-width="1.6" stroke-linecap="round" /></marker>
-        </defs>
-        <g filter="url(#bt-rough)">
-          <!-- the half court, drawn first -->
-          <path class="s" pathLength="1" style="--t:0.15s;--d:.5s" d="M14 22 C 140 19, 280 24, 406 21" />
-          <path class="s" pathLength="1" style="--t:0.34s;--d:.6s" d="M15 23 C 13 160, 16 320, 14 452" />
-          <path class="s" pathLength="1" style="--t:0.38s;--d:.6s" d="M405 21 C 407 170, 404 330, 406 452" />
-          <path class="s faint" pathLength="1" style="--t:0.68s;--d:.4s" d="M14 452 C 150 455, 270 449, 406 453" />
-          <path class="s faint" pathLength="1" style="--t:0.83s;--d:.4s" d="M160 452 C 165 410, 255 408, 260 452" />
-          <path class="s" pathLength="1" style="--t:0.52s;--d:.55s" d="M160 22 L 161 195 L 260 194 L 259 22" />
-          <path class="s" pathLength="1" style="--t:0.75s;--d:.4s" d="M161 195 C 168 140, 254 140, 260 194" />
-          <path class="s faint dash" pathLength="1" style="--t:0.94s;--d:.35s" d="M161 195 C 166 248, 256 248, 260 194" />
-          <path class="s" pathLength="1" style="--t:0.64s;--d:.8s" d="M40 22 L 41 98 C 60 290, 362 288, 380 98 L 379 22" />
-          <path class="s" pathLength="1" style="--t:0.45s;--d:.25s" d="M186 46 L 234 47" />
-          <path class="s o" pathLength="1" style="--t:0.52s;--d:.3s" d="M210 58 m -11 0 a 11 9 0 1 0 22 0 a 11 9 0 1 0 -22 0" />
-
-          <!-- the players: O's in white, X's in pink -->
-          <path class="s" pathLength="1" style="--t:1.12s;--d:.25s" d="M210 318 m -14 0 a 14 13 0 1 0 28 0 a 14 13 0 1 0 -28 2" />
-          <path class="s" pathLength="1" style="--t:1.2s;--d:.25s" d="M362 232 m -14 0 a 14 13 0 1 0 28 0 a 14 13 0 1 0 -28 2" />
-          <path class="s" pathLength="1" style="--t:1.27s;--d:.25s" d="M58 236 m -14 0 a 14 13 0 1 0 28 0 a 14 13 0 1 0 -28 2" />
-          <path class="s" pathLength="1" style="--t:1.35s;--d:.25s" d="M128 150 m -14 0 a 14 13 0 1 0 28 0 a 14 13 0 1 0 -28 2" />
-          <path class="s" pathLength="1" style="--t:1.42s;--d:.25s" d="M272 196 m -14 0 a 14 13 0 1 0 28 0 a 14 13 0 1 0 -28 2" />
-          <path class="s p" pathLength="1" style="--t:1.5s;--d:.15s" d="M200 280 l 16 14 M216 280 l -16 14" />
-          <path class="s p" pathLength="1" style="--t:1.54s;--d:.15s" d="M334 214 l 16 14 M350 214 l -16 14" />
-          <path class="s p" pathLength="1" style="--t:1.58s;--d:.15s" d="M74 212 l 16 14 M90 212 l -16 14" />
-          <path class="s p" pathLength="1" style="--t:1.61s;--d:.15s" d="M140 122 l 16 14 M156 122 l -16 14" />
-          <path class="s p" pathLength="1" style="--t:1.65s;--d:.15s" d="M252 166 l 16 14 M268 166 l -16 14" />
-
-          <!-- the play: 5 screens for 1, 1 drives right, 2 cuts backdoor, 1 hits him -->
-          <path class="s" pathLength="1" style="--t:1.76s;--d:.35s" d="M268 210 C 262 250, 250 280, 236 300 M 226 293 L 246 307" />
-          <path class="s" pathLength="1" style="--t:1.99s;--d:.45s" marker-end="url(#bt-arrow)" d="M224 312 l 10 -10 l 8 12 l 10 -12 l 8 12 l 10 -12 l 8 10 l 12 -8" />
-          <path class="s" pathLength="1" style="--t:2.21s;--d:.5s" marker-end="url(#bt-arrow)" d="M356 218 C 346 150, 300 96, 236 76" />
-          <path class="s y dash" pathLength="1" style="--t:2.51s;--d:.3s" marker-end="url(#bt-arrow-y)" d="M292 290 L 240 90" />
-        </g>
-
-        <!-- numbers and notes, by hand -->
-        <g font-size="19" text-anchor="middle">
-          <text class="w" style="--t:1.16s" x="210" y="324">1</text>
-          <text class="w" style="--t:1.24s" x="362" y="238">2</text>
-          <text class="w" style="--t:1.31s" x="58" y="242">3</text>
-          <text class="w" style="--t:1.39s" x="128" y="156">4</text>
-          <text class="w" style="--t:1.46s" x="272" y="202">5</text>
-        </g>
-
-        <!-- the ball follows the pass and drops in -->
-        <g opacity="0">
-          <set attributeName="opacity" to="1" begin="2.62s" fill="freeze" />
-          <animateMotion begin="2.62s" dur=".7s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".4 0 .6 1" path="M292 290 L 240 92 Q 226 52 210 58" />
-          <g filter="url(#bt-rough)"><circle r="9" fill="none" stroke="#f4a261" stroke-width="2.6" /><path d="M-9 0 H9 M0 -9 V9" stroke="#f4a261" stroke-width="1.6" /></g>
-        </g>
-        <g opacity="0" filter="url(#bt-rough)">
-          <set attributeName="opacity" to="1" begin="3.15s" fill="freeze" />
-          <path d="M228 40 l 12 -6 M232 54 l 14 0 M228 68 l 12 6" fill="none" stroke="#f3d36b" stroke-width="2.4" stroke-linecap="round" />
-        </g>
-        <text class="w" style="--t:3.15s;fill:#f3d36b" x="252" y="56" font-size="30" transform="rotate(-8 252 56)">swish!</text>
-        <text class="w" style="--t:2.78s" x="300" y="300" font-size="18" transform="rotate(-4 300 300)">pick &amp; roll</text>
-      </svg>
-
-      <div class="bt-ledge" aria-hidden="true"></div>
-      <div class="bt-chalk" aria-hidden="true"></div><div class="bt-chalk y2" aria-hidden="true"></div>
-      </div>
-      <div class="bt-eraser" aria-hidden="true"></div>
     </div>
     <div id="root"></div>
-    <noscript><p style="padding:2rem;font-family:system-ui,sans-serif;color:#111;background:#fff">Performance of the Night needs JavaScript.</p></noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

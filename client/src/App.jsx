@@ -1,4 +1,5 @@
-// Performance of the Night: the five best individual games of any NBA night, and who collects them over a season.
+// Performance of the Night: the best individual games of any NBA night, ranked 0 to 100, and who collects them over a
+// season. A quiet dashboard: a ranked table with each performance's five category scores, opening into the breakdown.
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion as M, AnimatePresence } from 'motion/react';
 import { loadNight, loadSeasons, loadLeaderboard, longDay, shortDay, isoDay, fromDate } from './api.js';
@@ -25,150 +26,155 @@ const Link = ({ to, go, children, ...rest }) => <a href={to} onClick={e => { if 
 
 // ---- Small pieces --------------------------------------------------------------------------------------------------
 const initials = n => String(n || '?').split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-function Face({ p, size = 64 }) {
+function Face({ p, size = 32 }) {
   const [failed, setFailed] = useState(false);
   const src = p.headshot || `https://a.espncdn.com/i/headshots/nba/players/full/${p.id}.png`;
   return (
     <span className="face" style={{ width: size, height: size }}>
-      {!failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <b style={{ fontSize: size * 0.34 }}>{initials(p.name)}</b>}
+      {!failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <b style={{ fontSize: size * 0.36 }}>{initials(p.name)}</b>}
     </span>
   );
 }
-const Logo = ({ team, size = 22 }) => (team?.logo ? <img className="logo" src={team.logo} alt="" width={size} height={size} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} /> : null);
+const Logo = ({ team, size = 16 }) => (team?.logo ? <img className="logo" src={team.logo} alt="" width={size} height={size} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden'; }} /> : null);
+const Chevron = ({ dir = 'right' }) => <svg className="chev" viewBox="0 0 16 16" aria-hidden><path d={dir === 'left' ? 'M10 3 5 8l5 5' : 'M6 3l5 5-5 5'} /></svg>;
 
-// "38 PTS · 5 REB · 4 AST · 14-22 FG"
+// "38 pts · 5 reb · 4 ast · 14-22 FG"
 export function statline(l) {
-  const parts = [`${l.pts} PTS`, `${l.reb} REB`, `${l.ast} AST`];
-  if (l.stl >= 2) parts.push(`${l.stl} STL`);
-  if (l.blk >= 2) parts.push(`${l.blk} BLK`);
+  const parts = [`${l.pts} pts`, `${l.reb} reb`, `${l.ast} ast`];
+  if (l.stl >= 2) parts.push(`${l.stl} stl`);
+  if (l.blk >= 2) parts.push(`${l.blk} blk`);
   parts.push(`${l.fgm}-${l.fga} FG`);
-  if (l.tpa) parts.push(`${l.tpm}-${l.tpa} 3PT`);
   return parts.join(' · ');
 }
-const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conference finals', finals: 'NBA Finals' };
-const CATS = [['result', 'Team result'], ['offense', 'Offense'], ['defense', 'Defense'], ['possession', 'Possession'], ['clutch', 'Crunch time']];
+const STAGE_LABEL = { playin: 'Play-in', playoffs: 'Playoffs', conf: 'Conf. finals', finals: 'Finals' };
+const CATS = [['result', 'Result', 'R'], ['offense', 'Offense', 'O'], ['defense', 'Defense', 'D'], ['possession', 'Possession', 'P'], ['clutch', 'Crunch time', 'C']];
 const sign = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}`;
 const pct = v => (v == null ? '–' : `${Math.round(100 * v)}%`);
+const won = p => String(p.result || '').startsWith('W');
 
-// One category: a hand-drawn bar from 0 to 100 (the tick is 50, a typical rotation player's game) and what went into it.
-function Category({ name, c }) {
-  if (!c) return <li className="cat none"><span className="ck">{name}</span><span className="cs">no data</span></li>;
+// Five small bars, one per category, 0 to 100 with a tick at 50 (a typical rotation player's night).
+function Spark({ c }) {
   return (
-    <li className="cat">
-      <span className="ck">{name}<small> × {Math.round(100 * c.weight)}%</small></span>
-      <span className="bar" aria-hidden><i style={{ width: `${c.score}%` }} /><em /></span>
-      <b className="cs">{Math.round(c.score)}</b>
-      <ul className="items">
-        {c.items.map((x, k) => <li key={k} className={x.value < 0 ? 'neg' : ''}><span>{x.label}</span><span className="lead" aria-hidden /><b>{sign(x.value)}</b></li>)}
-      </ul>
+    <span className="spark" aria-hidden>
+      {CATS.map(([k, name]) => {
+        const v = c?.[k]?.score;
+        return <i key={k} title={v == null ? `${name}: no data` : `${name} ${Math.round(v)}`} className={v == null ? 'na' : ''}><b style={{ height: `${v ?? 0}%` }} /></i>;
+      })}
+    </span>
+  );
+}
+
+// ---- A performance: its row, and the breakdown it opens into -------------------------------------------------------
+function Bar({ value }) {
+  return <span className="bar" aria-hidden><b style={{ width: `${value}%` }} /><i /></span>;
+}
+
+function Categories({ p }) {
+  return (
+    <div className="cats">
+      {CATS.map(([k, name]) => {
+        const c = p.categories?.[k];
+        return (
+          <div key={k} className={`cat${c ? '' : ' na'}`}>
+            <div className="cat-head">
+              <span className="cat-name">{name}<small>{c ? `${Math.round(100 * c.weight)}%` : ''}</small></span>
+              {c ? <Bar value={c.score} /> : <span className="muted">no data</span>}
+              <b className="num">{c ? Math.round(c.score) : '–'}</b>
+            </div>
+            {c && (
+              <ul className="items">
+                {c.items.map((x, j) => <li key={j}><span>{x.label}</span><b className={`num${x.value < 0 ? ' neg' : ''}`}>{sign(x.value)}</b></li>)}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Detail({ p, potn, players }) {
+  const l = p.line;
+  const ded = [...(p.padding?.items || []).map(d => ({ ...d, kind: 'Padding' })), ...(p.fouls?.items || []).map(d => ({ ...d, kind: 'Fouls' }))];
+  const stats = [
+    ['MIN', l.min], ['PTS', l.pts], ['REB', `${l.reb}`], ['AST', l.ast], ['STL', l.stl], ['BLK', l.blk], ['TO', l.to], ['PF', l.pf],
+    ['FG', `${l.fgm}-${l.fga}`], ['3PT', `${l.tpm}-${l.tpa}`], ['FT', `${l.ftm}-${l.fta}`], ['+/-', `${l.pm > 0 ? '+' : ''}${l.pm}`],
+    ['TS', pct(l.ts)], ['eFG', pct(l.efg)], ['USG', pct(l.usage)], ['AST/TO', l.astTo ?? '–'],
+  ];
+  if (l.pointsOff != null) stats.push(['PTS OFF TO', l.pointsOff]);
+  if (l.tech) stats.push(['TECH', l.tech]);
+  if (l.flagrant) stats.push(['FLAGRANT', l.flagrant]);
+  return (
+    <div className="detail">
+      {potn && (
+        <section className="verdict">
+          <h3>Why {potn.name.split(' ').slice(-1)[0]} won <span className="muted">· No. 1 of {players} players</span></h3>
+          <ul>{potn.why.map((w, k) => <li key={k}>{w}</li>)}</ul>
+          {potn.competitors.length > 0 && <>
+            <h3>Closest competitors</h3>
+            <ul>{potn.competitors.map(c => <li key={c.id}><b>{c.name}</b> <span className="num">{c.score.toFixed(1)}</span> <span className="muted">(−{c.gap.toFixed(1)})</span>. {c.text}.</li>)}</ul>
+          </>}
+        </section>
+      )}
+      <div className="detail-grid">
+        <section>
+          <h4>Categories <span className="muted">0–100 · 50 is a typical night</span></h4>
+          <Categories p={p} />
+        </section>
+        <section>
+          <h4>Score</h4>
+          <table className="math">
+            <tbody>
+              <tr><td>Categories, weighted</td><td className="num">{p.base?.toFixed(1)}</td></tr>
+              {ded.map((d, k) => <tr key={k} className="ded"><td><span className="tag">{d.kind}</span>{d.label}</td><td className="num neg">{sign(d.value)}</td></tr>)}
+              {!ded.length && <tr><td className="muted">No deductions</td><td className="num">0.0</td></tr>}
+              <tr className="total"><td>POTN score</td><td className="num">{p.score.toFixed(1)}</td></tr>
+            </tbody>
+          </table>
+          <h4>Box score</h4>
+          <dl className="stats">{stats.map(([k, v]) => <div key={k}><dt>{k}</dt><dd className="num">{v}</dd></div>)}</dl>
+          {p.confidence && <p className={`conf ${p.confidence.level}`}><span className="dot" />Data confidence: {p.confidence.level}{p.confidence.missing.length ? ` — missing ${p.confidence.missing.join('; ')}` : ''}</p>}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Row({ p, rank, open, onOpen, potn, players }) {
+  return (
+    <li className={`perf${rank === 1 ? ' first' : ''}${open ? ' open' : ''}`}>
+      <button type="button" className="row" onClick={onOpen} aria-expanded={open} aria-label={`Number ${rank}: ${p.name}, score ${p.score}. ${open ? 'Hide' : 'Show'} the breakdown`}>
+        <span className="rk num">{rank}</span>
+        <span className="who">
+          <Face p={p} />
+          <span>
+            <b className="name">{p.name}</b>
+            <small><Logo team={p.team} size={14} />{p.team?.abbr} {p.home ? 'vs' : '@'} {p.opp?.abbr}{STAGE_LABEL[p.stage] ? ` · ${STAGE_LABEL[p.stage]}` : ''}<span className={`res-m ${won(p) ? 'w' : 'l'}`}>{p.result}</span></small>
+          </span>
+        </span>
+        <span className={`res ${won(p) ? 'w' : 'l'}`}>{p.result}</span>
+        <span className="line">{statline(p.line)}{p.tags?.length ? <span className="tags">{p.tags.map(t => <i key={t} className={/Padded|Ejected|Fouled/.test(t) ? 'bad' : ''}>{t}</i>)}</span> : null}</span>
+        <Spark c={p.categories} />
+        <span className="score num">{p.score.toFixed(1)}</span>
+        <Chevron dir="right" />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <M.div className="open-wrap" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+            <Detail p={p} potn={potn} players={players} />
+          </M.div>
+        )}
+      </AnimatePresence>
     </li>
   );
 }
 
-// The score explained: the five categories, the deductions and the arithmetic, the full line and how sure we are.
-function Breakdown({ p }) {
-  if (!p.categories) return null;
-  const ded = [...(p.padding?.items || []).map(d => ({ ...d, kind: 'Stat padding' })), ...(p.fouls?.items || []).map(d => ({ ...d, kind: 'Fouls' }))];
-  const l = p.line;
-  return (
-    <div className="breakdown">
-      <ul className="cats">{CATS.map(([k, name]) => <Category key={k} name={name} c={p.categories[k]} />)}</ul>
-      {ded.length > 0 && (
-        <ul className="deductions">
-          {ded.map((d, k) => <li key={k}><span className="dk">{d.kind}</span><span>{d.label}</span><b>{sign(d.value)}</b></li>)}
-        </ul>
-      )}
-      <p className="math">
-        <span>Categories {p.base.toFixed(1)}</span>
-        {p.padding?.value ? <span> − padding {Math.abs(p.padding.value).toFixed(1)}</span> : null}
-        {p.fouls?.value ? <span> − fouls {Math.abs(p.fouls.value).toFixed(1)}</span> : null}
-        <b> = {p.score.toFixed(1)}</b><small> / 100</small>
-      </p>
-      <p className="fine">
-        {l.min} min · {l.pts} pts · {l.reb} reb ({l.oreb} off) · {l.ast} ast · {l.stl} stl · {l.blk} blk · {l.to} to{l.pointsOff != null ? ` (${l.pointsOff} pts off them)` : ''} · {l.fgm}-{l.fga} FG · {l.tpm}-{l.tpa} 3PT · {l.ftm}-{l.fta} FT · {l.pf} PF{l.tech ? ` · ${l.tech} tech` : ''}{l.flagrant ? ` · ${l.flagrant} flagrant` : ''} · {l.pm > 0 ? '+' : ''}{l.pm} +/- · TS {pct(l.ts)} · eFG {pct(l.efg)} · usage {pct(l.usage)}{l.astTo != null ? ` · ${l.astTo} ast/to` : ''}
-      </p>
-      {p.confidence && <p className={`fine conf ${p.confidence.level}`}>Data confidence: {p.confidence.level}{p.confidence.missing.length ? ` — missing ${p.confidence.missing.join('; ')}` : ''}</p>}
-    </div>
-  );
-}
-
-// Why No. 1 won, and how close the next two came.
-function Verdict({ potn, players }) {
-  if (!potn) return null;
-  return (
-    <div className="verdict">
-      <h3>Why {potn.name.split(' ').slice(-1)[0]} won{players ? <small> · No. 1 of {players} players who appeared</small> : null}</h3>
-      <ul>{potn.why.map((w, k) => <li key={k}>{w}</li>)}</ul>
-      {potn.competitors.length > 0 && <>
-        <h3>Closest competitors</h3>
-        <ul>{potn.competitors.map(c => <li key={c.id}><b>{c.name}</b> {c.score.toFixed(1)}, {c.gap.toFixed(1)} behind. {c.text}.</li>)}</ul>
-      </>}
-    </div>
-  );
-}
-
-// Chalk and marker marks, drawn by hand (SVG paths through the shared "rough" filter).
-const Rough = () => (
-  <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
-    <filter id="rough" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="4" result="w" />
-      <feDisplacementMap in="SourceGraphic" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-  </svg>
-);
-const Ring = () => <svg className="ring" viewBox="0 0 60 60" aria-hidden><path d="M44 9 C 30 1, 8 8, 6 28 C 4 48, 26 58, 42 50 C 56 43, 58 22, 46 12 C 40 7, 30 6, 24 9" /></svg>;
-const Arrow = ({ dir }) => <svg className="arrow" viewBox="0 0 40 24" aria-hidden><path d={dir === 'left' ? 'M36 13 C 26 11, 16 12, 5 12 M13 4 L 4 12 L 14 20' : 'M4 11 C 14 13, 24 12, 35 12 M27 4 L 36 12 L 26 20'} /></svg>;
-// Tally marks, in fives.
-export function Tally({ n }) {
-  const groups = Math.floor(n / 5), rest = n % 5;
-  const marks = [];
-  for (let g = 0; g < groups + (rest ? 1 : 0); g++) {
-    const k = g < groups ? 4 : rest;
-    marks.push(
-      <svg key={g} className="tally" viewBox="0 0 30 24" aria-hidden>
-        {Array.from({ length: k }, (_, i) => <path key={i} d={`M${5 + i * 6} ${3 + (i % 2)} L ${4 + i * 6} ${21 - (i % 2)}`} />)}
-        {g < groups && <path className="slash" d="M1 18 L 29 6" />}
-      </svg>,
-    );
-  }
-  return <span className="tallies" aria-hidden>{marks}</span>;
-}
-
-function PerfCard({ p, rank, hero, onOpen, open, potn, players }) {
-  const color = p.team?.color || '#c0392b';
-  return (
-    <M.li className={`perf${hero ? ' hero' : ''}${open ? ' open' : ''}`} style={{ '--team': color }}
-      initial={{ opacity: 0, y: -18, rotate: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 * rank, type: 'spring', stiffness: 260, damping: 22 }}>
-      <i className="tape" aria-hidden />
-      <button type="button" className="perf-main" onClick={onOpen} aria-expanded={open} aria-label={`Number ${rank}: ${p.name}, score ${p.score}. Show why`}>
-        <span className="rank"><Ring /><b>{rank}</b></span>
-        <Face p={p} size={hero ? 112 : 68} />
-        <span className="who">
-          <b className="name">{p.name}</b>
-          <span className="team"><Logo team={p.team} size={16} /> {p.team?.abbr} {p.home ? 'vs' : '@'} <Logo team={p.opp} size={16} /> {p.opp?.abbr} · <em className={p.result.startsWith('W') ? 'w' : 'l'}>{p.result}</em>{STAGE_LABEL[p.stage] ? <> · <span className="stage">{STAGE_LABEL[p.stage]}</span></> : null}</span>
-          <span className="line">{statline(p.line)}</span>
-          {p.tags.length > 0 && <span className="tags">{p.tags.map(t => <i key={t} className={t === 'Padded' ? 'pad' : ''}>{t}</i>)}</span>}
-        </span>
-        <span className="score"><b>{p.score.toFixed(1)}</b><small>{open ? 'hide the math' : 'how?'}</small></span>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <M.div className="why" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}>
-            {hero && <Verdict potn={potn} players={players} />}
-            <Breakdown p={p} />
-          </M.div>
-        )}
-      </AnimatePresence>
-    </M.li>
-  );
-}
-
-function SeasonSelect({ seasons, value, onChange, id = 'season' }) {
+function SeasonSelect({ seasons, value, onChange }) {
   return (
     <label className="select">
       <span className="sr-only">Season</span>
-      <select id={id} value={value || ''} onChange={e => onChange(+e.target.value)}>
-        {seasons.map(s => <option key={s.year} value={s.year}>{s.label} season</option>)}
+      <select value={value || ''} onChange={e => onChange(+e.target.value)}>
+        {seasons.map(s => <option key={s.year} value={s.year}>{s.label}</option>)}
       </select>
     </label>
   );
@@ -179,16 +185,19 @@ function Method({ unavailable = [], players }) {
   return (
     <details className="method">
       <summary>How the score works</summary>
-      <p>Every player who appeared tonight{players ? ` (${players})` : ''} is scored from 0 to 100. Five categories are each measured in points added, then compared with thousands of real NBA games (50 is a typical rotation player's night, and each 7 is one standard deviation):</p>
-      <ul>
-        <li><b>Team result, 20%</b>: winning counts, scaled by his share of it; a loss costs by his minutes, half as much when it was close. Opponent's record, road, overtime, playoffs, plus-minus and win probability added.</li>
-        <li><b>Offense, 30%</b>: points, with half the points above or below an average shooter on the same shots, and assists.</li>
-        <li><b>Defense, 20%</b>: steals, blocks, defensive rebounds, and the opponent's scoring rate with him on the floor against without him.</li>
-        <li><b>Possession, 15%</b>: offensive rebounds; turnovers against what his touches would predict, each costing more when the opponent scored off it and in a close game late.</li>
-        <li><b>Crunch time, 15%</b>: the last 5 minutes within 5 points: win probability he added there, and the game-winner.</li>
-      </ul>
-      <p>Then deductions. <b>Stat padding</b> (up to 12): garbage-time stats for starters (the last 2 minutes with a 15-point lead), and, for box scores that look impressive, volume without efficiency, high usage with little creation, and turnovers out of proportion. <b>Fouls</b> (up to 7): technicals (more if the free throw went in, and in a close game), costly fouls and foul trouble, fouling out (by the time left and the score), flagrants and ejections. Each event is charged once.</p>
-      {unavailable.length > 0 && <p className="fine">Not in ESPN's data, so not used: {unavailable.join(', ')}.</p>}
+      <p>Every player who appeared{players ? ` (${players} tonight)` : ''} is scored from 0 to 100. Each category is measured in points added and compared with thousands of real NBA games: 50 is a typical rotation player's night, each 7 is one standard deviation.</p>
+      <table className="weights">
+        <tbody>
+          <tr><th>Result</th><td className="num">20%</td><td>A win, scaled by his share of it; a loss by his minutes, half when close. Opponent, road, overtime, playoffs, plus-minus, win probability added.</td></tr>
+          <tr><th>Offense</th><td className="num">30%</td><td>Points, plus or minus half the points above or below an average shooter on the same shots; assists.</td></tr>
+          <tr><th>Defense</th><td className="num">20%</td><td>Steals, blocks, defensive rebounds; the opponent's scoring rate with him on the floor against without him.</td></tr>
+          <tr><th>Possession</th><td className="num">15%</td><td>Offensive rebounds; turnovers against what his touches predict, each costing more when the opponent scored off it and late in a close game.</td></tr>
+          <tr><th>Crunch time</th><td className="num">15%</td><td>Last 5 minutes within 5: win probability added, the game-winner.</td></tr>
+          <tr><th>Stat padding</th><td className="num">−12</td><td>Garbage-time stats for starters (last 2 minutes, 15-point lead); for impressive-looking box scores, volume without efficiency, usage without creation, turnovers out of proportion.</td></tr>
+          <tr><th>Fouls</th><td className="num">−7</td><td>Technicals (more if the free throw went in, and late in a close game), costly fouls and foul trouble, fouling out, flagrants and ejections.</td></tr>
+        </tbody>
+      </table>
+      <p className="muted">Each event is charged once.{unavailable.length ? ` Not in ESPN's data, so not used: ${unavailable.join(', ')}.` : ''}</p>
     </details>
   );
 }
@@ -230,67 +239,68 @@ function NightPage({ date, go, seasons }) {
     go(`/night/${dates.length && !dates.includes(d) ? (dates.filter(x => x <= d).pop() || dates[0]) : d}`);
   };
 
-  if (error) return <section className="empty"><h2>Couldn't load that night</h2><p>{error.message}</p><button className="btn" onClick={() => go('/')}>Latest night</button></section>;
   const top = night?.top || [];
+  const shown = more ? top : top.slice(0, TOP);
   return (
     <section className="night">
-      <div className="controls">
+      <div className="toolbar">
         {seasons.length > 0 && <SeasonSelect seasons={seasons} value={night?.season} onChange={pickSeason} />}
         <div className="datebar" role="group" aria-label="Choose a night">
-          <button type="button" className="icon-btn" disabled={!prev} onClick={() => go(`/night/${prev}`)} aria-label={prev ? `Previous game night, ${longDay(prev)}` : 'No earlier game night'}><Arrow dir="left" /></button>
+          <button type="button" className="icon" disabled={!prev} onClick={() => go(`/night/${prev}`)} aria-label={prev ? `Previous game night, ${longDay(prev)}` : 'No earlier game night'}><Chevron dir="left" /></button>
           <label className="day">
-            <span className="day-label">{cur !== 'latest' ? longDay(cur) : 'Loading…'}</span>
+            <span>{cur !== 'latest' ? longDay(cur) : 'Loading…'}</span>
             <input type="date" aria-label="Pick a date" value={cur !== 'latest' ? isoDay(cur) : ''} min={dates[0] ? isoDay(dates[0]) : undefined} max={dates.length ? isoDay(dates[dates.length - 1]) : undefined} onChange={e => pickDay(e.target.value)} />
           </label>
-          <button type="button" className="icon-btn" disabled={!next || next > today} onClick={() => go(`/night/${next}`)} aria-label={next ? `Next game night, ${longDay(next)}` : 'No later game night'}><Arrow /></button>
+          <button type="button" className="icon" disabled={!next || next > today} onClick={() => go(`/night/${next}`)} aria-label={next ? `Next game night, ${longDay(next)}` : 'No later game night'}><Chevron /></button>
         </div>
-        <button type="button" className="btn small ghost" onClick={() => go('/')}>Latest</button>
+        <button type="button" className="btn" onClick={() => go('/')}>Latest</button>
       </div>
 
-      <header className="night-head">
-        <p className="eyebrow">Performance of the Night{night ? ` · ${night.games.length} game${night.games.length === 1 ? '' : 's'}` : ''}{night?.live ? ' · live' : ''}</p>
-        <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
-        {night && !night.final && night.games.length > 0 && <p className="note">{night.live ? 'Games are still being played: the ranking updates every minute and is final when the last game ends.' : 'Some games haven\'t finished yet.'}</p>}
-      </header>
+      {error ? (
+        <div className="empty"><h2>Couldn't load that night</h2><p>{error.message}</p><button className="btn" onClick={() => go('/')}>Latest night</button></div>
+      ) : <>
+        <header className="head">
+          <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
+          <p className="muted">
+            {night ? `${night.games.length} game${night.games.length === 1 ? '' : 's'} · ${night.players || 0} players scored` : 'Loading…'}
+            {night?.live && <span className="live"> · live, updates every minute</span>}
+            {night && !night.final && !night.live && night.games.length > 0 && ' · not final yet'}
+          </p>
+        </header>
 
-      {night?.games?.length > 0 && (
-        <ul className="games" aria-label="Games">
-          {night.games.map(g => (
-            <li key={g.id} className={g.state === 'in' ? 'live' : ''}>
-              {g.teams.slice().sort((a, b) => a.home - b.home).map(t => (
-                <span key={t.id} className={t.winner ? 'won' : ''}><Logo team={t} size={18} />{t.abbr}<b>{t.score ?? ''}</b></span>
-              ))}
-              <small>{g.detail}{g.note ? ` · ${g.note}` : ''}</small>
-            </li>
-          ))}
-        </ul>
-      )}
+        {night?.games?.length > 0 && (
+          <ul className="games" aria-label="Games">
+            {night.games.map(g => (
+              <li key={g.id} className={g.state === 'in' ? 'live' : ''}>
+                {g.teams.slice().sort((a, b) => a.home - b.home).map(t => (
+                  <span key={t.id} className={t.winner ? 'won' : ''}><Logo team={t} size={14} /><span>{t.abbr}</span><b className="num">{t.score ?? ''}</b></span>
+                ))}
+                <small>{g.detail}{g.note ? ` · ${g.note}` : ''}</small>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {!night && <div className="skeleton" aria-busy="true">{Array.from({ length: 5 }, (_, k) => <div key={k} className={`sk${k ? '' : ' hero'}`} />)}</div>}
-      {night && !top.length && (
-        <div className="empty"><h2>{night.games.length ? 'Waiting for tip-off' : 'No games this night'}</h2><p>{night.games.length ? 'Performances appear once games are under way.' : 'Pick another date, or step to the nearest game night with the arrows.'}</p></div>
-      )}
-      {top.length > 0 && (
-        <>
-          <ol className="top" aria-label="Top five performances">
-            {top.slice(0, TOP).map((p, k) => <PerfCard key={`${p.event}-${p.id}`} p={p} rank={k + 1} hero={k === 0} open={open === k} onOpen={() => setOpen(open === k ? null : k)} potn={night.potn?.id === p.id ? night.potn : null} players={night.players} />)}
-          </ol>
-          {top.length > TOP && (
-            <div className="also">
-              <button type="button" className="btn small ghost" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Hide' : 'Show'} the next {top.length - TOP}</button>
-              {more && (
-                <ol start={TOP + 1} className="also-list">
-                  {top.slice(TOP).map(p => <li key={`${p.event}-${p.id}`}><span>{p.name}</span><small>{p.team?.abbr} · {statline(p.line)}</small><b>{p.score.toFixed(1)}</b></li>)}
-                </ol>
-              )}
+        {!night && <div className="skeleton" aria-busy="true">{Array.from({ length: 5 }, (_, k) => <div key={k} />)}</div>}
+        {night && !top.length && (
+          <div className="empty"><h2>{night.games.length ? 'Waiting for tip-off' : 'No games this night'}</h2><p>{night.games.length ? 'Performances appear once games are under way.' : 'Pick another date, or step to the nearest game night with the arrows.'}</p></div>
+        )}
+        {top.length > 0 && (
+          <div className="table">
+            <div className="thead" aria-hidden>
+              <span>#</span><span>Player</span><span>Result</span><span>Line</span>
+              <span className="spark-head">{CATS.map(([k, name, a]) => <i key={k} title={name}>{a}</i>)}</span>
+              <span className="r">Score</span><span />
             </div>
-          )}
-          <Method unavailable={night.unavailable} players={night.players} />
-        </>
-      )}
-      {night && (
-        <p className="to-board"><Link to={`/leaderboard/${night.season}`} go={go} className="btn">Season leaderboard →</Link></p>
-      )}
+            <ol className="rows" aria-label="Top performances">
+              {shown.map((p, k) => <Row key={`${p.event}-${p.id}`} p={p} rank={k + 1} open={open === k} onOpen={() => setOpen(open === k ? null : k)} potn={k === 0 && night.potn?.id === p.id ? night.potn : null} players={night.players} />)}
+            </ol>
+            {top.length > TOP && <button type="button" className="more" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Show the top 5' : `Show ${TOP + 1}–${top.length}`}</button>}
+          </div>
+        )}
+        {night && top.length > 0 && <Method unavailable={night.unavailable} players={night.players} />}
+        {night && <p className="to-board"><Link to={`/leaderboard/${night.season}`} go={go} className="btn">Season leaderboard</Link></p>}
+      </>}
     </section>
   );
 }
@@ -302,18 +312,20 @@ function LeaderboardPage({ season, go, seasons, current }) {
   const [board, setBoard] = useState(null);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(null);
+  const [all, setAll] = useState(false);
   useEffect(() => {
     if (!year) return;
     let alive = true;
-    setBoard(null); setError(null); setOpen(null);
+    setBoard(null); setError(null); setOpen(null); setAll(false);
     loadLeaderboard(year, stage).then(b => alive && setBoard(b)).catch(e => alive && setError(e));
     return () => { alive = false; };
   }, [year, stage]);
   const info = seasons.find(s => s.year === year);
+  const most = board?.players?.[0]?.count || 1;
 
   return (
     <section className="board">
-      <div className="controls">
+      <div className="toolbar">
         {seasons.length > 0 && <SeasonSelect seasons={seasons} value={year} onChange={y => go(`/leaderboard/${y}`)} />}
         <div className="seg" role="radiogroup" aria-label="Games">
           {[['all', 'All games'], ['regular', 'Regular season'], ['playoffs', 'Playoffs']].map(([k, label]) => (
@@ -321,37 +333,40 @@ function LeaderboardPage({ season, go, seasons, current }) {
           ))}
         </div>
       </div>
-      <header className="night-head">
-        <p className="eyebrow">Season leaderboard{info ? ` · ${info.label}` : ''}</p>
-        <h1>Most Performances of the Night</h1>
-        <p className="note">A top-five finish on a night counts once; No. 1 nights and points (5 for first down to 1 for fifth) break ties.{board ? ` ${board.nights} nights scored.` : ''}</p>
+      <header className="head">
+        <h1>Most top-five nights{info ? `, ${info.label}` : ''}</h1>
+        <p className="muted">Ranked by top-five finishes; No. 1 nights, then points (5 for first to 1 for fifth) break ties.{board ? ` ${board.nights} nights scored.` : ''}</p>
       </header>
       {error && <div className="empty"><p>{error.message}</p></div>}
-      {!board && !error && <div className="skeleton" aria-busy="true">{Array.from({ length: 6 }, (_, k) => <div key={k} className="sk row" />)}</div>}
+      {!board && !error && <div className="skeleton" aria-busy="true">{Array.from({ length: 8 }, (_, k) => <div key={k} />)}</div>}
       {board && !board.players.length && <div className="empty"><h2>Nothing yet</h2><p>No nights have been scored for this selection yet.</p></div>}
       {board && board.players.length > 0 && (
-        <ol className="lb">
-          <li className="lb-head" aria-hidden><span>#</span><span>Player</span><span>Top 5</span><span>No. 1</span><span>Points</span><span>Best</span></li>
-          {board.players.map((p, k) => (
-            <li key={p.id} className={open === p.id ? 'open' : ''} style={{ '--team': p.team?.color || '#ff7a1a' }}>
-              <button type="button" className="lb-row" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)}>
-                <span className="lb-rank">{k + 1}</span>
-                <span className="lb-who"><Face p={{ id: p.id, name: p.name, headshot: p.headshot }} size={40} /><span><b>{p.name}</b><small><Logo team={p.team} size={14} /> {p.team?.abbr}</small></span></span>
-                <span className="lb-n count"><Tally n={p.count} /><b>{p.count}</b><small>top 5</small></span>
-                <span className="lb-n"><b>{p.firsts}</b><small>No. 1</small></span>
-                <span className="lb-n"><b>{p.points}</b><small>pts</small></span>
-                <span className="lb-n"><b>{p.best.toFixed(1)}</b><small>best</small></span>
-              </button>
-              {open === p.id && (
-                <ul className="lb-nights">
-                  {[...p.nights].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
-                    <li key={n.date}><Link to={`/night/${n.date}`} go={go}><span className={`badge r${n.rank}`}>#{n.rank}</span><span>{shortDay(n.date)} {n.opp ? `vs ${n.opp}` : ''}</span><small>{n.line ? statline(n.line) : ''} · {n.result}</small><b>{n.score.toFixed(1)}</b></Link></li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ol>
+        <div className="table">
+          <div className="thead lb" aria-hidden><span>#</span><span>Player</span><span>Top 5</span><span className="r">No. 1</span><span className="r">Points</span><span className="r">Best</span><span /></div>
+          <ol className="rows">
+            {(all ? board.players : board.players.slice(0, 25)).map((p, k) => (
+              <li key={p.id} className={open === p.id ? 'open' : ''}>
+                <button type="button" className="row lb" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)}>
+                  <span className="rk num">{k + 1}</span>
+                  <span className="who"><Face p={{ id: p.id, name: p.name, headshot: p.headshot }} /><span><b className="name">{p.name}</b><small><Logo team={p.team} size={14} />{p.team?.abbr}</small></span></span>
+                  <span className="count"><span className="hbar"><b style={{ width: `${(100 * p.count) / most}%` }} /></span><b className="num">{p.count}</b></span>
+                  <span className="num r">{p.firsts}</span>
+                  <span className="num r">{p.points}</span>
+                  <span className="num r">{p.best.toFixed(1)}</span>
+                  <Chevron />
+                </button>
+                {open === p.id && (
+                  <ul className="nights">
+                    {[...p.nights].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
+                      <li key={n.date}><Link to={`/night/${n.date}`} go={go}><span className={`badge${n.rank === 1 ? ' first' : ''}`}>#{n.rank}</span><span>{shortDay(n.date)}{n.opp ? ` vs ${n.opp}` : ''}</span><small>{n.line ? statline(n.line) : ''} · {n.result}</small><b className="num">{n.score.toFixed(1)}</b></Link></li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ol>
+          {board.players.length > 25 && <button type="button" className="more" aria-expanded={all} onClick={() => setAll(!all)}>{all ? 'Show the top 25' : `Show all ${board.players.length}`}</button>}
+        </div>
       )}
     </section>
   );
@@ -365,30 +380,25 @@ export default function App() {
   const [ready, setReady] = useState(false);
   useEffect(() => { loadSeasons().then(s => { setSeasons(s.seasons); setCurrent(s.current); }).catch(() => {}).finally(() => setReady(true)); }, []);
 
-  // The loading page (index.html) closes once the first data is in.
+  // The loading screen (index.html) fades once the first data is in.
   useEffect(() => {
     if (!ready) return;
     const boot = document.getElementById('boot'); if (!boot) return;
-    boot.classList.add('ready');
-    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 900); }, Math.max(600, 3700 - performance.now()));
+    const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 400); }, Math.max(0, 700 - performance.now()));
     return () => clearTimeout(t);
   }, [ready]);
   useEffect(() => { document.title = route.page === 'leaderboard' ? 'Leaderboard · Performance of the Night' : 'Performance of the Night'; }, [route.page]);
 
   return (
     <div className="app">
-      <Rough />
       <nav className="nav">
-        <Link to="/" go={go} className="brand" aria-label="Performance of the Night, latest night">
-          <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden><g fill="none" stroke="#f4a261" strokeWidth="6" strokeLinecap="round" filter="url(#rough)"><circle cx="50" cy="50" r="42" /><path d="M50 8v84M8 50h84" /><path d="M22 20c13 12 13 48 0 60" /><path d="M78 20c-13 12-13 48 0 60" /></g></svg>
-          <span>Performance <em>of the Night</em></span>
-        </Link>
-        <div className="nav-links">
-          <Link to="/" go={go} aria-current={route.page === 'night' ? 'page' : undefined}>Tonight</Link>
+        <Link to="/" go={go} className="brand" aria-label="Performance of the Night, latest night"><i className="ball" aria-hidden />Performance of the Night</Link>
+        <div className="tabs">
+          <Link to="/" go={go} aria-current={route.page === 'night' ? 'page' : undefined}>Nights</Link>
           <Link to={`/leaderboard${current ? `/${current}` : ''}`} go={go} aria-current={route.page === 'leaderboard' ? 'page' : undefined}>Leaderboard</Link>
         </div>
       </nav>
-      <main className="stage">
+      <main className="main">
         {route.page === 'night' && <NightPage key="night" date={route.date} go={go} seasons={seasons} />}
         {route.page === 'leaderboard' && <LeaderboardPage season={route.season} go={go} seasons={seasons} current={current} />}
       </main>

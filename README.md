@@ -12,9 +12,9 @@ Live: https://total-nba-ja9d.vercel.app
 
 Seasons are named by the year they end (2025 = 2024-25). Seasons 2021-22 to now are scored; the current one fills in every morning.
 
-## The loading page
+## The interface
 
-A coach's chalkboard: while the night loads, a play is diagrammed in chalk (the half court, the X's and O's, a screen, a dribble, a backdoor cut, the pass) and the ball drops in. Tally marks count to five. When the app is ready an eraser wipes the board. It's all SVG strokes drawn in sequence, roughened by a turbulence filter so the chalk wobbles and skips (`client/index.html`).
+A quiet dark dashboard on system fonts. Each night is a ranked table: rank, player, result, line, five small bars (one per category, 0–100 with a tick at 50) and the score. A row opens into its breakdown: the five categories with what went into each, the deductions and the arithmetic, the box score (with true shooting, eFG%, usage, assist-to-turnover, technicals) and the data confidence. No. 1 opens first, with why he won and where the next two lost ground. The leaderboard is a table with a bar for top-five nights; a row opens to each of the player's nights. While the first night loads, a ball bounces on a baseline.
 
 ## The score
 
@@ -92,7 +92,4 @@ npm run test:ui        # Chromium: a night, switching dates and seasons, the lea
 | [Motion](https://github.com/motiondivision/motion) 12 | Animation | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
-| [Barlow and Barlow Condensed](https://fonts.google.com/specimen/Barlow) (Jeremy Tribby) | Interface type | SIL Open Font License 1.1 |
-| [Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker) (Font Diner) | The chalkboard title on the loading page | Apache License 2.0 |
-| [Caveat](https://fonts.google.com/specimen/Caveat) (Impallari Type) | Chalk handwriting on the loading page | SIL Open Font License 1.1 |
 | ESPN public API, headshots and logos | Box scores, play-by-play, win probability, records, portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
