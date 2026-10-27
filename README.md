@@ -24,7 +24,7 @@ Every player who appeared in a regular-season, play-in or playoff game is scored
 POTN = 0.20 Result + 0.30 Offense + 0.20 Defense + 0.15 Possession + 0.15 Crunch time − stat padding − fouls   (0..100)
 ```
 
-Each category is a value in points added (below). It is standardized against real NBA games: a robust z-score, (value − median) / (1.4826 × MAD), from 11,800 rotation-player games of 2023-24 and 2024-25 (`lib/calibration.json`). That z-score maps to 0..100: 50 is a typical rotation player's night, each 7 is one standard deviation, and it's capped at ±7 SD so only historic nights reach 100.
+Each category is a value in points added (below). It is standardized against real NBA games: a robust z-score, (value − median) / (1.4826 × MAD), from 11,800 rotation-player games of 2023-24 and 2024-25 (`lib/calibration.js`). That z-score maps to 0..100: 50 is a typical rotation player's night, each 7 is one standard deviation, and it's capped at ±7 SD so only historic nights reach 100.
 
 | Category | Weight | What goes in |
 |---|---|---|

@@ -3,7 +3,7 @@
 // The season's game nights alternate between two sets: the even nights calibrate (each category's median and spread
 // for rotation players), the odd nights test what was calibrated: are the category scores centred on 50, what do the
 // nights' No. 1s look like, and do famous nights come out on top. Writes probe/calibration.json, probe/backtest.json
-// and a few game summaries with rare events (ejections, fouling out, missed technical free throws) for the tests.
+// (paste it into lib/calibration.js) and a few game summaries with rare events (ejections, fouling out, missed technical free throws) for the tests.
 import fs from 'node:fs';
 import * as espn from '../lib/espn.js';
 import { seasonInfo } from '../lib/nights.js';
