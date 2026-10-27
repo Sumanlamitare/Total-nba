@@ -1,10 +1,32 @@
 {
-  "note": "Placeholder until tools/calibrate.mjs runs on real games",
+  "note": "From 653 regular-season games of 2023-24 and 2024-25 (every other even-numbered night), players with 10+ minutes",
+  "made": "2026-10-27",
+  "games": 653,
   "categories": {
-    "result": { "median": 0.5, "scale": 3.5 },
-    "offense": { "median": 9, "scale": 8 },
-    "defense": { "median": 2.4, "scale": 1.8 },
-    "possession": { "median": 0.3, "scale": 1.2 },
-    "clutch": { "median": 0, "scale": 2 }
+    "result": {
+      "median": 0.6,
+      "scale": 4.45,
+      "n": 11802
+    },
+    "offense": {
+      "median": 13.1,
+      "scale": 10.38,
+      "n": 11802
+    },
+    "defense": {
+      "median": 2.3,
+      "scale": 2.22,
+      "n": 11802
+    },
+    "possession": {
+      "median": 0.9,
+      "scale": 1.63,
+      "n": 11802
+    },
+    "clutch": {
+      "median": 0.3,
+      "scale": 1.78,
+      "n": 1636
+    }
   }
 }

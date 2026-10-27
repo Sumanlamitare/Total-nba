@@ -7,7 +7,18 @@
 import fs from 'node:fs';
 import * as espn from '../lib/espn.js';
 import { seasonInfo } from '../lib/nights.js';
-import { scoreGame, rank, reference, CATEGORIES, MIN_MINUTES, explainNight } from '../lib/night.js';
+import { scoreGame, rank, reference, CATEGORIES, MIN_MINUTES, explainNight, WEIGHTS } from '../lib/night.js';
+
+// Alternative weights to compare with the spec's (same categories and deductions, different mix).
+const ALTERNATIVES = {
+  'offense 35, possession 10': { result: 0.2, offense: 0.35, defense: 0.2, possession: 0.1, clutch: 0.15 },
+  'offense 35, possession 10, clutch 10, result 25': { result: 0.25, offense: 0.35, defense: 0.2, possession: 0.1, clutch: 0.1 },
+};
+const reweigh = (p, w) => {
+  const ks = CATEGORIES.filter(k => p.categories[k]), sum = ks.reduce((s, k) => s + w[k], 0);
+  return Math.max(0, Math.min(100, ks.reduce((s, k) => s + (w[k] / sum) * p.categories[k].score, 0) + p.padding.value + p.fouls.value));
+};
+const alt = Object.fromEntries(Object.keys(ALTERNATIVES).map(k => [k, { won: 0, scorer: 0, n: 0, famous: [] }]));
 
 const years = (process.argv[2] || '2024,2025').split(',').map(Number);
 const FAMOUS = [
@@ -65,6 +76,10 @@ for (const [i, date] of test.entries()) {
   for (const p of all.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k] && (k !== 'clutch' || p.categories[k].played)) scores[k].push(p.categories[k].score);
   const top = all[0], scorer = [...all].sort((a, b) => b.line.pts - a.line.pts)[0];
   top3losses += all.slice(0, 3).filter(p => p.result.startsWith('L')).length;
+  for (const [name, w] of Object.entries(ALTERNATIVES)) {
+    const best = [...all].sort((a, b) => reweigh(b, w) - reweigh(a, w))[0], scorer = [...all].sort((a, b) => b.line.pts - a.line.pts)[0];
+    alt[name].n++; alt[name].won += best.result.startsWith('W'); alt[name].scorer += best.id === scorer.id;
+  }
   tops.push({ date, name: top.name, score: top.score, won: top.result.startsWith('W'), topScorer: scorer.id === top.id, pts: top.line.pts, line: `${top.line.pts}-${top.line.reb}-${top.line.ast}`,
     second: all[1]?.score, deducted: top.padding.value + top.fouls.value });
   for (const p of all.slice(0, 10)) for (const d of [...p.padding.items, ...p.fouls.items]) deductions.push({ date, name: p.name, value: d.value, label: d.label });
@@ -96,5 +111,11 @@ for (const [date, who, what] of FAMOUS) {
   const ex = explainNight(all);
   if (ex) { console.log('   why:', ex.why.join(' | ')); for (const c of ex.competitors) console.log(`   vs ${c.name} (−${c.gap}): ${c.text}`); }
   famous.push({ date, who, rank: at + 1 });
+  for (const [name, w] of Object.entries(ALTERNATIVES)) {
+    const order = [...all].sort((a, b) => reweigh(b, w) - reweigh(a, w));
+    alt[name].famous.push(`${who} #${order.findIndex(p => p.id === all[at]?.id) + 1} (No. 1 ${order[0].name})`);
+  }
 }
+console.log(`\n== Alternative weights (spec: ${JSON.stringify(WEIGHTS)})`);
+for (const [name, a] of Object.entries(alt)) console.log(`${name}: No. 1 won ${Math.round(100 * a.won / a.n)}%, was the top scorer ${Math.round(100 * a.scorer / a.n)}%; famous: ${a.famous.join(', ')}`);
 fs.writeFileSync('probe/backtest.json', JSON.stringify({ calibration, tops, famous }, null, 1));
