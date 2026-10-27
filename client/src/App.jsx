@@ -94,25 +94,56 @@ function Categories({ p }) {
   );
 }
 
-// Share: the phone's own share sheet where there is one, else a menu of networks and a copy-link button. Links go
-// through /s/... so previews show the score card.
+// Share: the graphic itself (sent through the phone's share sheet, downloaded or copied) or a link (which previews as
+// the same card). Links go through /s/... for the preview tags.
 const shareUrl = (date, p) => `${location.origin}/s/${date}${p ? `/${p.id}` : ''}`;
-function Share({ url, text, title, label = 'Share' }) {
+const imageUrl = (date, p, square) => `/api/og?date=${date}${p ? `&p=${p.id}` : ''}${square ? '&f=square' : ''}`;
+const fileName = (date, p, square) => `potn-${date}${p ? `-${p.name.toLowerCase().replace(/[^a-z]+/g, '-')}` : ''}${square ? '-square' : ''}.png`;
+const canShareFiles = () => { try { return !!navigator.canShare?.({ files: [new File([''], 'x.png', { type: 'image/png' })] }); } catch { return false; } };
+
+function Share({ date, p, text, title, label = 'Share' }) {
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [note, setNote] = useState('');
+  const [images, setImages] = useState({}); // square/wide -> Promise<Blob>
   useEffect(() => {
     if (!open) return;
-    const close = e => { if (!e.target.closest?.('.share')) setOpen(false); };
+    const close = e => { if (e.isTrusted && !e.target.closest?.('.share')) setOpen(false); }; // not the download link's own click
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [open]);
-  const click = async () => {
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) { try { await navigator.share({ title, text, url }); } catch { /* dismissed */ } return; }
-    setOpen(!open);
+  // Fetch the graphics as soon as the menu opens, so sharing happens straight from the tap (phones require that).
+  const blob = square => images[square ? 'sq' : 'wide'] || (() => {
+    const pr = fetch(imageUrl(date, p, square)).then(r => { if (!r.ok) throw new Error('image'); return r.blob(); });
+    pr.catch(() => {});
+    setImages(m => ({ ...m, [square ? 'sq' : 'wide']: pr }));
+    return pr;
+  })();
+  const toggle = () => { if (!open) { blob(true); blob(false); } setOpen(!open); setNote(''); };
+  const flash = t => { setNote(t); setTimeout(() => setNote(''), 1800); };
+  const url = shareUrl(date, p);
+
+  const shareImage = async () => {
+    try {
+      const file = new File([await blob(true)], fileName(date, p, true), { type: 'image/png' });
+      await navigator.share({ files: [file], title, text: `${text} ${url}` });
+      setOpen(false);
+    } catch (e) { if (e?.name !== 'AbortError') flash("Couldn't share the image"); }
   };
-  const copy = async () => {
+  const download = async square => {
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(await blob(square)); a.download = fileName(date, p, square);
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      flash('Image saved');
+    } catch { flash("Couldn't make the image"); }
+  };
+  const copyImage = async () => {
+    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob(false) })]); flash('Image copied — paste it into your post'); }
+    catch { flash("Couldn't copy the image"); }
+  };
+  const copyLink = async () => {
     try { await navigator.clipboard.writeText(url); } catch { const t = document.createElement('textarea'); t.value = url; document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); }
-    setCopied(true); setTimeout(() => setCopied(false), 1600);
+    flash('Link copied');
   };
   const e = encodeURIComponent;
   const links = [
@@ -123,15 +154,24 @@ function Share({ url, text, title, label = 'Share' }) {
     ['Reddit', `https://www.reddit.com/submit?url=${e(url)}&title=${e(text)}`],
     ['WhatsApp', `https://wa.me/?text=${e(`${text} ${url}`)}`],
   ];
+  const files = canShareFiles(), clip = typeof ClipboardItem !== 'undefined' && !!navigator.clipboard?.write;
   return (
     <span className="share">
-      <button type="button" className="btn share-btn" aria-expanded={open} onClick={click}>
+      <button type="button" className="btn share-btn" aria-expanded={open} onClick={toggle}>
         <svg viewBox="0 0 16 16" aria-hidden><path d="M8 10V2M5 5l3-3 3 3M3 8v5.5h10V8" /></svg>{label}
       </button>
       {open && (
         <span className="share-menu" role="menu">
-          {links.map(([name, href]) => <a key={name} role="menuitem" href={href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>{name}</a>)}
-          <button type="button" role="menuitem" onClick={copy}>{copied ? 'Link copied' : 'Copy link'}</button>
+          <span className="share-preview"><img src={imageUrl(date, p, false)} alt="The share graphic" /></span>
+          <span className="share-head">Graphic</span>
+          {files && <button type="button" role="menuitem" className="primary" onClick={shareImage}>Share image…</button>}
+          <button type="button" role="menuitem" onClick={() => download(false)}>Download image</button>
+          <button type="button" role="menuitem" onClick={() => download(true)}>Download square (Instagram)</button>
+          {clip && <button type="button" role="menuitem" onClick={copyImage}>Copy image</button>}
+          <span className="share-head">Link</span>
+          <span className="share-links">{links.map(([name, href]) => <a key={name} role="menuitem" href={href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>{name}</a>)}</span>
+          <button type="button" role="menuitem" onClick={copyLink}>Copy link</button>
+          {note && <span className="share-note" role="status">{note}</span>}
         </span>
       )}
     </span>
@@ -153,7 +193,7 @@ function Detail({ p, potn, players, date }) {
     <div className="detail">
       <div className="detail-bar">
         <span className="muted">No. {p.rank || ''} of {players} players · {p.line.min} minutes</span>
-        <Share url={shareUrl(date, p)} text={perfText(p, date)} title={`${p.name}: ${p.score.toFixed(1)}`} />
+        <Share date={date} p={p} text={perfText(p, date)} title={`${p.name}: ${p.score.toFixed(1)}`} />
       </div>
       {potn && (
         <section className="verdict">
@@ -320,7 +360,7 @@ function NightPage({ date, go, seasons }) {
         <header className="head">
           <div className="head-row">
             <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
-            {night?.top?.length > 0 && <Share url={shareUrl(night.date)} text={nightText(night, night.date)} title={`Performance of the Night, ${longDay(night.date)}`} label="Share the night" />}
+            {night?.top?.length > 0 && <Share date={night.date} text={nightText(night, night.date)} title={`Performance of the Night, ${longDay(night.date)}`} label="Share the night" />}
           </div>
           <p className="muted">
             {night ? `${night.games.length} game${night.games.length === 1 ? '' : 's'} · ${night.players || 0} players scored` : 'Loading…'}

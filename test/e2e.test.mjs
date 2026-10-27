@@ -83,6 +83,11 @@ test('sharing: a shared link carries the preview tags and opens the performance;
   const buf = Buffer.from(await img.arrayBuffer());
   assert.deepEqual([...buf.subarray(1, 4)].map(c => String.fromCharCode(c)).join(''), 'PNG');
   assert.equal(buf.readUInt32BE(16), 1200);
+  const sq = await fetch(`${base}/api/og?date=20250115&p=${p.id}&f=square&dl=1`);
+  const sqBuf = Buffer.from(await sq.arrayBuffer());
+  assert.deepEqual([sqBuf.readUInt32BE(16), sqBuf.readUInt32BE(20)], [1080, 1080], 'the square graphic');
+  assert.match(sq.headers.get('content-disposition'), /attachment; filename="potn-20250115-[a-z-]+-square\.png"/);
+  assert.equal(Buffer.from(await (await fetch(`${base}/api/og?date=20250115`)).arrayBuffer()).readUInt32BE(20), 630, 'the night\'s top five');
   assert.equal((await fetch(`${base}/api/og?date=bad`)).status, 400);
 });
 

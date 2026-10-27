@@ -57,11 +57,17 @@ test('the latest night: five performances, best first, the first one explained',
   await p.locator('.perf').nth(2).locator('.detail').waitFor();
   assert.equal(await p.locator('.perf').nth(2).locator('.verdict').count(), 0, 'only No. 1 has the verdict');
   // Sharing: a menu of networks and a copy-link button; the links go through /s/... for the preview card.
-  await p.locator('.perf.first .detail .share-btn').click();
+  await p.locator('.perf.open .detail .share-btn').click();
+  await p.locator('.share-menu').waitFor();
   const hrefs = await p.locator('.share-menu a').evaluateAll(a => a.map(x => x.href));
   assert.equal(hrefs.length, 6);
   assert.ok(hrefs[0].startsWith('https://twitter.com/intent/tweet?text=') && decodeURIComponent(hrefs[0]).includes('/s/20261024/'));
-  assert.ok(await p.getByRole('menuitem', { name: 'Copy link' }).isVisible());
+  await p.getByRole('menuitem', { name: 'Copy link' }).waitFor();
+  // The graphic itself: downloads (wide and square for Instagram), with a preview.
+  await p.getByRole('menuitem', { name: 'Download image' }).waitFor();
+  await p.getByRole('menuitem', { name: 'Download square (Instagram)' }).waitFor();
+  assert.match(await p.locator('.share-preview img').getAttribute('src'), /^\/api\/og\?date=20261024&p=\d+$/);
+  await p.keyboard.press('Escape'); await p.locator('h1').click();
   // How the score works.
   await p.locator('.method summary').click();
   assert.match(await p.locator('.method').textContent(), /Offense\s*30%.*Stat padding.*Fouls/s);
@@ -124,7 +130,7 @@ test('a shared link opens that performance; phones show the stat line', async ()
   await p.locator('.perf.open .detail').waitFor();
   assert.equal(await p.locator('.perf.open .name').textContent(), third.name);
   assert.match(await p.locator('.perf.open .line-m').textContent(), new RegExp(`^${third.line.pts} pts`));
-  assert.ok(await p.locator('.perf.open .line-m').isVisible());
+  await p.locator('.perf.open .line-m').waitFor();
   assert.deepEqual(errors, []);
   await p.context().close();
 });
