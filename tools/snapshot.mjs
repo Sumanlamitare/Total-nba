@@ -14,7 +14,7 @@ try {
   for (const stage of ['all', 'regular', 'playoffs']) out(`leaderboard_${season}_${stage}.json`, { stage, ...(await leaderboard(d, +season, { stage })) });
   const info = await ensureSeason(d, +season);
   for (const date of dates.split(',').filter(Boolean)) {
-    const n = await loadNight(d, date, { write: false });
+    const n = await loadNight(d, date, { write: false, force: true }); // scored afresh with the current code
     out(`night_${date}.json`, { date, season: n.season, final: n.final, live: n.live, games: n.games, top: n.top, players: n.players, potn: n.potn, model: n.model, unavailable: n.unavailable, scoredAt: n.at, dates: info.dates });
   }
   console.log('seasons', list.map(s => `${s.label}: ${s.nights} nights`).join(', '));
