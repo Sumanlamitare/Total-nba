@@ -287,6 +287,33 @@ test('a whole night: every player who appeared, scored 0..100 and explained', ()
   assert.ok(Math.abs(Object.values(bare.categories).filter(Boolean).reduce((s, c) => s + c.weight, 0) - 1) < 0.02);
 });
 
+test('rare events in real games: an ejection, fouling out, a missed technical free throw, garbage time', () => {
+  const perf = (id, name) => scoreGame(raw(`summary_${id}`)).perfs.find(p => p.name === name);
+  // Two flagrant 1s and an ejection with 6:51 left (Pistons at Suns, 2023-24).
+  const duren = perf('401584768', 'Jalen Duren');
+  assert.ok(duren.tags.includes('Ejected'));
+  const fl = duren.fouls.items.find(i => i.k === 'flagrant');
+  assert.match(fl.label, /flagrant 1.*flagrant 1.*ejected with 6:51/);
+  assert.ok(fl.value <= -2 && fl.value >= -CAPS.flagrant);
+  // Fouling out with 23 seconds left, up 9: low impact.
+  const okoro = perf('401584748', 'Isaac Okoro');
+  assert.ok(okoro.tags.includes('Fouled out'));
+  const fo = okoro.fouls.items.find(i => i.k === 'foulout');
+  assert.match(fo.label, /Q4 0:23, up 9/);
+  assert.ok(fo.value > -0.5);
+  // A technical whose free throw missed: the misconduct only.
+  const kcp = perf('401584689', 'Kentavious Caldwell-Pope');
+  assert.deepEqual(kcp.fouls.items.find(i => i.k === 'technical'), { k: 'technical', label: 'technical (Q4 2:28, up 14): the free throw missed', value: -0.8 });
+  // Garbage time comes off starters, never bench players.
+  const game = scoreGame(raw('summary_401584716')).perfs;
+  assert.ok(game.find(p => p.name === 'Killian Hayes').padding.items.some(i => i.k === 'garbage'));
+  assert.ok(game.filter(p => !p.starter).every(p => !p.padding.items.some(i => i.k === 'garbage')));
+  for (const id of ['401584689', '401584716', '401584748', '401584768']) {
+    const g = raw(`summary_${id}`);
+    assert.ok([...readPlays(g, gameOf(g), linesOf(g)).lineups.values()].every(Boolean), `lineups tracked in ${id}`);
+  }
+});
+
 test('dates and seasons', () => {
   assert.equal(seasonLabel(2025), '2024-25');
   assert.equal(ymd('2024-10-04T07:00Z'), '20241004');

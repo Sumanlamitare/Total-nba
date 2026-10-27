@@ -12,7 +12,7 @@ import { scoreGame, rank, reference, CATEGORIES, MIN_MINUTES, explainNight } fro
 const years = (process.argv[2] || '2024,2025').split(',').map(Number);
 const FAMOUS = [
   ['20240126', 'Luka Doncic', '73 points'], ['20240122', 'Joel Embiid', '70 points'], ['20230226', 'Damian Lillard', '71 points'],
-  ['20250307', 'Nikola Jokic', '31-21-22'], ['20241113', 'Victor Wembanyama', '50 points'], ['20240131', 'Karl-Anthony Towns', '62 points'],
+  ['20250307', 'Nikola Jokic', '31-21-22'], ['20241113', 'Victor Wembanyama', '50 points'], ['20240122', 'Karl-Anthony Towns', '62 points in a loss'], ['20240126', 'Devin Booker', '62 points in a loss'],
 ];
 fs.mkdirSync('probe/espn', { recursive: true });
 const t0 = Date.now();

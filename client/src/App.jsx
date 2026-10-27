@@ -179,7 +179,7 @@ function Method({ unavailable = [], players }) {
   return (
     <details className="method">
       <summary>How the score works</summary>
-      <p>Every player who appeared tonight{players ? ` (${players})` : ''} is scored from 0 to 100. Five categories are each measured in points added, then compared with thousands of real NBA games (50 is a typical rotation player's night):</p>
+      <p>Every player who appeared tonight{players ? ` (${players})` : ''} is scored from 0 to 100. Five categories are each measured in points added, then compared with thousands of real NBA games (50 is a typical rotation player's night, and each 7 is one standard deviation):</p>
       <ul>
         <li><b>Team result, 20%</b>: winning counts, scaled by his share of it; a loss costs by his minutes, half as much when it was close. Opponent's record, road, overtime, playoffs, plus-minus and win probability added.</li>
         <li><b>Offense, 30%</b>: points, with half the points above or below an average shooter on the same shots, and assists.</li>
