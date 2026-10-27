@@ -40,7 +40,8 @@ for (const [i, date] of calib.entries()) {
   for (const sum of await nightGames(date)) {
     games++;
     const { perfs } = scoreGame(sum);
-    for (const p of perfs.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k] && (k !== 'clutch' || p.categories[k].played)) raws[k].push(p.categories[k].raw);
+    // Crunch time is measured against players who were really part of it (4+ plays), not the many with one rebound.
+    for (const p of perfs.filter(p => p.line.min >= MIN_MINUTES)) for (const k of CATEGORIES) if (p.categories[k] && (k !== 'clutch' || p.categories[k].plays >= 4)) raws[k].push(p.categories[k].raw);
     if (perfs.some(p => p.tags.includes('Ejected'))) keep('ejection', sum);
     if (perfs.some(p => p.tags.includes('Fouled out'))) keep('foul out', sum);
     if (perfs.some(p => p.fouls.items.some(f => f.k === 'technical' && /missed/.test(f.label)))) keep('missed technical free throw', sum);
@@ -91,7 +92,7 @@ for (const [date, who, what] of FAMOUS) {
   console.log(`${date} ${who} (${what}): ${at < 0 ? 'not found' : `#${at + 1} of ${all.length}`}`);
   const me = all[at];
   if (me && at > 0) console.log(`   (${me.name} ${me.score} [${CATEGORIES.map(k => `${k[0]}${Math.round(me.categories[k]?.score ?? -1)}`).join(' ')}] ${me.result}: ${CATEGORIES.map(k => me.categories[k]?.items.map(i => `${i.label} ${i.value}`).join('; ')).join(' | ')} | ded ${JSON.stringify([...me.padding.items, ...me.fouls.items])})`);
-  for (const p of all.slice(0, 3)) console.log(`   ${p.name} ${p.score} [${CATEGORIES.map(k => `${k[0]}${Math.round(p.categories[k]?.score ?? -1)}`).join(' ')}] ${p.line.pts}-${p.line.reb}-${p.line.ast} ${p.result} ded ${p.padding.value + p.fouls.value}`);
+  for (const p of all.slice(0, 3)) console.log(`   ${p.name} ${p.score} [${CATEGORIES.map(k => `${k[0]}${Math.round(p.categories[k]?.score ?? -1)}`).join(' ')}] ${p.line.pts}-${p.line.reb}-${p.line.ast} ${p.result} ded ${(p.padding.value + p.fouls.value).toFixed(1)}`);
   const ex = explainNight(all);
   if (ex) { console.log('   why:', ex.why.join(' | ')); for (const c of ex.competitors) console.log(`   vs ${c.name} (−${c.gap}): ${c.text}`); }
   famous.push({ date, who, rank: at + 1 });
