@@ -66,6 +66,26 @@ test('a night: games, the top five with every part explained, stored once final'
   assert.equal(espn.hits.filter(h => h.includes('summary')).length, espn.hits.slice(0, before).filter(h => h.includes('summary')).length);
 });
 
+test('sharing: a shared link carries the preview tags and opens the performance; the preview image is a PNG', async () => {
+  const night = (await get('/api/night?date=20250115')).body;
+  const p = night.top[0];
+  const r = await fetch(`${base}/s/20250115/${p.id}`, { redirect: 'manual' });
+  assert.equal(r.status, 200);
+  const html = await r.text();
+  assert.match(html, new RegExp(`<meta property="og:title" content="${p.name}: ${p.score.toFixed(1)}`));
+  assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
+  assert.match(html, new RegExp(`og:image" content="http[^"]+/api/og\\?date=20250115&amp;p=${p.id}"`));
+  assert.match(html, new RegExp(`/night/20250115\\?p=${p.id}`));
+  assert.match(html, /was the Performance of the Night \(Jan 15, 2025\)/);
+  assert.match(await (await fetch(`${base}/s/20250115`)).text(), /Top performances of Jan 15, 2025: 1\./);
+  const img = await fetch(`${base}/api/og?date=20250115&p=${p.id}`);
+  assert.equal(img.headers.get('content-type'), 'image/png');
+  const buf = Buffer.from(await img.arrayBuffer());
+  assert.deepEqual([...buf.subarray(1, 4)].map(c => String.fromCharCode(c)).join(''), 'PNG');
+  assert.equal(buf.readUInt32BE(16), 1200);
+  assert.equal((await fetch(`${base}/api/og?date=bad`)).status, 400);
+});
+
 test('latest: the newest night with finished games', async () => {
   const { body } = await get('/api/night?date=latest');
   assert.equal(body.date, '20250115');

@@ -32,6 +32,8 @@ jobs:
           check /api/seasons 200 '"2024-25"'
           check '/api/leaderboard?season=2025' 200 '"Nikola Jokic"'
           check /api/game 404 ''
+          check /s/20250616 200 'twitter:card'
+          t=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 60 "$URL/api/og?date=20250616"); echo "preview image: $t"; [ "$t" = "200 image/png" ] || fail=1
           n=$(curl -s "$URL/api/night?date=20250115" | grep -o '"categories":' | wc -l); echo "performances on 15 Jan 2025: $n"; [ "$n" -eq 10 ] || fail=1
           s=$(curl -s "$URL/api/seasons" | grep -o '"nights":[0-9]*' | sed 's/.*://' | sort -n | tail -1); echo "most nights in a season: $s"; [ "$s" -gt 200 ] || fail=1
           exit $fail

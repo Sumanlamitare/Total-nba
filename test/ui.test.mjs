@@ -56,6 +56,12 @@ test('the latest night: five performances, best first, the first one explained',
   await p.locator('.perf').nth(2).locator('.row').click();
   await p.locator('.perf').nth(2).locator('.detail').waitFor();
   assert.equal(await p.locator('.perf').nth(2).locator('.verdict').count(), 0, 'only No. 1 has the verdict');
+  // Sharing: a menu of networks and a copy-link button; the links go through /s/... for the preview card.
+  await p.locator('.perf.first .detail .share-btn').click();
+  const hrefs = await p.locator('.share-menu a').evaluateAll(a => a.map(x => x.href));
+  assert.equal(hrefs.length, 6);
+  assert.ok(hrefs[0].startsWith('https://twitter.com/intent/tweet?text=') && decodeURIComponent(hrefs[0]).includes('/s/20261024/'));
+  assert.ok(await p.getByRole('menuitem', { name: 'Copy link' }).isVisible());
   // How the score works.
   await p.locator('.method summary').click();
   assert.match(await p.locator('.method').textContent(), /Offense\s*30%.*Stat padding.*Fouls/s);
@@ -108,6 +114,17 @@ test('the leaderboard: most top-five nights, a player\'s nights, links back', as
   await p.locator('.nights a').first().click();
   await p.waitForURL(/\/night\/2025\d{4}$/);
   await p.locator('.perf').first().waitFor().catch(() => {});
+  assert.deepEqual(errors, []);
+  await p.context().close();
+});
+
+test('a shared link opens that performance; phones show the stat line', async () => {
+  const third = fixture('night_20261024').top[2];
+  const { p, errors } = await page(`/night/20261024?p=${third.id}`, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await p.locator('.perf.open .detail').waitFor();
+  assert.equal(await p.locator('.perf.open .name').textContent(), third.name);
+  assert.match(await p.locator('.perf.open .line-m').textContent(), new RegExp(`^${third.line.pts} pts`));
+  assert.ok(await p.locator('.perf.open .line-m').isVisible());
   assert.deepEqual(errors, []);
   await p.context().close();
 });

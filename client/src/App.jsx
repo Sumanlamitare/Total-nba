@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion as M, AnimatePresence } from 'motion/react';
 import { loadNight, loadSeasons, loadLeaderboard, longDay, shortDay, isoDay, fromDate } from './api.js';
+import { perfText, nightText } from '../../lib/share.js';
 
 const TOP = 5;
 
@@ -93,7 +94,51 @@ function Categories({ p }) {
   );
 }
 
-function Detail({ p, potn, players }) {
+// Share: the phone's own share sheet where there is one, else a menu of networks and a copy-link button. Links go
+// through /s/... so previews show the score card.
+const shareUrl = (date, p) => `${location.origin}/s/${date}${p ? `/${p.id}` : ''}`;
+function Share({ url, text, title, label = 'Share' }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (!e.target.closest?.('.share')) setOpen(false); };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [open]);
+  const click = async () => {
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) { try { await navigator.share({ title, text, url }); } catch { /* dismissed */ } return; }
+    setOpen(!open);
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(url); } catch { const t = document.createElement('textarea'); t.value = url; document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); }
+    setCopied(true); setTimeout(() => setCopied(false), 1600);
+  };
+  const e = encodeURIComponent;
+  const links = [
+    ['X', `https://twitter.com/intent/tweet?text=${e(text)}&url=${e(url)}`],
+    ['Threads', `https://www.threads.net/intent/post?text=${e(`${text} ${url}`)}`],
+    ['Bluesky', `https://bsky.app/intent/compose?text=${e(`${text} ${url}`)}`],
+    ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`],
+    ['Reddit', `https://www.reddit.com/submit?url=${e(url)}&title=${e(text)}`],
+    ['WhatsApp', `https://wa.me/?text=${e(`${text} ${url}`)}`],
+  ];
+  return (
+    <span className="share">
+      <button type="button" className="btn share-btn" aria-expanded={open} onClick={click}>
+        <svg viewBox="0 0 16 16" aria-hidden><path d="M8 10V2M5 5l3-3 3 3M3 8v5.5h10V8" /></svg>{label}
+      </button>
+      {open && (
+        <span className="share-menu" role="menu">
+          {links.map(([name, href]) => <a key={name} role="menuitem" href={href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>{name}</a>)}
+          <button type="button" role="menuitem" onClick={copy}>{copied ? 'Link copied' : 'Copy link'}</button>
+        </span>
+      )}
+    </span>
+  );
+}
+
+function Detail({ p, potn, players, date }) {
   const l = p.line;
   const ded = [...(p.padding?.items || []).map(d => ({ ...d, kind: 'Padding' })), ...(p.fouls?.items || []).map(d => ({ ...d, kind: 'Fouls' }))];
   const stats = [
@@ -106,6 +151,10 @@ function Detail({ p, potn, players }) {
   if (l.flagrant) stats.push(['FLAGRANT', l.flagrant]);
   return (
     <div className="detail">
+      <div className="detail-bar">
+        <span className="muted">No. {p.rank || ''} of {players} players · {p.line.min} minutes</span>
+        <Share url={shareUrl(date, p)} text={perfText(p, date)} title={`${p.name}: ${p.score.toFixed(1)}`} />
+      </div>
       {potn && (
         <section className="verdict">
           <h3>Why {potn.name.split(' ').slice(-1)[0]} won <span className="muted">· No. 1 of {players} players</span></h3>
@@ -140,7 +189,7 @@ function Detail({ p, potn, players }) {
   );
 }
 
-function Row({ p, rank, open, onOpen, potn, players }) {
+function Row({ p, rank, open, onOpen, potn, players, date }) {
   return (
     <li className={`perf${rank === 1 ? ' first' : ''}${open ? ' open' : ''}`}>
       <button type="button" className="row" onClick={onOpen} aria-expanded={open} aria-label={`Number ${rank}: ${p.name}, score ${p.score}. ${open ? 'Hide' : 'Show'} the breakdown`}>
@@ -150,6 +199,7 @@ function Row({ p, rank, open, onOpen, potn, players }) {
           <span>
             <b className="name">{p.name}</b>
             <small><Logo team={p.team} size={14} />{p.team?.abbr} {p.home ? 'vs' : '@'} {p.opp?.abbr}{STAGE_LABEL[p.stage] ? ` · ${STAGE_LABEL[p.stage]}` : ''}<span className={`res-m ${won(p) ? 'w' : 'l'}`}>{p.result}</span></small>
+            <span className="line-m">{statline(p.line)}</span>
           </span>
         </span>
         <span className={`res ${won(p) ? 'w' : 'l'}`}>{p.result}</span>
@@ -161,7 +211,7 @@ function Row({ p, rank, open, onOpen, potn, players }) {
       <AnimatePresence initial={false}>
         {open && (
           <M.div className="open-wrap" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-            <Detail p={p} potn={potn} players={players} />
+            <Detail p={{ rank, ...p }} potn={potn} players={players} date={date} />
           </M.div>
         )}
       </AnimatePresence>
@@ -211,7 +261,15 @@ function NightPage({ date, go, seasons }) {
   useEffect(() => {
     let alive = true;
     setError(null); setOpen(0); setMore(false);
-    loadNight(date).then(n => { if (!alive) return; setNight(n); if (date === 'latest') go(`/night/${n.date}`, { replace: true }); }).catch(e => alive && setError(e));
+    loadNight(date).then(n => {
+      if (!alive) return;
+      setNight(n);
+      if (date === 'latest') go(`/night/${n.date}`, { replace: true });
+      // A shared link (?p=playerId) opens that performance.
+      const pid = new URLSearchParams(location.search).get('p');
+      const k = pid ? (n.top || []).findIndex(x => x.id === pid) : -1;
+      if (k >= 0) { setOpen(k); if (k >= TOP) setMore(true); setTimeout(() => document.querySelectorAll('.rows > .perf')[k]?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 300); }
+    }).catch(e => alive && setError(e));
     return () => { alive = false; };
   }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
   // Live nights refresh every minute.
@@ -260,7 +318,10 @@ function NightPage({ date, go, seasons }) {
         <div className="empty"><h2>Couldn't load that night</h2><p>{error.message}</p><button className="btn" onClick={() => go('/')}>Latest night</button></div>
       ) : <>
         <header className="head">
-          <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
+          <div className="head-row">
+            <h1>{cur !== 'latest' ? longDay(cur) : 'The latest night'}</h1>
+            {night?.top?.length > 0 && <Share url={shareUrl(night.date)} text={nightText(night, night.date)} title={`Performance of the Night, ${longDay(night.date)}`} label="Share the night" />}
+          </div>
           <p className="muted">
             {night ? `${night.games.length} game${night.games.length === 1 ? '' : 's'} · ${night.players || 0} players scored` : 'Loading…'}
             {night?.live && <span className="live"> · live, updates every minute</span>}
@@ -293,7 +354,7 @@ function NightPage({ date, go, seasons }) {
               <span className="r">Score</span><span />
             </div>
             <ol className="rows" aria-label="Top performances">
-              {shown.map((p, k) => <Row key={`${p.event}-${p.id}`} p={p} rank={k + 1} open={open === k} onOpen={() => setOpen(open === k ? null : k)} potn={k === 0 && night.potn?.id === p.id ? night.potn : null} players={night.players} />)}
+              {shown.map((p, k) => <Row key={`${p.event}-${p.id}`} p={p} rank={k + 1} open={open === k} onOpen={() => setOpen(open === k ? null : k)} potn={k === 0 && night.potn?.id === p.id ? night.potn : null} players={night.players} date={night.date} />)}
             </ol>
             {top.length > TOP && <button type="button" className="more" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Show the top 5' : `Show ${TOP + 1}–${top.length}`}</button>}
           </div>

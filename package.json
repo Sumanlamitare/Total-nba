@@ -17,6 +17,7 @@
     "ingest": "node scripts/ingest.mjs"
   },
   "dependencies": {
+    "@vercel/og": "^0.6.8",
     "@vitejs/plugin-react": "^4.7.0",
     "mongodb": "^6.21.0",
     "motion": "^12.43.0",

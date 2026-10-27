@@ -8,6 +8,14 @@
   },
   "rewrites": [
     {
+      "source": "/s/:date/:p",
+      "destination": "/api/share?date=:date&p=:p"
+    },
+    {
+      "source": "/s/:date",
+      "destination": "/api/share?date=:date"
+    },
+    {
       "source": "/((?!api/|assets/|favicon).*)",
       "destination": "/index.html"
     }

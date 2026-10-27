@@ -35,6 +35,9 @@ function mockApi(name, url, res) {
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  // Shared links, as vercel.json rewrites them.
+  const sh = url.pathname.match(/^\/s\/(\d{8})(?:\/(\w+))?$/);
+  if (sh) { url.pathname = '/api/share'; url.searchParams.set('date', sh[1]); if (sh[2]) url.searchParams.set('p', sh[2]); }
   const a = url.pathname.match(/^\/api\/([a-z]+)$/);
   if (a && process.env.MOCK_API) return mockApi(a[1], url, res);
   if (!a) return process.env.STATIC_DIR ? serveStatic(req, res) : vite ? vite.middlewares(req, res) : (res.statusCode = 404, res.end());

@@ -316,6 +316,17 @@ test('rare events in real games: an ejection, fouling out, a missed technical fr
   }
 });
 
+test('share text for a performance and a night', async () => {
+  const { perfText, nightText, sharePage } = await import('../lib/share.js');
+  const p = { rank: 1, id: '9', name: 'Ann "A" Lee', score: 65.94, result: 'W 141-135 OT', opp: { abbr: 'NO' }, line: L({ pts: 35, reb: 15, ast: 10, blk: 3, fgm: 12, fga: 23 }) };
+  assert.equal(perfText(p, '20261024'), 'Ann "A" Lee was the Performance of the Night (Oct 24, 2026): 35 pts, 15 reb, 10 ast, 3 blk on 12-23 shooting in a 141-135 OT win over NO. POTN score 65.9/100');
+  assert.match(perfText({ ...p, rank: 3, result: 'L 120-124' }, '20261024'), /had the 3rd-best performance of the night .* in a 120-124 loss to NO/);
+  assert.equal(nightText({ top: [p, { ...p, name: 'B', score: 60 }] }, '20250102'), 'Top performances of Jan 2, 2025: 1. Ann "A" Lee 65.9 · 2. B 60.0');
+  const html = sharePage({ origin: 'https://x.app', date: '20261024', perf: p, night: { top: [p] } });
+  assert.ok(html.includes('Ann &quot;A&quot; Lee') && !html.includes('Ann "A"'), 'escaped');
+  assert.ok(html.includes('https://x.app/night/20261024?p=9'));
+});
+
 test('dates and seasons', () => {
   assert.equal(seasonLabel(2025), '2024-25');
   assert.equal(ymd('2024-10-04T07:00Z'), '20241004');

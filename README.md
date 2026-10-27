@@ -14,7 +14,9 @@ Seasons are named by the year they end (2025 = 2024-25). Seasons 2021-22 to now 
 
 ## The interface
 
-A quiet dark dashboard on system fonts. Each night is a ranked table: rank, player, result, line, five small bars (one per category, 0–100 with a tick at 50) and the score. A row opens into its breakdown: the five categories with what went into each, the deductions and the arithmetic, the box score (with true shooting, eFG%, usage, assist-to-turnover, technicals) and the data confidence. No. 1 opens first, with why he won and where the next two lost ground. The leaderboard is a table with a bar for top-five nights; a row opens to each of the player's nights. While the first night loads, a ball bounces on a baseline.
+A quiet dark dashboard on system fonts. Each night is a ranked table: rank, player, result, line, five small bars (one per category, 0–100 with a tick at 50) and the score. A row opens into its breakdown: the five categories with what went into each, the deductions and the arithmetic, the box score (with true shooting, eFG%, usage, assist-to-turnover, technicals) and the data confidence. No. 1 opens first, with why he won and where the next two lost ground. The leaderboard is a table with a bar for top-five nights; a row opens to each of the player's nights. While the first night loads, a ball bounces on a baseline. On a phone each row shows the stat line under the name.
+
+**Sharing.** Each performance and each night has a Share button: on a phone it opens the phone's share sheet; elsewhere a menu with X, Threads, Bluesky, Facebook, Reddit, WhatsApp and Copy link. Shared links (`/s/YYYYMMDD/playerId`, or `/s/YYYYMMDD` for the night) serve a page with the preview tags (`api/share.js`) and a 1200×630 score card (`/api/og`, rendered with @vercel/og), then open the night in the app with that performance expanded (`/night/YYYYMMDD?p=playerId`).
 
 ## The score
 
@@ -68,7 +70,7 @@ There is no labelled ground truth for "the performance of the night", so the fam
 ## How it's built
 
 - **Client** (`client/`): React 18 and Motion, built by Vite.
-- **API** (`api/`, Vercel functions): `/api/night?date=YYYYMMDD|latest`, `/api/seasons`, `/api/leaderboard?season=YYYY&stage=all|regular|playoffs`. A night is scored from ESPN on first request and stored once every game is final (postponed games don't hold it up); stored nights are cached at the edge for a day.
+- **API** (`api/`, Vercel functions): `/api/night?date=YYYYMMDD|latest`, `/api/seasons`, `/api/share` and `/api/og` (shared links and their preview image), `/api/leaderboard?season=YYYY&stage=all|regular|playoffs`. A night is scored from ESPN on first request and stored once every game is final (postponed games don't hold it up); stored nights are cached at the edge for a day.
 - **Data** (`lib/nights.js`): MongoDB (`LIBRARY_DB`, default `library`) with `nights` (each night's games, top ten, the No. 1's explanation, the model version, ESPN sources and when it was scored), `perfs` (every scored performance, for season averages) and `meta` (each season's game dates).
 - **Workflows**: *Score the nights* runs every morning for the current season, and backfills seasons on demand (`seasons: 2024,2025`). *Probe ESPN* saves ESPN responses for a date, API snapshots from the database, or a calibration and backtest, to the `probe` branch.
 
@@ -91,5 +93,6 @@ npm run test:ui        # Chromium: a night, switching dates and seasons, the lea
 | [React](https://react.dev) 18 | Interface | MIT |
 | [Motion](https://github.com/motiondivision/motion) 12 | Animation | MIT |
 | [Vite](https://vitejs.dev) 5 | Build | MIT |
+| [@vercel/og](https://vercel.com/docs/functions/og-image-generation) 0.6 | Share preview images | MPL-2.0 |
 | [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
 | ESPN public API, headshots and logos | Box scores, play-by-play, win probability, records, portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
