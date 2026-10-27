@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
-  gameOf, linesOf, readPlays, foulKind, leverage, decided, isClutch, gameScore, trueShooting, usageRate, offense, defense, possession, result, clutch,
+  gameOf, linesOf, readPlays, clockText, foulKind, leverage, decided, isClutch, gameScore, trueShooting, usageRate, offense, defense, possession, result, clutch,
   padding, fouls, standardize, reference, scoreGame, rank, explainNight, strength, parseRecord, stageOf, milestonesOf, WEIGHTS, CAPS,
 } from '../lib/night.js';
 import { seasonLabel, isDate, ymd } from '../lib/nights.js';
@@ -71,6 +71,8 @@ test('the clock: clutch time, garbage time, leverage', () => {
   assert.equal(decided(4, 30, 14), false);
   assert.equal(decided(5, 60, 16), true, 'overtime counts');
   assert.equal(decided(3, 10, 30), false);
+  assert.equal(clockText(43.1), '0:43');
+  assert.equal(clockText(605), '10:05');
   assert.equal(leverage(4, 60, 2), 2);
   assert.equal(leverage(4, 500, 8), 1.5);
   assert.equal(leverage(2, 300, 3), 1);
