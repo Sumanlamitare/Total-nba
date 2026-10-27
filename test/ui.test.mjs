@@ -2,6 +2,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+
+// The fixtures' own No. 1s, so the test follows a recalibrated score.
+const fixture = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/api/${f}.json`, import.meta.url)));
+const no1 = date => fixture(`night_${date}`).top[0].name;
 
 const pw = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { chromium } = pw.chromium ? pw : pw.default;
@@ -38,12 +43,22 @@ test('the latest night: five performances, best first, the first one explained',
   assert.equal(await p.locator('.top > .perf').count(), 5);
   const scores = (await p.locator('.perf .score b').allTextContents()).map(Number);
   assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
-  assert.equal(await p.locator('.perf.hero .name').textContent(), 'Devin Booker');
-  assert.ok(await p.locator('.perf.hero .parts li').count() >= 4, 'the No. 1 shows why');
+  assert.equal(await p.locator('.perf.hero .name').textContent(), no1('20261024'));
+  // The No. 1 is explained: why he won, the closest competitors, the five categories, the arithmetic, the data.
+  assert.equal(await p.locator('.perf.hero .cat').count(), 5);
+  assert.match(await p.locator('.perf.hero .verdict').textContent(), /Why .* won.*No\. 1 of \d+ players.*Closest competitors/s);
+  assert.equal(await p.locator('.perf.hero .verdict li').count() >= 4, true);
+  assert.match(await p.locator('.perf.hero .math').textContent(), /= \d+\.\d \/ 100/);
+  assert.match(await p.locator('.perf.hero .conf').textContent(), /Data confidence: (high|medium|low)/);
+  assert.ok(scores.every(x => x >= 0 && x <= 100));
   assert.equal(await p.locator('.games li').count(), 8);
   // Another performance opens its breakdown; the next five are a tap away.
   await p.locator('.perf').nth(2).locator('.perf-main').click();
-  await p.locator('.perf').nth(2).locator('.parts').waitFor();
+  await p.locator('.perf').nth(2).locator('.breakdown').waitFor();
+  assert.equal(await p.locator('.perf').nth(2).locator('.verdict').count(), 0, 'only No. 1 has the verdict');
+  // How the score works.
+  await p.locator('.method summary').click();
+  assert.match(await p.locator('.method').textContent(), /Offense, 30%.*Stat padding.*Fouls/s);
   await p.getByRole('button', { name: /Show the next 5/ }).click();
   assert.equal(await p.locator('.also-list li').count(), 5);
   assert.deepEqual(errors, []);
@@ -54,19 +69,19 @@ test('switching dates and seasons', async () => {
   const { p, errors } = await page('/night/20250115');
   await p.locator('.perf').first().waitFor();
   assert.equal(await p.locator('h1').textContent(), 'Wednesday, January 15, 2025');
-  assert.equal(await p.locator('.perf.hero .name').textContent(), 'Mark Williams');
+  assert.equal(await p.locator('.perf.hero .name').textContent(), no1('20250115'));
   assert.equal(await p.locator('select').inputValue(), '2025');
   // The arrows step through game nights (the previous one is the 14th).
   await p.getByRole('button', { name: /Previous game night, Tuesday, January 14, 2025/ }).click();
   await p.waitForURL(/20250114$/);
   await p.goBack();
   await p.waitForURL(/20250115$/);
-  await p.locator('.perf.hero .name', { hasText: 'Mark Williams' }).waitFor();
+  await p.locator('.perf.hero .name', { hasText: no1('20250115') }).waitFor();
   // Picking a day on the calendar.
   await p.locator('.day input').fill('2025-06-16');
   await p.waitForURL(/20250616$/);
   await p.locator('.perf.hero .stage', { hasText: 'NBA Finals' }).waitFor();
-  assert.equal(await p.locator('.perf.hero .name').textContent(), 'Jalen Williams');
+  assert.equal(await p.locator('.perf.hero .name').textContent(), no1('20250616'));
   // A postponed game is listed with the night.
   await p.goto(`${base}/night/20250111`); await p.locator('.perf').first().waitFor();
   assert.ok((await p.locator('.games small').allTextContents()).some(t => /Postponed/.test(t)));
@@ -82,7 +97,7 @@ test('the leaderboard: most top-five nights, a player\'s nights, links back', as
   await p.getByRole('link', { name: /Season leaderboard/ }).click();
   await p.waitForURL(/\/leaderboard\/2025$/);
   await p.locator('.lb-row').first().waitFor();
-  assert.match(await p.locator('.lb-row').first().textContent(), /Nikola Jokic/);
+  assert.match(await p.locator('.lb-row').first().textContent(), new RegExp(fixture('leaderboard_2025_all').players[0].name));
   const counts = (await p.locator('.lb-row .lb-n:nth-child(3) b').allTextContents()).map(Number);
   assert.deepEqual(counts, [...counts].sort((a, b) => b - a));
   await p.locator('.lb-row').first().click();

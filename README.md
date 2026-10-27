@@ -58,7 +58,12 @@ Each category is a value in points added (below). It is standardized against rea
 
 `tools/calibrate.mjs` (the *Probe ESPN* workflow, task `calibrate`) calibrates on every other even-numbered night of 2023-24 and 2024-25 and tests on odd-numbered nights it never saw. Latest run:
 
-BACKTEST
+- **Calibration**: 653 games, 11,802 rotation-player games (crunch time: 1,636 players with 4+ crunch-time plays). On 55 held-out nights every category's median score is 50 (crunch time 48.8).
+- **No. 1s on held-out nights**: won 95% of the time; were the night's top scorer only 33% (median 35 points, fewest 19); had a deduction 15%; median score 64.4 (10th–90th percentile 62.3–68.0), 2.3 ahead of No. 2. Losses fill 7% of top-three places.
+- **Famous nights**: Luka Doncic's 73 (#1), Joel Embiid's 70 (#1), Nikola Jokic's 31-21-22 (#1), Damian Lillard's 71 (#2, behind Jokic's 40-17-10 overtime win with crunch-time scoring), Victor Wembanyama's 50 (#2, behind Giannis Antetokounmpo's 59 in overtime), Devin Booker's 62 in a two-point loss (#3), Karl-Anthony Towns' 62 in a loss (#17: 7 turnovers, 0-for-3 and −32% win probability in crunch time, the night of Embiid's 70).
+- **Alternative weights** (offense 35%, possession 10%) move Booker's 62 to #2 and Towns' to #10 and change nothing else above; the spec's weights are kept.
+
+There is no labelled ground truth for "the performance of the night", so the famous nights and the held-out distributions are the check; the full report is on the `probe` branch.
 
 ## How it's built
 
