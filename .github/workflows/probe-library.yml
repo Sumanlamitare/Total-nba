@@ -43,6 +43,8 @@ jobs:
           node tools/calibrate.mjs $DATE 2>&1 | tee probe/report.txt
         env:
           DATE: ${{ inputs.date }}
+      - if: inputs.task == 'providers'
+        run: node tools/probe-providers.mjs 2>&1 | tee probe/report.txt
       - name: Push results to the probe branch
         if: always()
         run: |
