@@ -1,98 +1,123 @@
-# Performance of the Night
+# Overlap
 
-The five best individual performances of every NBA night, scored from 0 to 100 by an algorithm that weighs winning, offense, defense, possessions, crunch time, stat padding and fouls, and a season leaderboard of who collects them.
+Automatic NBA statistical Venn diagrams. Every night, once all the games are final, Overlap publishes a diagram of the
+players who met the night's criteria (say 10+ rebounds, 6+ assists, 90%+ free throws), each placed in exactly the
+intersection of criteria he met. It does the same for the season to date, and lets anyone build their own with any
+statistic, any number of criteria and any period, then share it as a finished graphic.
 
 Live: https://total-nba-ja9d.vercel.app
 
 ## Using it
 
-- **Tonight** opens on the newest night with finished games. Step through game nights with the arrows, pick any date on the calendar, or switch seasons. While games are on, the ranking updates every minute and is marked live until the last game ends.
-- Each of the top five shows the line, the result and a score out of 100; tap one to see its five categories, deductions and data confidence. No. 1 also says why he won and how close the next two came. The next five are one tap away.
-- **Leaderboard** (`/leaderboard/2025` for 2024-25): players ranked by top-five finishes that season, then No. 1 nights, then points (5 for first down to 1 for fifth). Filter to the regular season or the playoffs, and open a player to see each of his nights.
+- **Today**: the latest automatic diagram (and the season to date), with its date, period, player count, criteria, last
+  update and whether every game is final. A banner shows tonight's progress while games are on.
+- **Daily**: any night. A night that isn't final yet shows a clearly marked preview from its finished games; **Refresh**
+  checks ESPN again right away.
+- **Season**: regular season, playoffs or both, for any loaded season. In **Modify → Period** you can set a date range or
+  a "through" date to see the season as it stood that day.
+- **Modify** (on every diagram): criteria (any statistic from the searchable catalog, `≥ > ≤ <`, decimal thresholds,
+  the same statistic twice, reorder, remove), period, team and player filters (only these players, exclude), and the
+  look: view (Venn or intersections), each circle's color, background, fill, outline, circle positions and sizes,
+  headshot size, names, counts, typeface. Everything redraws instantly; **Undo/Redo** (also ⌘Z / ⇧⌘Z), **Reset**, and
+  **Save** a configuration for reuse.
+- **Share**: a live preview of the standalone graphic in square 1080×1080, portrait 1080×1350, landscape 1920×1080 or
+  custom sizes, with title, subtitle, logo, legend and attribution; then PNG, high-res PNG (3×), SVG, PDF, copy image,
+  the phone's share sheet, or a link (`/d/<id>`) whose preview on X and elsewhere is the diagram itself.
+- **History**: every automatic diagram and every shared custom one, by type and season. Open, modify, download, share,
+  or pick two to compare (or apply one night's criteria to another night).
+- **Settings**: the default daily and season criteria and the minimum samples. The first passcode set owns the settings.
 
-Seasons are named by the year they end (2025 = 2024-25). Seasons 2021-22 to now are scored; the current one fills in every morning.
+## The statistics
 
-## The interface
+**Provider.** Stage-one research (`tools/probe-providers.mjs`) tried NBA.com's stats API (times out from cloud hosts),
+NBA.com's CDN (403 from cloud hosts) and ESPN. ESPN serves schedules and live status, complete box scores, league-wide
+season tables (regular season and playoffs, many seasons back) and per-player season figures, without a key, so it is
+the provider, behind an interface (`lib/providers/espn.js`) another provider can sit beside.
 
-A quiet dark dashboard on system fonts. Each night is a ranked table: rank, player, result, line, five small bars (one per category, 0–100 with a tick at 50) and the score. A row opens into its breakdown: the five categories with what went into each, the deductions and the arithmetic, the box score (with true shooting, eFG%, usage, assist-to-turnover, technicals) and the data confidence. No. 1 opens first, with why he won and where the next two lost ground. The leaderboard is a table with a bar for top-five nights; a row opens to each of the player's nights. While the first night loads, a ball bounces on a baseline. On a phone each row shows the stat line under the name.
+**Where each number comes from** (shown on every statistic in the picker):
+- *Box score*: points, rebounds (offensive, defensive), assists, steals, blocks, turnovers, fouls, minutes, made and
+  attempted field goals, threes and free throws and their percentages, plus-minus, starts; double- and triple-doubles.
+- *Computed* from box scores with Basketball Reference's formulas (they need the team's and opponent's totals, which
+  every game carries): true shooting %, effective FG %, usage %, assist %, rebound % (total, offensive, defensive),
+  steal %, block %, turnover %, assist-to-turnover ratio, Game Score, per-36 numbers.
+- *ESPN season figures* (whole season to date only): PER, ESPN's player rating, assist and turnover ratio, estimated
+  possessions, points per possession, shooting and scoring efficiency, steal/block-to-foul and steal-to-turnover ratios.
+  These are offered only when the data has real values: ESPN returns usage and rebound rates as 0 for everyone, and a
+  "VORP" on a scale that isn't VORP's, so those are never offered.
+- *Not available* from any reachable provider, never estimated: Box Plus/Minus (and its offensive/defensive parts),
+  Win Shares (and WS/48), offensive, defensive and net rating.
 
-**Sharing.** Each performance and each night has a Share button. Its menu shows the graphic (the score card: name, result, stat line, score and the five category bars, or the night's top five) and shares the image itself: *Share image* sends the picture through the phone's share sheet (Instagram, X, Messages, WhatsApp...), *Download image* (1200×630, for X) and *Download square* (1080×1080, for Instagram), and *Copy image* to paste into a post. Or share a link: X, Threads, Bluesky, Facebook, Reddit, WhatsApp, Copy link. Shared links (`/s/YYYYMMDD/playerId`, or `/s/YYYYMMDD` for the night) serve a page with the preview tags (`api/share.js`) and a 1200×630 score card (`/api/og`, rendered with @vercel/og), then open the night in the app with that performance expanded (`/night/YYYYMMDD?p=playerId`).
+**Season numbers** are sums of the box scores in the database (so date ranges and "through" dates work), with
+percentages and rates from the sums, never averages of game percentages. Each statistic is labeled total, per game,
+per 36, percentage, rate, count, advanced or yes/no.
 
-## The score
+**Minimum samples** (Settings): a night's percentage needs enough attempts (default 5 FGA, 3 3PA, 4 FTA); season
+averages need half the team's games, and percentages NBA-style made shots per team game (3.65 FGM, 1 3PM, 1.5 FTM —
+the league's leader qualifiers, prorated). Players short of a sample count as not meeting that criterion and are noted.
 
-Every player who appeared in a regular-season, play-in or playoff game is scored from 0 to 100 and ranked; nobody is left out for being a role player. The code is `lib/night.js`.
+## The engine and the diagrams
 
-```
-POTN = 0.20 Result + 0.30 Offense + 0.20 Defense + 0.15 Possession + 0.15 Crunch time − stat padding − fouls   (0..100)
-```
+- `lib/engine.js` decides who qualifies: for each player, a bit mask of the criteria met; regions are masks. It knows
+  nothing about drawing — colors, positions and views never change a result. Unit tests cover every combination for
+  2 to 6 criteria.
+- `lib/venn/layout.js` draws 1–3 criteria as circles and 4 or 5 as ellipse arrangements found by search so that every
+  one of the 15 or 31 combinations has its own region (true Venn diagrams, not misleading ones). Players are packed on a
+  hexagonal lattice inside their exact region, headshot and name wholly inside it; a crowded diagram shrinks headshots,
+  then grows the canvas — nobody is hidden. Six or more criteria (or a crowded five) use the intersection view: one row
+  per combination with its count and players (UpSet-style). You can switch views at any time.
+- `lib/venn/render.js` turns a layout into SVG — one renderer for the page, the downloads and the link previews.
 
-Each category is a value in points added (below). It is standardized against real NBA games: a robust z-score, (value − median) / (1.4826 × MAD), from 11,800 rotation-player games of 2023-24 and 2024-25 (`lib/calibration.js`). That z-score maps to 0..100: 50 is a typical rotation player's night, each 7 is one standard deviation, and it's capped at ±7 SD so only historic nights reach 100.
+## Automation
 
-| Category | Weight | What goes in |
-|---|---|---|
-| Team result | 20% | A win: 6.5 × his part in it (40% his share of the minutes, 60% his share of the team's production), × the opponent's strength (its record before the game, pulled toward .500), × 1.1 on the road, × 1.05 in overtime, × 1.05–1.2 in the play-in and playoffs. A loss: −4 × his share of the minutes, half that when it was close (5 points or fewer, or overtime). Winning matters; a loss never disqualifies. Plus-minus × 0.12 (±3). Win probability he added before crunch time × 8 (±3) |
-| Offense | 30% | Points, plus or minus half the points above or below an average shooter on the same shots (1.14 per true-shooting attempt), and assists; × 0.9–1.1 for the opponent's strength. Volume and efficiency together: 30 points on 18 shots beats 30 on 30, which still beats 10 on 6 |
-| Defense | 20% | Steals × 1.3, blocks × 0.8, defensive rebounds × 0.3, and on/off defense: the opponent's points per possession with him on the floor against without him, from lineups rebuilt from the play-by-play's substitutions (shrunk hard, ±2: one game is a small sample; used only when the rebuilt minutes match the box score) |
-| Possession | 15% | Offensive rebounds × 0.8, and turnovers against those expected from how much he had the ball (10% of his shots, free-throw trips, assists and turnovers). Each turnover costs (0.6 + 0.5 × the points the opponent scored off it before his team had the ball back) × leverage |
-| Crunch time | 15% | The NBA's clutch time: the last 5 minutes of the 4th quarter or overtime, within 5 points. Win probability he added there × 20 (from ESPN; without it, his crunch-time shooting), +2 for the game-winner (the basket that put his team ahead for good in the last minute). In a loss a negative number counts half. Measured against players who were really part of crunch time; a game without any leaves this at a neutral 50 |
+`.github/workflows/auto.yml` runs `scripts/auto.mjs` every 20 minutes from noon to 6 a.m. Eastern:
 
-**Leverage** (how much a moment matters, from the score before the play and the time left): 2 in clutch time, 1.5 in a 4th quarter within 10, 1 otherwise, 0.5 once decided.
+1. Today's and yesterday's games (NBA game dates, Eastern Time).
+2. A final game's box score is stored only once it passes checks: both teams present with players, each team's player
+   points adding up to its score, player minutes adding up to the game. An incomplete response is never taken for a
+   final game.
+3. When every game of a date is final and verified, the date's default diagrams are made: the night, and the season
+   through that night. Postponed, canceled and suspended games don't hold a night up; a night with no games is noted.
+4. The same configuration on unchanged data never makes a second diagram. The last three nights are fetched again
+   every six hours; a stat correction makes a new version and the old one is kept, marked superseded.
+5. ESPN's season figures are refreshed daily. **Refresh** on a night runs steps 1–4 for it at once (at most once a minute).
 
-**Stat padding** (up to −12):
-- Garbage time, starters only (a bench player's garbage time is his real playing time), up to −3: what his stats from the last 2 minutes of the 4th quarter or overtime with a 15-point lead were worth. A milestone reached only in garbage time doesn't count. Nothing earlier counts as garbage time, however lopsided: comebacks happen.
-- Only for box scores that look impressive (20 points, a double-double, 15 rebounds or 12 assists), since a quiet night's flaws are already in its categories: volume over efficiency (15+ shots and more than 3 points short of an average shooter), up to −4; usage of 30%+ with true shooting under 53% and 4 assists or fewer, up to −2; 5+ turnovers out of proportion to his points and assists, up to −3.
-
-**Fouls** (up to −7 combined):
-- Technicals, up to −3: 0.75 for the misconduct (0.25 for defensive three seconds) + 0.5 × the technical free-throw points that went in × leverage. A missed free throw is never counted as a point.
-- Personal fouls, up to −2 with foul trouble: 0.08 × the free-throw points they gave × leverage, and 0.05 for each foul past the second; anything under half a point (normal physical defense) is let go. Fouling on purpose late while trailing is strategy and costs nothing. Early foul trouble (2 in the 1st quarter, 3 by half, 5 after three) that left him 4+ minutes under his season average costs 0.1 a minute.
-- Fouling out, up to −4: by how close the game was, how much time was left and how much he mattered. Late in a decided game it costs almost nothing.
-- Flagrants and ejections, up to −5: 1 for a flagrant 1, 2 for a flagrant 2, plus their free throws; an ejection by the share of the game he missed and how much he mattered.
-
-**Each event is charged once.** A turnover is charged in Possession only: its win-probability swing isn't charged again in Crunch time or Result, and the points scored off it are part of its cost there. A technical's free throw is charged with the technical. Fouls, turnovers, steals and blocks carry no win probability (they're counted in their own categories); win probability goes to shooters, passers on made baskets and rebounders. Plus-minus has a small weight because it overlaps with everything.
-
-**Missing data is never invented.** Without play-by-play, a player's turnovers cost an average 1.1 each, crunch time's weight goes to the other categories, and his data confidence is *low*; without win probability or reliable lineups it's *medium*. ESPN's game data has no potential assists, fouls or charges drawn, shot contests or official offensive and defensive ratings, so none are used.
-
-**Explained.** Each card shows its five category scores and what went into each, every deduction with its reason (for a technical: the clock, the score and whether the free throw went in), the arithmetic, the full line (minutes, shooting splits, true shooting, eFG%, usage, assist-to-turnover, fouls, technicals, plus-minus, opponent points off his turnovers) and the data confidence. No. 1 adds why he won and where the next two lost ground, and his rank among everyone who appeared.
-
-**Corrections.** Each morning's run scores the last three nights again, so ESPN's stat corrections are picked up.
-
-### Calibration and backtest
-
-`tools/calibrate.mjs` (the *Probe ESPN* workflow, task `calibrate`) calibrates on every other even-numbered night of 2023-24 and 2024-25 and tests on odd-numbered nights it never saw. Latest run:
-
-- **Calibration**: 653 games, 11,802 rotation-player games (crunch time: 1,636 players with 4+ crunch-time plays). On 55 held-out nights every category's median score is 50 (crunch time 48.8).
-- **No. 1s on held-out nights**: won 95% of the time; were the night's top scorer only 33% (median 35 points, fewest 19); had a deduction 15%; median score 64.4 (10th–90th percentile 62.3–68.0), 2.3 ahead of No. 2. Losses fill 7% of top-three places.
-- **Famous nights**: Luka Doncic's 73 (#1), Joel Embiid's 70 (#1), Nikola Jokic's 31-21-22 (#1), Damian Lillard's 71 (#2, behind Jokic's 40-17-10 overtime win with crunch-time scoring), Victor Wembanyama's 50 (#2, behind Giannis Antetokounmpo's 59 in overtime), Devin Booker's 62 in a two-point loss (#3), Karl-Anthony Towns' 62 in a loss (#17: 7 turnovers, 0-for-3 and −32% win probability in crunch time, the night of Embiid's 70).
-- **Alternative weights** (offense 35%, possession 10%) move Booker's 62 to #2 and Towns' to #10 and change nothing else above; the spec's weights are kept.
-
-There is no labelled ground truth for "the performance of the night", so the famous nights and the held-out distributions are the check; the full report is on the `probe` branch.
+`.github/workflows/backfill.yml` loads whole seasons (`seasons: 2025,2026,2027`, named by the year they end).
 
 ## How it's built
 
-- **Client** (`client/`): React 18 and Motion, built by Vite.
-- **API** (`api/`, Vercel functions): `/api/night?date=YYYYMMDD|latest`, `/api/seasons`, `/api/share` and `/api/og` (shared links and their preview image), `/api/leaderboard?season=YYYY&stage=all|regular|playoffs`. A night is scored from ESPN on first request and stored once every game is final (postponed games don't hold it up); stored nights are cached at the edge for a day.
-- **Data** (`lib/nights.js`): MongoDB (`LIBRARY_DB`, default `library`) with `nights` (each night's games, top ten, the No. 1's explanation, the model version, ESPN sources and when it was scored), `perfs` (every scored performance, for season averages) and `meta` (each season's game dates).
-- **Workflows**: *Score the nights* runs every morning for the current season, and backfills seasons on demand (`seasons: 2024,2025`). *Probe ESPN* saves ESPN responses for a date, API snapshots from the database, or a calibration and backtest, to the `probe` branch.
+- **Client** (`client/`): React 18, built by Vite. The engine and layout run in the browser, so editing is instant.
+  Exports are drawn fresh from the renderer with headshots embedded (ESPN serves them with open CORS) and rasterized in a
+  canvas; PDFs are written directly (no library).
+- **API** (`api/`, Vercel functions): `data` (home, datasets, seasons, catalog), `diagram` (one, archive, save custom),
+  `admin` (settings, saved configurations, refresh), `share` (`/d/:id` with preview tags), `og` (the diagram as a PNG,
+  rendered with resvg and Inter).
+- **Database**: MongoDB (`lib/db.js`): teams, players, games, days, player-game box scores, ESPN season figures,
+  diagrams (configuration, results, data checksum, versions), saved configurations, settings, seasons.
+- **Why this stack**: JavaScript ES modules end to end so the same engine and renderer run in the browser, the
+  serverless functions and the scheduled jobs, with no build step on the server; SVG for crisp, exportable diagrams with
+  a custom geometry engine (D3's force layouts can't guarantee a player stays inside his exact region); MongoDB because
+  the deployment already has it (box scores and diagram snapshots are naturally documents) — PostgreSQL would work as
+  well behind the same `lib/data.js` functions; GitHub Actions for the scheduled jobs, since Vercel's free cron runs
+  once a day.
 
 ## Development
 
 ```sh
 npm install
-npm run dev:fixtures   # the interface on saved real API responses (test/fixtures/api), no database or network
-MONGODB_URI=... npm run dev   # the real thing (nights are scored from ESPN on demand)
-MONGODB_URI=... npm run ingest -- --season 2025   # score a whole season
-npm test               # unit tests: reading ESPN's box scores, play-by-play and win probability; every part of the score
-MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> API -> MongoDB
-npm run test:ui        # Chromium: a night, switching dates and seasons, the leaderboard, a phone
+MONGODB_URI=... npm run dev              # the app and API on http://localhost:5173
+MONGODB_URI=... npm run auto             # one automation run (or --date 20250115 [--force])
+MONGODB_URI=... npm run backfill -- --season 2026
+npm test                                 # unit: formulas, every intersection, layout, rendering
+MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> automation and API -> MongoDB
+npm run test:ui                          # Chromium: the app on desktop and phone
 ```
 
-## Free resources and licenses
+## Licenses
 
 | Resource | Use | License |
 |---|---|---|
-| [React](https://react.dev) 18 | Interface | MIT |
-| [Motion](https://github.com/motiondivision/motion) 12 | Animation | MIT |
-| [Vite](https://vitejs.dev) 5 | Build | MIT |
-| [@vercel/og](https://vercel.com/docs/functions/og-image-generation) 0.6 | Share preview images | MPL-2.0 |
-| [MongoDB Node driver](https://github.com/mongodb/node-mongodb-native) 6 | Database client | Apache-2.0 |
-| ESPN public API, headshots and logos | Box scores, play-by-play, win probability, records, portraits | ESPN's property, used through its free public endpoints under ESPN's terms of use. Not affiliated with or endorsed by ESPN or the NBA. |
+| React 18, Vite 5 | Interface, build | MIT |
+| MongoDB Node driver 6 | Database | Apache-2.0 |
+| resvg-js | Server-side PNG rendering | MPL-2.0 |
+| Inter (`lib/fonts`) | Text in server-rendered images | SIL Open Font License 1.1 |
+| ESPN public API, headshots and logos | Statistics and images | ESPN's property, used through its public endpoints under ESPN's terms. Not affiliated with or endorsed by ESPN or the NBA. |

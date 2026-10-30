@@ -24,16 +24,16 @@ jobs:
             body=$(curl -s -w '\n%{http_code}' --max-time 60 "$URL$1"); code=${body##*$'\n'}
             if [ "$code" = "$2" ] && grep -q -- "$3" <<<"$body"; then echo "ok   $1"; else echo "FAIL $1 ($code)"; echo "${body:0:300}"; fail=1; fi
           }
-          check / 200 'Performance of the Night'
-          check /leaderboard/2025 200 'id="root"'
-          check '/api/night?date=20250616' 200 '"Jalen Williams"'
-          check '/api/night?date=latest' 200 '"top"'
-          check '/api/night?date=Jan15' 400 'error'
-          check /api/seasons 200 '"2024-25"'
-          check '/api/leaderboard?season=2025' 200 '"Nikola Jokic"'
-          check /api/game 404 ''
-          check /s/20250616 200 'twitter:card'
-          t=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 60 "$URL/api/og?date=20250616"); echo "preview image: $t"; [ "$t" = "200 image/png" ] || fail=1
-          n=$(curl -s "$URL/api/night?date=20250115" | grep -o '"categories":' | wc -l); echo "performances on 15 Jan 2025: $n"; [ "$n" -eq 10 ] || fail=1
-          s=$(curl -s "$URL/api/seasons" | grep -o '"nights":[0-9]*' | sed 's/.*://' | sort -n | tail -1); echo "most nights in a season: $s"; [ "$s" -gt 200 ] || fail=1
+          check / 200 'Overlap'
+          check /daily/20250115 200 'id="root"'
+          check '/api/data?q=home' 200 '"daily"'
+          check '/api/data?q=seasons' 200 '"seasons"'
+          check '/api/data?q=catalog&mode=season' 200 'Win Shares'
+          check '/api/data?q=dataset&mode=daily&date=20250115' 200 '"rows"'
+          check '/api/data?q=dataset&mode=daily&date=Jan15' 400 'error'
+          check '/api/diagram?list=1' 200 '"diagrams"'
+          check '/api/admin?q=settings' 200 '"daily"'
+          id=$(curl -s "$URL/api/data?q=home" | jq -r '.daily._id // empty'); echo "latest daily diagram: $id"; [ -n "$id" ] || fail=1
+          check "/d/$id" 200 'og:image'
+          t=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 60 "$URL/api/og?id=$id"); echo "preview image: $t"; [ "$t" = "200 image/png" ] || fail=1
           exit $fail

@@ -6,8 +6,11 @@ import fs from 'node:fs';
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
 const GAMES = ['401705127', '401705128'];
 
+// tweak.summary(id, json) and tweak.scoreboard(json) let a test change what ESPN says (a game in progress, a stat
+// correction, an incomplete box score).
 export function mockEspn() {
   const hits = [];
+  const tweak = { summary: null, scoreboard: null };
   const sb = raw('scoreboard_20250115');
   const night = { ...sb, events: sb.events.filter(e => GAMES.includes(String(e.id))) };
   // A postponed game on the same night doesn't keep it from being final.
@@ -17,10 +20,10 @@ export function mockEspn() {
     [/\/site\/scoreboard$/, u => {
       const date = u.searchParams.get('dates');
       if (!date) return { ...night, day: { date: '2025-01-15' } };
-      if (date === '20250115') return night;
+      if (date === '20250115') { const j = structuredClone(night); return tweak.scoreboard ? tweak.scoreboard(j) || j : j; }
       return { leagues: sb.leagues, events: [] };
     }],
-    [/\/site\/summary$/, u => (GAMES.includes(u.searchParams.get('event')) ? raw(`summary_${u.searchParams.get('event')}`) : null)],
+    [/\/site\/summary$/, u => { const id = u.searchParams.get('event'); if (!GAMES.includes(id)) return null; const j = raw(`summary_${id}`); return tweak.summary ? tweak.summary(id, j) || j : j; }],
     [/\/core\/seasons\/2025\/types\/2$/, () => ({ startDate: '2024-10-22T07:00Z', endDate: '2025-04-14T06:59Z' })],
     [/\/core\/seasons\/2025\/types\/3$/, () => ({ startDate: '2025-04-19T07:00Z', endDate: '2025-06-27T06:59Z' })],
   ];
@@ -35,6 +38,6 @@ export function mockEspn() {
   });
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     const base = `http://127.0.0.1:${server.address().port}`;
-    resolve({ env: { ESPN_SITE: `${base}/site`, ESPN_CORE: `${base}/core`, ESPN_WEB: `${base}/web` }, hits, close: () => new Promise(r => server.close(r)) });
+    resolve({ tweak, env: { ESPN_SITE: `${base}/site`, ESPN_CORE: `${base}/core`, ESPN_WEB: `${base}/web` }, hits, close: () => new Promise(r => server.close(r)) });
   }));
 }

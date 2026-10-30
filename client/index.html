@@ -3,38 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Performance of the Night</title>
-    <meta name="description" content="The best individual performances of every NBA night, scored 0 to 100 on winning, offense, defense, possessions, crunch time, stat padding and fouls, plus a season leaderboard." />
-    <meta name="theme-color" content="#0d0f12" />
+    <title>Overlap · NBA statistical Venn diagrams</title>
+    <meta name="description" content="Automatic NBA statistical Venn diagrams: every night after the games are final, and for the season. Any statistic, any number of criteria, ready to share." />
+    <meta name="theme-color" content="#07080b" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <style>
-      /* The loading screen: the wordmark and a ball bouncing on a baseline while the first night loads; it fades out
-         when the app is ready. */
-      html { background: #0d0f12; }
-      #boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #0d0f12; color: #e7e9ec;
-        font: 500 13px/1 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: opacity .35s ease; }
-      #boot .bt { display: grid; justify-items: center; gap: 18px; }
-      #boot .bt-court { position: relative; width: 120px; height: 56px; border-bottom: 1px solid #2a2f37; }
-      #boot .bt-ball { position: absolute; left: 50%; bottom: 0; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #f28b30;
-        animation: bt-bounce .9s cubic-bezier(.3, 0, .7, 1) infinite alternate, bt-roll 1.8s linear infinite; }
-      #boot .bt-shadow { position: absolute; left: 50%; bottom: -3px; width: 16px; height: 4px; margin-left: -8px; border-radius: 50%; background: rgba(242, 139, 48, .25);
-        animation: bt-shadow .9s cubic-bezier(.3, 0, .7, 1) infinite alternate, bt-roll 1.8s linear infinite; }
-      #boot .bt-word { letter-spacing: .14em; text-transform: uppercase; color: #8b929c; }
-      #boot .bt-word b { color: #e7e9ec; font-weight: 600; }
+      /* Loading: three circles drift into overlap. */
+      html { background: #07080b; }
+      #boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #07080b; transition: opacity .35s; }
+      #boot svg { width: 120px; height: 100px; fill: none; stroke-width: 3; }
+      #boot circle { animation: bt 1.6s ease-in-out infinite alternate; }
+      #boot circle:nth-child(1) { stroke: #22d3ee; --dx: -10px; --dy: -6px; }
+      #boot circle:nth-child(2) { stroke: #fb923c; --dx: 10px; --dy: -6px; animation-delay: .15s; }
+      #boot circle:nth-child(3) { stroke: #f472b6; --dx: 0; --dy: 10px; animation-delay: .3s; }
       #boot.done { opacity: 0; pointer-events: none; }
-      @keyframes bt-bounce { from { transform: translateY(-40px) scale(1, 1); } 92% { transform: translateY(0) scale(1, 1); } to { transform: translateY(0) scale(1.15, .85); } }
-      @keyframes bt-shadow { from { transform: scale(.4); opacity: .4; } to { transform: scale(1); opacity: 1; } }
-      @keyframes bt-roll { from { left: 20%; } 50% { left: 80%; } to { left: 20%; } }
-      @media (prefers-reduced-motion: reduce) { #boot .bt-ball, #boot .bt-shadow { animation: none; } }
+      @keyframes bt { from { transform: translate(var(--dx), var(--dy)); opacity: .5; } to { transform: none; opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { #boot circle { animation: none; } }
     </style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Loading">
-      <div class="bt">
-        <div class="bt-court" aria-hidden="true"><i class="bt-shadow"></i><i class="bt-ball"></i></div>
-        <div class="bt-word"><b>Performance</b> of the Night</div>
-      </div>
-    </div>
+    <div id="boot" role="status" aria-label="Loading"><svg viewBox="0 0 120 100" aria-hidden="true"><circle cx="45" cy="40" r="26" /><circle cx="75" cy="40" r="26" /><circle cx="60" cy="64" r="26" /></svg></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
