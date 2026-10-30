@@ -167,5 +167,5 @@ test('provider: game status, and a real box score passes the checks', async () =
   assert.equal(statusOf({ name: 'STATUS_SCHEDULED', state: 'pre' }), 'scheduled');
   // The NBA Cup final counts toward no season statistics; the semifinals do.
   assert.ok(isCupFinal('Emirates NBA Cup Championship') && isCupFinal('NBA Cup Final'));
-  assert.ok(!isCupFinal('Emirates NBA Cup Semifinal') && !isCupFinal('East 1st Round - Game 3'));
+  assert.ok(!isCupFinal('Emirates NBA Cup Semifinal') && !isCupFinal('NBA Cup - Quarterfinals') && !isCupFinal('East 1st Round - Game 3'));
 });

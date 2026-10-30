@@ -3,6 +3,7 @@
 // --reset-diagrams removes the season's automatic diagrams first, so they're made fresh rather than as corrections.
 import { db, close } from '../lib/db.js';
 import { backfillSeason } from '../lib/jobs.js';
+import { isCupFinal } from '../lib/providers/espn.js';
 
 const arg = k => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : null; };
 const t0 = Date.now();
@@ -14,6 +15,12 @@ try {
   await d.collection('meta').deleteMany({ _id: /^season:/ });
   for (const y of String(arg('season') || '').split(',').map(Number).filter(Boolean)) {
     log(`season ${y}`);
+    // The NBA Cup final flag, from each game's note (counts toward no season statistics).
+    for (const g of await d.collection('games').find({ season: y }, { projection: { note: 1 } }).toArray()) {
+      const cup = isCupFinal(g.note || '');
+      await d.collection('games').updateOne({ _id: g._id }, { $set: { cup } });
+      await d.collection('pgames').updateMany({ gid: g._id }, cup ? { $set: { cup: true } } : { $unset: { cup: '' } });
+    }
     if (process.argv.includes('--reset-diagrams')) log(`removed ${(await d.collection('diagrams').deleteMany({ season: y, auto: true })).deletedCount} automatic diagrams`);
     await backfillSeason(d, y, { log, force: process.argv.includes('--force'), diagrams: !process.argv.includes('--no-diagrams') });
   }

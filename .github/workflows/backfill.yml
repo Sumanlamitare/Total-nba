@@ -12,6 +12,9 @@ on:
       force:
         description: fetch every box score again (yes/no)
         default: 'no'
+      reset:
+        description: remake the seasons' automatic diagrams from scratch (yes/no)
+        default: 'yes'
 
 jobs:
   plan:
@@ -43,7 +46,9 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           SEASON: ${{ matrix.season }}
           FORCE: ${{ inputs.force || 'yes' }}
+          RESET: ${{ inputs.reset || 'yes' }}
         run: |
           args="--season $SEASON"
-          [ "$FORCE" = "yes" ] && args="$args --force --reset-diagrams"
+          [ "$FORCE" = "yes" ] && args="$args --force"
+          [ "$RESET" = "yes" ] && args="$args --reset-diagrams"
           node scripts/backfill.mjs $args
