@@ -21,6 +21,9 @@ try {
       await d.collection('games').updateOne({ _id: g._id }, { $set: { cup } });
       await d.collection('pgames').updateMany({ gid: g._id }, cup ? { $set: { cup: true } } : { $unset: { cup: '' } });
     }
+    // Rows of players who were listed but never on the floor aren't games played.
+    const empty = { season: y, 's.min': { $lte: 0 }, ...Object.fromEntries(['pts', 'fga', 'fta', 'reb', 'ast', 'stl', 'blk', 'to', 'pf'].map(k => [`s.${k}`, 0])) };
+    log(`removed ${(await d.collection('pgames').deleteMany(empty)).deletedCount} rows of players who never got on the floor`);
     if (process.argv.includes('--reset-diagrams')) log(`removed ${(await d.collection('diagrams').deleteMany({ season: y, auto: true })).deletedCount} automatic diagrams`);
     await backfillSeason(d, y, { log, force: process.argv.includes('--force'), diagrams: !process.argv.includes('--no-diagrams') });
   }
