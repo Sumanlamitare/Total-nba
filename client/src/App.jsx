@@ -41,7 +41,9 @@ function facts(kind, config) {
       ['Criteria', config.criteria?.length || 0],
       ['Updated', meta?.updated ? ago(meta.updated) : '—'],
     ];
-    if (config.mode === 'daily') items.push(['Games', meta ? (meta.noGames ? 'No games' : meta.complete ? `All ${meta.final} final${meta.excluded?.length ? ` (${meta.excluded.length} postponed)` : ''}` : `${meta.final} of ${meta.games} final`) : '—']);
+    const left = (meta?.excluded || []).reduce((m, x) => ({ ...m, [x.status]: (m[x.status] || 0) + 1 }), {});
+    const leftText = Object.entries(left).map(([k, n]) => `${n} ${k}`).join(', ');
+    if (config.mode === 'daily') items.push(['Games', meta ? (meta.noGames ? 'No games' : meta.complete ? `All ${meta.final} final${leftText ? ` (${leftText})` : ''}` : `${meta.final} of ${meta.games} final`) : '—']);
     return <>{items.map(([k, v]) => <div key={k} className={`fact${k === 'Games' && meta && !meta.complete && !meta.noGames ? ' pending' : ''}`}><span>{k}</span><b>{v}</b></div>)}{kind && <div className="fact kind"><span>Diagram</span><b>{kind}</b></div>}</>;
   };
 }

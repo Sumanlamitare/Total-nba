@@ -28,7 +28,7 @@ after(async () => {
 
 const get = async path => { const r = await fetch(base + path); return { status: r.status, body: await r.json().catch(() => null), headers: r.headers }; };
 const post = async (path, body) => { const r = await fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); return { status: r.status, body: await r.json().catch(() => null) }; };
-const quiet = { log: () => {} };
+const quiet = { log: () => {}, now: new Date('2025-01-16T15:00:00Z') }; // the morning after
 
 test('a night still being played publishes nothing; an incomplete box score is never trusted', async () => {
   // One game still in progress.
@@ -45,7 +45,14 @@ test('a night still being played publishes nothing; an incomplete box score is n
   assert.equal(r.day.complete, false);
   assert.match(r.day.problems[0], /points .* score/);
   assert.equal(await d.collection('diagrams').countDocuments(), 0);
+  // Two days on and still broken: the night publishes without that game, which is noted as unverified.
+  const later = await lib.jobs.processDate(d, '20250115', { log: () => {}, now: new Date('2025-01-18T15:00:00Z') });
+  assert.equal(later.day.complete, true);
+  assert.deepEqual(later.day.excluded.map(x => x.status).sort(), ['postponed', 'unverified']);
+  assert.equal(await d.collection('pgames').countDocuments({ gid: '401705128' }), 0, 'its box score is never stored');
   espn.tweak.summary = null;
+  await d.collection('diagrams').deleteMany({});
+  await d.collection('games').updateOne({ _id: '401705128' }, { $set: { status: 'final' } });
 });
 
 test('when every game is final and verified: the daily and season diagrams, once', async () => {

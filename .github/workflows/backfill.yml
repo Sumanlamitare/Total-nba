@@ -42,8 +42,8 @@ jobs:
       - env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           SEASON: ${{ matrix.season }}
-          FORCE: ${{ inputs.force }}
+          FORCE: ${{ inputs.force || 'yes' }}
         run: |
           args="--season $SEASON"
-          [ "$FORCE" = "yes" ] && args="$args --force"
+          [ "$FORCE" = "yes" ] && args="$args --force --reset-diagrams"
           node scripts/backfill.mjs $args

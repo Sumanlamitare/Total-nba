@@ -9,7 +9,7 @@ import { catalog, statMap, availableStats, criterionLabel, UNAVAILABLE } from '.
 import { layoutVenn, maskAt, baseShapes } from '../lib/venn/layout.js';
 import { buildDiagram, labels } from '../lib/venn/index.js';
 import { composeGraphic, chooseView, DEFAULT_STYLE } from '../lib/venn/render.js';
-import { statusOf } from '../lib/providers/espn.js';
+import { statusOf, isCupFinal } from '../lib/providers/espn.js';
 
 const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
 const line = o => ({ min: 30, pts: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, pf: 0, pm: 0, ...o });
@@ -165,4 +165,7 @@ test('provider: game status, and a real box score passes the checks', async () =
   assert.equal(statusOf({ name: 'STATUS_SUSPENDED' }), 'suspended');
   assert.equal(statusOf({ name: 'STATUS_IN_PROGRESS', state: 'in' }), 'in');
   assert.equal(statusOf({ name: 'STATUS_SCHEDULED', state: 'pre' }), 'scheduled');
+  // The NBA Cup final counts toward no season statistics; the semifinals do.
+  assert.ok(isCupFinal('Emirates NBA Cup Championship') && isCupFinal('NBA Cup Final'));
+  assert.ok(!isCupFinal('Emirates NBA Cup Semifinal') && !isCupFinal('East 1st Round - Game 3'));
 });
