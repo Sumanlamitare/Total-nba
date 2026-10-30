@@ -1,0 +1,40 @@
+name: Nightly diagrams
+
+# Every 20 minutes through the NBA day (noon to 6 a.m. Eastern): today's and yesterday's games, verified box scores, and
+# each date's default diagrams once all its games are final. Corrections and ESPN's season figures ride along.
+on:
+  schedule:
+    - cron: '*/20 16-23,0-10 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: process one date now (YYYYMMDD; empty = today and yesterday)
+        default: ''
+      force:
+        description: fetch box scores again even if verified (yes/no)
+        default: 'no'
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund --omit=dev
+      - env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          DATE: ${{ inputs.date }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=""
+          [ -n "$DATE" ] && args="--date $DATE"
+          [ "$FORCE" = "yes" ] && args="$args --force"
+          node scripts/auto.mjs $args

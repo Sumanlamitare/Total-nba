@@ -1,20 +1,20 @@
 {
-  "name": "performance-of-the-night",
+  "name": "overlap",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Performance of the Night: the five best NBA performances of every night, scored from box scores, play-by-play and win probability, with a season leaderboard.",
+  "description": "Overlap: automatic NBA statistical Venn diagrams, every night after the games and for the season, from ESPN box scores.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:fixtures": "MOCK_API=test/fixtures/api node scripts/dev.mjs",
     "build": "vite build",
     "test": "node --test test/unit.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs",
     "test:ui": "node --test test/ui.test.mjs",
-    "ingest": "node scripts/ingest.mjs"
+    "auto": "node scripts/auto.mjs",
+    "backfill": "node scripts/backfill.mjs"
   },
   "dependencies": {
     "@vercel/og": "^0.6.8",

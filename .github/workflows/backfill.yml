@@ -1,0 +1,49 @@
+name: Backfill seasons
+
+# Load whole seasons (seasons are named by the year they end: 2026 = 2025-26), with each date's default diagrams.
+on:
+  push:
+    branches: [run-backfill]
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: comma-separated, e.g. 2025,2026,2027
+        default: '2026,2027'
+      force:
+        description: fetch every box score again (yes/no)
+        default: 'no'
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      seasons: ${{ steps.p.outputs.seasons }}
+    steps:
+      - id: p
+        env:
+          SEASONS: ${{ inputs.seasons || '2025,2026,2027' }}
+        run: echo "seasons=$(jq -cn --arg s "$SEASONS" '$s | split(",") | map(gsub(" "; "")) | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+  load:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        season: ${{ fromJson(needs.plan.outputs.seasons) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund --omit=dev
+      - env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          SEASON: ${{ matrix.season }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args="--season $SEASON"
+          [ "$FORCE" = "yes" ] && args="$args --force"
+          node scripts/backfill.mjs $args
