@@ -1,0 +1,40 @@
+2025: 215 dates, 214 complete, 1 without games, 0 incomplete in the past
+  excluded games: 20250109:postponed, 20250111:postponed, 20250111:postponed, 20250111:postponed, 20250122:postponed
+  diagrams: 214 daily, 214 season
+
+Accuracy: 569 players compared with ESPN's season table (569 in ESPN's, 569 in ours, 0 of ESPN's missing from ours)
+  gp: 60 differ — T.J. McConnell: ours 78 ESPN 79; Justin Champagnie: ours 61 ESPN 62; Davion Mitchell: ours 73 ESPN 74; Ryan Dunn: ours 72 ESPN 74; Seth Curry: ours 67 ESPN 68
+  pts_tot: all match
+  reb_tot: all match
+  ast_tot: 2 differ — Jalen Williams: ours 355 ESPN 354; Isaiah Hartenstein: ours 218 ESPN 219
+  stl_tot: 1 differ — Sandro Mamukelashvili: ours 21 ESPN 22
+  blk_tot: 2 differ — Royce O'Neale: ours 34 ESPN 33; Josh Okogie: ours 18 ESPN 19
+  fgm_tot: all match
+  fga_tot: all match
+  tpm_tot: all match
+  ftm_tot: all match
+  fta_tot: all match
+  to_tot: 3 differ — RJ Barrett: ours 165 ESPN 166; Scottie Barnes: ours 185 ESPN 184; Simone Fontecchio: ours 53 ESPN 54
+  pts_pg: 55 differ — T.J. McConnell: ours 9.23 ESPN 9.113924; Justin Champagnie: ours 8.92 ESPN 8.774194; Davion Mitchell: ours 8.05 ESPN 7.9459457; Ryan Dunn: ours 7.1 ESPN 6.9054055; Seth Curry: ours 6.63 ESPN 6.529412
+  ft_pct: all match
+2026: 213 dates, 210 complete, 1 without games, 2 incomplete in the past
+  incomplete 20260513 0/1 final [{"id":"401871337","status":"unverified","teams":"DET – CLE"}] 401871337: no game header
+  incomplete 20260523 0/1 final [{"id":"401873343","status":"unverified","teams":"CLE – NY"}] 401873343: no game header
+  excluded games: 20251129:unverified, 20260105:unverified, 20260107:unverified, 20260108:postponed, 20260124:postponed, 20260125:postponed, 20260125:postponed, 20260131:unverified, 20260201:unverified, 20260203:unverified, 20260211:unverified, 20260305:unverified, 20260430:unverified, 20260507:unverified, 20260513:unverified, 20260523:unverified
+  diagrams: 210 daily, 210 season
+
+Accuracy: 582 players compared with ESPN's season table (582 in ESPN's, 582 in ours, 0 of ESPN's missing from ours)
+  gp: 134 differ — Jaylen Brown: ours 69 ESPN 71; Devin Booker: ours 63 ESPN 64; Pascal Siakam: ours 61 ESPN 62; Bam Adebayo: ours 71 ESPN 73; Ryan Rollins: ours 73 ESPN 74
+  pts_tot: 82 differ — Jaylen Brown: ours 2000 ESPN 2038; Devin Booker: ours 1641 ESPN 1668; Pascal Siakam: ours 1461 ESPN 1485; Bam Adebayo: ours 1427 ESPN 1468; Ryan Rollins: ours 1260 ESPN 1281
+  reb_tot: 87 differ — Jaylen Brown: ours 480 ESPN 492; Devin Booker: ours 242 ESPN 248; Pascal Siakam: ours 402 ESPN 411; Bam Adebayo: ours 712 ESPN 732; Ryan Rollins: ours 331 ESPN 338
+  ast_tot: 75 differ — Jaylen Brown: ours 356 ESPN 364; Devin Booker: ours 384 ESPN 386; Pascal Siakam: ours 232 ESPN 236; Bam Adebayo: ours 228 ESPN 232; Ryan Rollins: ours 404 ESPN 414
+  stl_tot: 51 differ — Devin Booker: ours 49 ESPN 51; Pascal Siakam: ours 67 ESPN 69; Bam Adebayo: ours 84 ESPN 86; Payton Pritchard: ours 55 ESPN 58; Derrick White: ours 83 ESPN 88
+  blk_tot: 40 differ — Devin Booker: ours 17 ESPN 18; Pascal Siakam: ours 23 ESPN 25; Derrick White: ours 95 ESPN 98; Matas Buzelis: ours 97 ESPN 116; Andrew Wiggins: ours 65 ESPN 69
+  fgm_tot: 82 differ — Jaylen Brown: ours 721 ESPN 736; Devin Booker: ours 537 ESPN 546; Pascal Siakam: ours 548 ESPN 559; Bam Adebayo: ours 491 ESPN 506; Ryan Rollins: ours 478 ESPN 486
+  fga_tot: 87 differ — Jaylen Brown: ours 1499 ESPN 1543; Devin Booker: ours 1177 ESPN 1198; Pascal Siakam: ours 1132 ESPN 1155; Bam Adebayo: ours 1116 ESPN 1145; Ryan Rollins: ours 1009 ESPN 1030
+  tpm_tot: 66 differ — Jaylen Brown: ours 137 ESPN 140; Devin Booker: ours 120 ESPN 122; Pascal Siakam: ours 104 ESPN 105; Bam Adebayo: ours 124 ESPN 127; Ryan Rollins: ours 179 ESPN 184
+  ftm_tot: 50 differ — Jaylen Brown: ours 421 ESPN 426; Devin Booker: ours 447 ESPN 454; Pascal Siakam: ours 261 ESPN 262; Bam Adebayo: ours 321 ESPN 329; Payton Pritchard: ours 119 ESPN 121
+  fta_tot: 56 differ — Jaylen Brown: ours 530 ESPN 536; Devin Booker: ours 513 ESPN 520; Pascal Siakam: ours 376 ESPN 378; Bam Adebayo: ours 410 ESPN 423; Payton Pritchard: ours 133 ESPN 136
+  to_tot: 62 differ — Jaylen Brown: ours 254 ESPN 259; Devin Booker: ours 197 ESPN 201; Pascal Siakam: ours 137 ESPN 138; Bam Adebayo: ours 117 ESPN 120; Ryan Rollins: ours 197 ESPN 201
+  pts_pg: 101 differ — Jaylen Brown: ours 28.99 ESPN 28.704226; Payton Pritchard: ours 16.86 ESPN 17.025316; Derrick White: ours 16.64 ESPN 16.454546; Collin Sexton: ours 15.23 ESPN 15.441176; Nikola Vucevic: ours 14.97 ESPN 15.078125
+  ft_pct: 53 differ — Devin Booker: ours 87.13 ESPN 87.30799865722656; Pascal Siakam: ours 69.41 ESPN 69.31199645996094; Bam Adebayo: ours 78.29 ESPN 77.77799987792969; Payton Pritchard: ours 89.47 ESPN 88.97100067138672; Derrick White: ours 90.45 ESPN 90.19599914550781
