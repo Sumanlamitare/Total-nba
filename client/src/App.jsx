@@ -29,6 +29,16 @@ function useRoute() {
   return [route, go];
 }
 const Link = ({ to, go, children, ...rest }) => <a href={to} onClick={e => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); go(to); }} {...rest}>{children}</a>;
+// Icons for the phone's bottom tab bar (hidden on wider screens).
+const ICONS = {
+  home: <><circle cx="9" cy="10" r="5.5" /><circle cx="15" cy="10" r="5.5" /><circle cx="12" cy="15" r="5.5" /></>,
+  daily: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
+  season: <path d="M4 19V11M10 19V5M16 19v-6M22 19H2" />,
+  history: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
+  custom: <path d="M5 7h9M18 7h1M5 17h3M12 17h7M16 4.5v5M10 14.5v5" />,
+  settings: <><circle cx="12" cy="12" r="3" /><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" /></>,
+};
+const TabIcon = ({ page }) => <svg className="tab-icon" viewBox="0 0 24 24" aria-hidden="true">{ICONS[page]}</svg>;
 const Logo = () => <svg className="logo" viewBox="0 0 44 36" aria-hidden><circle cx="14" cy="14" r="11" /><circle cx="28" cy="14" r="11" /><circle cx="21" cy="24" r="11" /></svg>;
 
 // ---- Facts above a diagram -------------------------------------------------------------------------------------------
@@ -297,7 +307,7 @@ export default function App() {
     <div className="app">
       <nav className="nav">
         <Link to="/" go={go} className="brand"><Logo /><span>Overlap</span></Link>
-        <div className="tabs-nav">{tabs.map(([to, label, page]) => <Link key={page} to={to} go={go} aria-current={route.page === page || (page === 'history' && route.page === 'compare') ? 'page' : undefined}>{label}</Link>)}</div>
+        <div className="tabs-nav">{tabs.map(([to, label, page]) => <Link key={page} to={to} go={go} aria-current={route.page === page || (page === 'history' && route.page === 'compare') ? 'page' : undefined}><TabIcon page={page} /><span>{label}</span></Link>)}</div>
       </nav>
       <main className="main">
         {route.page === 'home' && <Home go={go} />}

@@ -122,6 +122,10 @@ test('phone: no sideways scrolling', async () => {
     const { p, errors } = await page(path, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     await p.locator('.diagram-svg, .hist li, .crit-editor li').first().waitFor();
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth), 390, path);
+    // Every section stays reachable in the bottom tab bar.
+    const bar = await p.locator('.tabs-nav').boundingBox();
+    assert.ok(bar.y + bar.height <= 844 && bar.y > 700, `${path}: tab bar at ${bar.y}`);
+    for (const label of ['Today', 'Daily', 'Season', 'History', 'Custom', 'Settings']) assert.ok(await p.locator('.tabs-nav a', { hasText: label }).isVisible(), `${path}: ${label}`);
     assert.deepEqual(errors, [], path);
     await p.context().close();
   }
