@@ -12,6 +12,17 @@ import { addDays } from '../lib/util.js';
 const arg = k => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : null; };
 const flag = k => process.argv.includes(`--${k}`);
 const maxMb = +(arg('max-mb') || 400);
+// Free space first, on a bare connection (opening the app's connection creates indexes, a write the full cluster
+// refuses). Dropping the box-score history collections releases their space at once.
+if (flag('free-space')) {
+  const { MongoClient } = await import('mongodb');
+  const c = new MongoClient(process.env.MONGODB_URI); await c.connect();
+  const x = c.db(process.env.ATN_DB || 'atn');
+  for (const name of ['pgames', 'games']) { const ok = await x.collection(name).drop().catch(e => e.message); console.log(`dropped ${name}: ${ok}`); }
+  const r = await c.db().admin().listDatabases();
+  console.log(`cluster now ${(r.totalSize / 1e6).toFixed(0)} MB (${r.databases.map(db => `${db.name} ${(db.sizeOnDisk / 1e6).toFixed(0)}`).join(', ')})`);
+  await c.close();
+}
 const d = await db();
 // The whole cluster's storage (every database counts toward the plan's quota), in MB.
 const size = async () => {
@@ -19,12 +30,6 @@ const size = async () => {
   catch { const s = await d.stats(); return (s.storageSize + (s.indexSize || 0)) / 1e6; }
 };
 try {
-  // Free space first (the cluster blocks writes when it is full; deletes still work).
-  if (flag('free-space')) {
-    const g = await d.collection('pgames').deleteMany({});
-    const gm = await d.collection('games').deleteMany({});
-    console.log(`freed: ${g.deletedCount} player lines, ${gm.deletedCount} games; cluster now ${(await size()).toFixed(0)} MB`);
-  }
   console.log(`teams: ${await syncTeams(d)}`);
   for (const y of (arg('seasons') || '').split(',').map(Number).filter(y => y >= 1994 && y <= 2100)) {
     const mb = await size();
