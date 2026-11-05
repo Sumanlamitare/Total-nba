@@ -3,26 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Overlap · NBA statistical Venn diagrams</title>
-    <meta name="description" content="Automatic NBA statistical Venn diagrams: every night after the games are final, and for the season. Any statistic, any number of criteria, ready to share." />
-    <meta name="theme-color" content="#07080b" />
+    <title>Around the NBA · Live</title>
+    <meta name="description" content="Around the NBA watches every game at once and reports the moments worth talking about: comebacks, game winners, records, takeovers and the role players nobody saw coming." />
+    <meta name="theme-color" content="#0a0a0b" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/BarlowCondensed-800.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/Inter_400Regular.ttf" as="font" type="font/ttf" crossorigin />
     <style>
-      /* Loading: three circles drift into overlap. */
-      html { background: #07080b; }
-      #boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #07080b; transition: opacity .35s; }
-      #boot svg { width: 120px; height: 100px; fill: none; stroke-width: 3; }
-      #boot circle { animation: bt 1.6s ease-in-out infinite alternate; }
-      #boot circle:nth-child(1) { stroke: #22d3ee; --dx: -10px; --dy: -6px; }
-      #boot circle:nth-child(2) { stroke: #fb923c; --dx: 10px; --dy: -6px; animation-delay: .15s; }
-      #boot circle:nth-child(3) { stroke: #f472b6; --dx: 0; --dy: 10px; animation-delay: .3s; }
+      html, body { background: #0a0a0b; margin: 0; }
+      #boot { position: fixed; inset: 0; display: grid; place-items: center; background: #0a0a0b; transition: opacity .3s; z-index: 100; }
+      #boot svg { width: 64px; height: 64px; animation: spin 1.1s linear infinite; }
       #boot.done { opacity: 0; pointer-events: none; }
-      @keyframes bt { from { transform: translate(var(--dx), var(--dy)); opacity: .5; } to { transform: none; opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) { #boot circle { animation: none; } }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #boot svg { animation: none; } }
     </style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Loading"><svg viewBox="0 0 120 100" aria-hidden="true"><circle cx="45" cy="40" r="26" /><circle cx="75" cy="40" r="26" /><circle cx="60" cy="64" r="26" /></svg></div>
+    <div id="boot" role="status" aria-label="Loading"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#ff5a1f"/><circle cx="32" cy="32" r="15" fill="none" stroke="#0a0a0b" stroke-width="4"/><path d="M32 6v52" stroke="#0a0a0b" stroke-width="4"/></svg></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

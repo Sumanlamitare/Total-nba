@@ -1,0 +1,1103 @@
+{
+ "header": "NBA News",
+ "link": {
+  "language": "en",
+  "rel": [
+   "index",
+   "desktop",
+   "league"
+  ],
+  "href": "https://www.espn.com/nba/",
+  "text": "All NBA News",
+  "shortText": "All News",
+  "isExternal": false,
+  "isPremium": false
+ },
+ "articles": [
+  {
+   "id": 50385967,
+   "nowId": "1-50385967",
+   "contentKey": "50385967-1-22-1",
+   "dataSourceIdentifier": "a0e566577bde3",
+   "type": "Preview",
+   "headline": "Suns take on the Magic on 4-game skid",
+   "description": "Orlando Magic (2-5, 12th in the Eastern Conference) vs. Phoenix Suns (1-5, 12th in the Western Conference)",
+   "lastModified": "2026-11-05T07:03:42Z",
+   "published": "2026-11-05T07:03:42Z",
+   "images": [
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.awayhome.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.applewatch.awayhome.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.homeaway.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.applewatch.homeaway.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.awayhome.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.homeaway.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.awayhome.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.homeaway.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.awayhome.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.homeaway.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.awayhome.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.homeaway.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.awayhome.5x2.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909936.png?templateId=espn.all.homeaway.5x2.2"
+    }
+   ],
+   "categories": [
+    {
+     "id": 9577,
+     "type": "league",
+     "uid": "s:40~l:46",
+     "guid": "7b3729c9-7f69-308a-bf8a-ee15a6aba154",
+     "description": "NBA",
+     "sportId": 46,
+     "leagueId": 46,
+     "league": {
+      "id": 46,
+      "description": "NBA",
+      "abbreviation": "NBA",
+      "links": {
+       "mobile": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       },
+       "web": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4644,
+     "type": "team",
+     "uid": "s:40~l:46~t:21",
+     "guid": "c6eade89-5971-0e84-8ccb-cd91482b2b50",
+     "description": "Phoenix Suns",
+     "sportId": 46,
+     "teamId": 21,
+     "team": {
+      "id": 21,
+      "description": "Phoenix Suns",
+      "abbreviation": "PHX",
+      "shortDisplayName": "Suns",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/phx/phoenix-suns"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/phx/phoenix-suns"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4309,
+     "type": "team",
+     "uid": "s:40~l:46~t:19",
+     "guid": "74c23102-8c27-c8e6-ec1b-8a8fd4d42554",
+     "description": "Orlando Magic",
+     "sportId": 46,
+     "teamId": 19,
+     "team": {
+      "id": 19,
+      "description": "Orlando Magic",
+      "abbreviation": "ORL",
+      "shortDisplayName": "Magic",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/orl/orlando-magic"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/orl/orlando-magic"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "event",
+     "uid": "s:40~l:46~e:401909936",
+     "guid": "d08a28de-c4cd-3d97-a40e-43c137da6646",
+     "description": "Orlando Magic @ Phoenix Suns",
+     "eventId": 401909936,
+     "event": {
+      "id": 401909936,
+      "sport": "basketball",
+      "league": "nba",
+      "description": "Orlando Magic @ Phoenix Suns"
+     }
+    }
+   ],
+   "links": {
+    "api": {
+     "self": {
+      "href": "https://content.core.api.espn.com/v1/sports/news/50385967"
+     }
+    },
+    "app": {
+     "sportscenter": {
+      "href": "sportscenter://x-callback-url/showStory?uid=50385967"
+     }
+    },
+    "mobile": {
+     "href": "http://m.espn.go.com/nba/story?storyId=50385967"
+    },
+    "web": {
+     "href": "http://www.espn.com/nba/preview?gameId=401909936"
+    }
+   },
+   "premium": false
+  },
+  {
+   "id": 50385966,
+   "nowId": "1-50385966",
+   "contentKey": "50385966-1-22-1",
+   "dataSourceIdentifier": "6e361db0a1b25",
+   "type": "Preview",
+   "headline": "Trail Blazers visit Lakers Friday in NBA Cup group stage",
+   "description": "Portland Trail Blazers (6-1, first in the Western Conference) vs. Los Angeles Lakers (7-2, second in the Western Conference)",
+   "lastModified": "2026-11-05T07:03:41Z",
+   "published": "2026-11-05T07:03:41Z",
+   "images": [
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.awayhome.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.applewatch.awayhome.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.homeaway.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.applewatch.homeaway.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.awayhome.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.homeaway.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.awayhome.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.homeaway.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.awayhome.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.homeaway.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.awayhome.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.homeaway.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.awayhome.5x2.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909294.png?templateId=espn.all.homeaway.5x2.2"
+    }
+   ],
+   "categories": [
+    {
+     "id": 9577,
+     "type": "league",
+     "uid": "s:40~l:46",
+     "guid": "7b3729c9-7f69-308a-bf8a-ee15a6aba154",
+     "description": "NBA",
+     "sportId": 46,
+     "leagueId": 46,
+     "league": {
+      "id": 46,
+      "description": "NBA",
+      "abbreviation": "NBA",
+      "links": {
+       "mobile": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       },
+       "web": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4630,
+     "type": "team",
+     "uid": "s:40~l:46~t:13",
+     "guid": "2876e98b-b9bc-2920-4319-46e6943f8be4",
+     "description": "Los Angeles Lakers",
+     "sportId": 46,
+     "teamId": 13,
+     "team": {
+      "id": 13,
+      "description": "Los Angeles Lakers",
+      "abbreviation": "LAL",
+      "shortDisplayName": "Lakers",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/lal/los-angeles-lakers"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/lal/los-angeles-lakers"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4659,
+     "type": "team",
+     "uid": "s:40~l:46~t:22",
+     "guid": "ed294c02-3c44-db14-9e06-1b4e8cff9558",
+     "description": "Portland Trail Blazers",
+     "sportId": 46,
+     "teamId": 22,
+     "team": {
+      "id": 22,
+      "description": "Portland Trail Blazers",
+      "abbreviation": "POR",
+      "shortDisplayName": "Trail Blazers",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/por/portland-trail-blazers"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/por/portland-trail-blazers"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "event",
+     "uid": "s:40~l:46~e:401909294",
+     "guid": "ed7a7a53-a73e-30af-a169-3f5fea55eb05",
+     "description": "Portland Trail Blazers @ Los Angeles Lakers",
+     "eventId": 401909294,
+     "event": {
+      "id": 401909294,
+      "sport": "basketball",
+      "league": "nba",
+      "description": "Portland Trail Blazers @ Los Angeles Lakers"
+     }
+    }
+   ],
+   "links": {
+    "api": {
+     "self": {
+      "href": "https://content.core.api.espn.com/v1/sports/news/50385966"
+     }
+    },
+    "app": {
+     "sportscenter": {
+      "href": "sportscenter://x-callback-url/showStory?uid=50385966"
+     }
+    },
+    "mobile": {
+     "href": "http://m.espn.go.com/nba/story?storyId=50385966"
+    },
+    "web": {
+     "href": "http://www.espn.com/nba/preview?gameId=401909294"
+    }
+   },
+   "premium": false
+  },
+  {
+   "id": 50385965,
+   "nowId": "1-50385965",
+   "contentKey": "50385965-1-22-1",
+   "dataSourceIdentifier": "103b8db9df20c",
+   "type": "Preview",
+   "headline": "Bucks and Raptors meet Friday in NBA Cup group stage",
+   "description": "Toronto Raptors (4-4, fifth in the Eastern Conference) vs. Milwaukee Bucks (1-7, 15th in the Eastern Conference)",
+   "lastModified": "2026-11-05T07:03:40Z",
+   "published": "2026-11-05T07:03:40Z",
+   "images": [
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.awayhome.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.applewatch.awayhome.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.homeaway.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.applewatch.homeaway.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.awayhome.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.homeaway.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.awayhome.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.homeaway.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.awayhome.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.homeaway.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.awayhome.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.homeaway.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.awayhome.5x2.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909292.png?templateId=espn.all.homeaway.5x2.2"
+    }
+   ],
+   "categories": [
+    {
+     "id": 9577,
+     "type": "league",
+     "uid": "s:40~l:46",
+     "guid": "7b3729c9-7f69-308a-bf8a-ee15a6aba154",
+     "description": "NBA",
+     "sportId": 46,
+     "leagueId": 46,
+     "league": {
+      "id": 46,
+      "description": "NBA",
+      "abbreviation": "NBA",
+      "links": {
+       "mobile": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       },
+       "web": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4453,
+     "type": "team",
+     "uid": "s:40~l:46~t:15",
+     "guid": "f59bbabc-eedb-9ad2-c5dd-9bcd9f450a2f",
+     "description": "Milwaukee Bucks",
+     "sportId": 46,
+     "teamId": 15,
+     "team": {
+      "id": 15,
+      "description": "Milwaukee Bucks",
+      "abbreviation": "MIL",
+      "shortDisplayName": "Bucks",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/mil/milwaukee-bucks"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/mil/milwaukee-bucks"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4469,
+     "type": "team",
+     "uid": "s:40~l:46~t:28",
+     "guid": "5a9c33b8-63fd-ff34-a833-925fe89320a6",
+     "description": "Toronto Raptors",
+     "sportId": 46,
+     "teamId": 28,
+     "team": {
+      "id": 28,
+      "description": "Toronto Raptors",
+      "abbreviation": "TOR",
+      "shortDisplayName": "Raptors",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/tor/toronto-raptors"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "event",
+     "uid": "s:40~l:46~e:401909292",
+     "guid": "a5991507-86a5-3126-828a-9ffea05fe1c7",
+     "description": "Toronto Raptors @ Milwaukee Bucks",
+     "eventId": 401909292,
+     "event": {
+      "id": 401909292,
+      "sport": "basketball",
+      "league": "nba",
+      "description": "Toronto Raptors @ Milwaukee Bucks"
+     }
+    }
+   ],
+   "links": {
+    "api": {
+     "self": {
+      "href": "https://content.core.api.espn.com/v1/sports/news/50385965"
+     }
+    },
+    "app": {
+     "sportscenter": {
+      "href": "sportscenter://x-callback-url/showStory?uid=50385965"
+     }
+    },
+    "mobile": {
+     "href": "http://m.espn.go.com/nba/story?storyId=50385965"
+    },
+    "web": {
+     "href": "http://www.espn.com/nba/preview?gameId=401909292"
+    }
+   },
+   "premium": false
+  },
+  {
+   "id": 50385964,
+   "nowId": "1-50385964",
+   "contentKey": "50385964-1-22-1",
+   "dataSourceIdentifier": "c4aeca3d4461e",
+   "type": "Preview",
+   "headline": "Golden State takes on Miami, looks for 6th straight win",
+   "description": "Miami Heat (2-5, ninth in the Eastern Conference) vs. Golden State Warriors (5-3, eighth in the Western Conference)",
+   "lastModified": "2026-11-05T07:03:39Z",
+   "published": "2026-11-05T07:03:39Z",
+   "images": [
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.awayhome.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.applewatch.awayhome.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.homeaway.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.applewatch.homeaway.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.awayhome.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.homeaway.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.awayhome.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.homeaway.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.awayhome.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.homeaway.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.awayhome.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.homeaway.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.awayhome.5x2.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909937.png?templateId=espn.all.homeaway.5x2.2"
+    }
+   ],
+   "categories": [
+    {
+     "id": 9577,
+     "type": "league",
+     "uid": "s:40~l:46",
+     "guid": "7b3729c9-7f69-308a-bf8a-ee15a6aba154",
+     "description": "NBA",
+     "sportId": 46,
+     "leagueId": 46,
+     "league": {
+      "id": 46,
+      "description": "NBA",
+      "abbreviation": "NBA",
+      "links": {
+       "mobile": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       },
+       "web": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4600,
+     "type": "team",
+     "uid": "s:40~l:46~t:9",
+     "guid": "77a8546f-24bf-a333-8161-bf9f75396c49",
+     "description": "Golden State Warriors",
+     "sportId": 46,
+     "teamId": 9,
+     "team": {
+      "id": 9,
+      "description": "Golden State Warriors",
+      "abbreviation": "GS",
+      "shortDisplayName": "Warriors",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/gs/golden-state-warriors"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/gs/golden-state-warriors"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4259,
+     "type": "team",
+     "uid": "s:40~l:46~t:14",
+     "guid": "81e3212c-30ef-9b1b-5edb-453b13ff265a",
+     "description": "Miami Heat",
+     "sportId": 46,
+     "teamId": 14,
+     "team": {
+      "id": 14,
+      "description": "Miami Heat",
+      "abbreviation": "MIA",
+      "shortDisplayName": "Heat",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/mia/miami-heat"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/mia/miami-heat"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "event",
+     "uid": "s:40~l:46~e:401909937",
+     "guid": "f01af579-8e01-32be-8c68-0c7fc84873d4",
+     "description": "Miami Heat @ Golden State Warriors",
+     "eventId": 401909937,
+     "event": {
+      "id": 401909937,
+      "sport": "basketball",
+      "league": "nba",
+      "description": "Miami Heat @ Golden State Warriors"
+     }
+    }
+   ],
+   "links": {
+    "api": {
+     "self": {
+      "href": "https://content.core.api.espn.com/v1/sports/news/50385964"
+     }
+    },
+    "app": {
+     "sportscenter": {
+      "href": "sportscenter://x-callback-url/showStory?uid=50385964"
+     }
+    },
+    "mobile": {
+     "href": "http://m.espn.go.com/nba/story?storyId=50385964"
+    },
+    "web": {
+     "href": "http://www.espn.com/nba/preview?gameId=401909937"
+    }
+   },
+   "premium": false
+  },
+  {
+   "id": 50385963,
+   "nowId": "1-50385963",
+   "contentKey": "50385963-1-22-1",
+   "dataSourceIdentifier": "c66c16042f94d",
+   "type": "Preview",
+   "headline": "Timberwolves visit Pelicans Friday in NBA Cup group stage",
+   "description": "Minnesota Timberwolves (6-3, seventh in the Western Conference) vs. New Orleans Pelicans (4-4, 10th in the Western Conference)",
+   "lastModified": "2026-11-05T07:03:38Z",
+   "published": "2026-11-05T07:03:38Z",
+   "images": [
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.awayhome.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.applewatch.awayhome.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.applewatch.homeaway.1",
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.applewatch.homeaway.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.awayhome.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.1",
+     "ratio": "16x9",
+     "height": 173,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.homeaway.16x9.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.awayhome.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.1x1.1",
+     "ratio": "1x1",
+     "height": 308,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.homeaway.1x1.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.awayhome.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.1",
+     "ratio": "5x2",
+     "height": 124,
+     "width": 308,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.homeaway.5x2.1"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.awayhome.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.16x9.2",
+     "ratio": "16x9",
+     "height": 353,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.homeaway.16x9.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.awayhome.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.awayhome.5x2.2"
+    },
+    {
+     "type": "stitcher",
+     "name": "espn.all.homeaway.5x2.2",
+     "ratio": "5x2",
+     "height": 251,
+     "width": 628,
+     "url": "https://s.espncdn.com/stitcher/sports/basketball/nba/events/401909293.png?templateId=espn.all.homeaway.5x2.2"
+    }
+   ],
+   "categories": [
+    {
+     "id": 9577,
+     "type": "league",
+     "uid": "s:40~l:46",
+     "guid": "7b3729c9-7f69-308a-bf8a-ee15a6aba154",
+     "description": "NBA",
+     "sportId": 46,
+     "leagueId": 46,
+     "league": {
+      "id": 46,
+      "description": "NBA",
+      "abbreviation": "NBA",
+      "links": {
+       "mobile": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       },
+       "web": {
+        "leagues": {
+         "href": "https://www.espn.com/nba/"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 114922,
+     "type": "team",
+     "uid": "s:40~l:46~t:3",
+     "guid": "9461f397-7882-94c0-c18c-e89bdc9e570e",
+     "description": "New Orleans Pelicans",
+     "sportId": 46,
+     "teamId": 3,
+     "team": {
+      "id": 3,
+      "description": "New Orleans Pelicans",
+      "abbreviation": "NO",
+      "shortDisplayName": "Pelicans",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/no/new-orleans-pelicans"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/no/new-orleans-pelicans"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": 4533,
+     "type": "team",
+     "uid": "s:40~l:46~t:16",
+     "guid": "13f727cb-254d-b484-a337-93fcc0047add",
+     "description": "Minnesota Timberwolves",
+     "sportId": 46,
+     "teamId": 16,
+     "team": {
+      "id": 16,
+      "description": "Minnesota Timberwolves",
+      "abbreviation": "MIN",
+      "shortDisplayName": "Timberwolves",
+      "links": {
+       "mobile": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/min/minnesota-timberwolves"
+        }
+       },
+       "web": {
+        "teams": {
+         "href": "https://www.espn.com/nba/team/_/name/min/minnesota-timberwolves"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "event",
+     "uid": "s:40~l:46~e:401909293",
+     "guid": "60869b67-b47d-3da2-907d-46d2a188c587",
+     "description": "Minnesota Timberwolves @ New Orleans Pelicans",
+     "eventId": 401909293,
+     "event": {
+      "id": 401909293,
+      "sport": "basketball",
+      "league": "nba",
+      "description": "Minnesota Timberwolves @ New Orleans Pelicans"
+     }
+    }
+   ],
+   "links": {
+    "api": {
+     "self": {
+      "href": "https://content.core.api.espn.com/v1/sports/news/50385963"
+     }
+    },
+    "app": {
+     "sportscenter": {
+      "href": "sportscenter://x-callback-url/showStory?uid=50385963"
+     }
+    },
+    "mobile": {
+     "href": "http://m.espn.go.com/nba/story?storyId=50385963"
+    },
+    "web": {
+     "href": "http://www.espn.com/nba/preview?gameId=401909293"
+    }
+   },
+   "premium": false
+  }
+ ]
+}

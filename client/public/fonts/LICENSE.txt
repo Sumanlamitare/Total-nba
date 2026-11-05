@@ -1,0 +1,3 @@
+Inter (https://rsms.me/inter), copyright The Inter Project Authors, and Barlow Condensed (https://github.com/jpt/barlow),
+copyright The Barlow Project Authors, both licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+Used to draw text in graphics (browser and server rendering).

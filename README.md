@@ -1,123 +1,131 @@
-# Overlap
+# Around the NBA
 
-Automatic NBA statistical Venn diagrams. Every night, once all the games are final, Overlap publishes a diagram of the
-players who met the night's criteria (say 10+ rebounds, 6+ assists, 90%+ free throws), each placed in exactly the
-intersection of criteria he met. It does the same for the season to date, and lets anyone build their own with any
-statistic, any number of criteria and any period, then share it as a finished graphic.
+A live NBA event feed. It watches every game at once, recognizes the moments worth talking about — comebacks, game
+winners (offensive and defensive), records, takeovers, role players nobody saw coming, streaks — verifies them, and
+reports them in one continuously updating feed.
 
 Live: https://total-nba-ja9d.vercel.app
 
-## Using it
+## What's in the app
 
-- **Today**: the latest automatic diagram (and the season to date), with its date, period, player count, criteria, last
-  update and whether every game is final. A banner shows tonight's progress while games are on.
-- **Daily**: any night. A night that isn't final yet shows a clearly marked preview from its finished games; **Refresh**
-  checks ESPN again right away.
-- **Season**: regular season, playoffs or both, for any loaded season. In **Modify → Period** you can set a date range or
-  a "through" date to see the season as it stood that day.
-- **Modify** (on every diagram): criteria (any statistic from the searchable catalog, `≥ > ≤ <`, decimal thresholds,
-  the same statistic twice, reorder, remove), period, team and player filters (only these players, exclude), and the
-  look: view (Venn or intersections), each circle's color, background, fill, outline, circle positions and sizes,
-  headshot size, names, counts, typeface. Everything redraws instantly; **Undo/Redo** (also ⌘Z / ⇧⌘Z), **Reset**, and
-  **Save** a configuration for reuse.
-- **Share**: a live preview of the standalone graphic in square 1080×1080, portrait 1080×1350, landscape 1920×1080 or
-  custom sizes, with title, subtitle, logo, legend and attribution; then PNG, high-res PNG (3×), SVG, PDF, copy image,
-  the phone's share sheet, or a link (`/d/<id>`) whose preview on X and elsewhere is the diagram itself.
-- **History**: every automatic diagram and every shared custom one, by type and season. Open, modify, download, share,
-  or pick two to compare (or apply one night's criteria to another night).
-- **Settings**: the default daily and season criteria and the minimum samples. The first passcode set owns the settings.
+- **Live Feed** (home): event cards arrive on their own (Server-Sent Events). Each card has its category and importance,
+  a headline and short story, the player or team, the game situation, the statistics that matter, and expandable
+  details: sources with retrieval times, verification checks, how the story developed. Filter by kind, importance,
+  game, team, player, or your favorites. Fans can react and comment (free account).
+- **Top bar**: live game indicators, search (players, teams, stories, records), alerts for critical moments and your
+  favorites, profile.
+- **Right rail**: tonight's top performances, live Game Intelligence alerts, trending storylines.
+- **Game Intelligence**: live games with their situation (clutch time, one-possession game, final possessions), and
+  the night's stories by kind: close games, comeback watch, scoring runs, solo runs, clutch situations, blowouts,
+  collapses, historic performances.
+- **Records & Milestones**: recent records and milestones, the milestone watch, and a searchable record database.
+- **Top Performances**: an editorial ranking (efficiency, defense, clutch, winning, role), not a points leaderboard.
+- **Teams, Players, Games**: storylines first — the feed entries, the streak, recent results, the season so far.
+- **Graphics Studio** (editors): graphics made automatically for the biggest events, from the event's verified
+  data; an editor with drag, resize, snapping guides, undo/redo, templates, four social sizes plus custom, editable
+  headline, text and statistics, image replacement and uploads; PNG/JPEG export and the share sheet.
+- **Settings**: your favorites and alerts; for the owner, detection thresholds, feed significance and categories,
+  spam limits, AI reporting style, graphics, data sources, people, the automation log.
 
-## The statistics
+## How events are found
 
-**Provider.** Stage-one research (`tools/probe-providers.mjs`) tried NBA.com's stats API (times out from cloud hosts),
-NBA.com's CDN (403 from cloud hosts) and ESPN. ESPN serves schedules and live status, complete box scores, league-wide
-season tables (regular season and playoffs, many seasons back) and per-player season figures, without a key, so it is
-the provider, behind an interface (`lib/providers/espn.js`) another provider can sit beside.
+`scripts/monitor.mjs` runs through each game night (GitHub Actions, `.github/workflows/monitor.yml`) and checks every
+game every 20 seconds while any is live. The live stream also runs a check itself when the monitor is quiet.
 
-**Where each number comes from** (shown on every statistic in the picker):
-- *Box score*: points, rebounds (offensive, defensive), assists, steals, blocks, turnovers, fouls, minutes, made and
-  attempted field goals, threes and free throws and their percentages, plus-minus, starts; double- and triple-doubles.
-- *Computed* from box scores with Basketball Reference's formulas (they need the team's and opponent's totals, which
-  every game carries): true shooting %, effective FG %, usage %, assist %, rebound % (total, offensive, defensive),
-  steal %, block %, turnover %, assist-to-turnover ratio, Game Score, per-36 numbers.
-- *ESPN season figures* (whole season to date only): PER, ESPN's player rating, assist and turnover ratio, estimated
-  possessions, points per possession, shooting and scoring efficiency, steal/block-to-foul and steal-to-turnover ratios.
-  These are offered only when the data has real values: ESPN returns usage and rebound rates as 0 for everyone, and a
-  "VORP" on a scale that isn't VORP's, so those are never offered.
-- *Not available* from any reachable provider, never estimated: Box Plus/Minus (and its offensive/defensive parts),
-  Win Shares (and WS/48), offensive, defensive and net rating.
+1. **Play-by-play stories** (`lib/intel.js`) — the whole game is re-read each time, so nothing between checks is missed
+   and every story keeps a stable id:
+   team runs (8–0, 12–2, 18–4… stricter early in games; overlapping stretches are one story), solo runs (consecutive
+   team points by one player, or most of a stretch; the shooter gets the points, assists are counted separately),
+   close games (clutch time → two-possession → one-possession → final possessions, escalating within a period),
+   comebacks (watch → underway → tied → ahead; **completed** only from the final result, or **fell short**), blowouts,
+   collapses (told once, from the comeback side), overtime, clutch scoring; and from a final, verified game only:
+   game winners (the basket that gave the lead for good in the last 24 seconds, buzzer-beaters, late free throws that
+   sealed it) and **defensive game winners** (a block or steal by the winner with the loser within three in the last
+   10 seconds, or the rebound that ended the last chance).
+2. **Player lines** (`lib/detect.js`) — thresholds (configurable) are only the start: each line is measured against the
+   player's own season (z-scores), career and season highs, league season highs, how rare the combination is across
+   every box score since 1993-94 ("first since…"), and clutch play. Role players, rookies and unexpected contributors
+   get extra weight; stars' off nights are recognized too.
+3. **Records and milestones** (`lib/records.js`, `lib/events.js`) — record lists computed from every box score in the
+   database (league, franchise, rookie, position, international, age, season, consecutive games, team), with their
+   scope always stated: they are *box-score-era* records, never presented as all-time NBA records. All-time records
+   come only from reference records an editor adds with a source and the owner verifies. Milestones use ESPN's career
+   totals. Live: approaching → tied → broken; after the final, re-verified (career highs against the player's ESPN game
+   logs) or withdrawn.
+4. **Streaks** — team winning/losing streaks extended or snapped, from verified results.
+5. **Significance** (`lib/feed.js`) — 0–100 → critical / high / medium / low; only entries above the threshold, in
+   enabled categories, are published; at most a few runs per game (the strongest); favorites and playoffs get a bump;
+   a story that develops updates its entry and moves back to the top when it escalates.
 
-**Season numbers** are sums of the box scores in the database (so date ranges and "through" dates work), with
-percentages and rates from the sums, never averages of game percentages. Each statistic is labeled total, per game,
-per 36, percentage, rate, count, advanced or yes/no.
+## Accuracy
 
-**Minimum samples** (Settings): a night's percentage needs enough attempts (default 5 FGA, 3 3PA, 4 FTA); season
-averages need half the team's games, and percentages NBA-style made shots per team game (3.65 FGM, 1 3PM, 1.5 FTM —
-the league's leader qualifiers, prorated). Players short of a sample count as not meeting that criterion and are noted.
+- A final box score is used only after the checks pass — both teams present, players' points adding up to each score,
+  minutes and quarters adding up — **and** NBA.com's box score agrees on the score and every player's points,
+  rebounds and assists. Games NBA.com never confirms are used after 36 hours only if every check passes ("consistent").
+- Outcomes (game winners, completed comebacks, records tied or broken) are never published from live data.
+- Record claims and "first since" claims need the full history in the database (5,000+ games); a partial database
+  can't say what a record is, so it doesn't.
+- Every entry keeps its source, game id, player id, detection and retrieval times, verification status and checks.
+  Cards say whether a story is developing, final, confirmed or a recap (found after the game). AI-written summaries are
+  labelled; the data-driven text is always kept beside them.
 
-## The engine and the diagrams
+## Data sources
 
-- `lib/engine.js` decides who qualifies: for each player, a bit mask of the criteria met; regions are masks. It knows
-  nothing about drawing — colors, positions and views never change a result. Unit tests cover every combination for
-  2 to 6 criteria.
-- `lib/venn/layout.js` draws 1–3 criteria as circles and 4 or 5 as ellipse arrangements found by search so that every
-  one of the 15 or 31 combinations has its own region (true Venn diagrams, not misleading ones). Players are packed on a
-  hexagonal lattice inside their exact region, headshot and name wholly inside it; a crowded diagram shrinks headshots,
-  then grows the canvas — nobody is hidden. Six or more criteria (or a crowded five) use the intersection view: one row
-  per combination with its count and players (UpSet-style). You can switch views at any time.
-- `lib/venn/render.js` turns a layout into SVG — one renderer for the page, the downloads and the link previews.
+Researched with `tools/probe-atn.mjs` from GitHub Actions (details in `lib/providers/index.js`):
 
-## Automation
+| Source | Use | Notes |
+|---|---|---|
+| ESPN public API | Primary: live scores and play-by-play, box scores (from 1993-94), rosters, bios, career stats, game logs | No key; unofficial, no published rate limit or license — fine for this project, not a licensed production feed |
+| NBA.com live-data CDN | Verification of finals | No key; unofficial |
+| stats.nba.com | — | Doesn't answer cloud servers |
+| Basketball Reference | Linked for human checking only | Terms prohibit automated collection |
+| Sportradar / SportsDataIO | Not integrated | Licensed, paid; the provider interface is where they would plug in |
 
-`.github/workflows/auto.yml` runs `scripts/auto.mjs` every 20 minutes from noon to 6 a.m. Eastern:
+## Stack
 
-1. Today's and yesterday's games (NBA game dates, Eastern Time).
-2. A final game's box score is stored only once it passes checks: both teams present with players, each team's player
-   points adding up to its score, player minutes adding up to the game. An incomplete response is never taken for a
-   final game.
-3. When every game of a date is final and verified, the date's default diagrams are made: the night, and the season
-   through that night. Postponed, canceled and suspended games don't hold a night up; a night with no games is noted.
-4. The same configuration on unchanged data never makes a second diagram. The last three nights are fetched again
-   every six hours; a stat correction makes a new version and the old one is kept, marked superseded.
-5. ESPN's season figures are refreshed daily. **Refresh** on a night runs steps 1–4 for it at once (at most once a minute).
+- **Client**: React 18 + Vite, plain CSS (dark, orange accent; Barlow Condensed and Inter).
+- **API**: Vercel functions (`api/`): `feed` (feed, entry, ticker, rail, intel, performances, reactions, comments),
+  `stream` (Server-Sent Events), `nba` (search, players, teams, games), `records`, `graphics` (library, render, uploads),
+  `admin` (accounts, settings, integrations, log, run now).
+- **Monitor**: Node in GitHub Actions (long-running through game nights); history backfill there too.
+- **Database**: MongoDB (already provisioned for this deployment; PostgreSQL would fit behind the same modules).
+- **Graphics**: one SVG renderer (`lib/graphics/`) for the editor, browser export and server rendering (resvg).
+- **AI**: Anthropic API (Claude Opus 5.5) for labelled summaries of high and critical entries, written only from each
+  entry's facts. Optional: needs `ANTHROPIC_API_KEY` (Vercel and GitHub Actions secrets) or a key saved in Settings.
 
-`.github/workflows/backfill.yml` loads whole seasons (`seasons: 2025,2026,2027`, named by the year they end).
+Why not the suggested Next.js + Prisma + PostgreSQL: the deployment already runs on Vercel with MongoDB, and the feed's
+real-time part is better served by a long-running monitor plus SSE than by request-driven server components; the
+modules are plain ES modules shared by the browser, the functions and the monitor.
 
-## How it's built
+## Setup
 
-- **Client** (`client/`): React 18, built by Vite. The engine and layout run in the browser, so editing is instant.
-  Exports are drawn fresh from the renderer with headshots embedded (ESPN serves them with open CORS) and rasterized in a
-  canvas; PDFs are written directly (no library).
-- **API** (`api/`, Vercel functions): `data` (home, datasets, seasons, catalog), `diagram` (one, archive, save custom),
-  `admin` (settings, saved configurations, refresh), `share` (`/d/:id` with preview tags), `og` (the diagram as a PNG,
-  rendered with resvg and Inter).
-- **Database**: MongoDB (`lib/db.js`): teams, players, games, days, player-game box scores, ESPN season figures,
-  diagrams (configuration, results, data checksum, versions), saved configurations, settings, seasons.
-- **Why this stack**: JavaScript ES modules end to end so the same engine and renderer run in the browser, the
-  serverless functions and the scheduled jobs, with no build step on the server; SVG for crisp, exportable diagrams with
-  a custom geometry engine (D3's force layouts can't guarantee a player stays inside his exact region); MongoDB because
-  the deployment already has it (box scores and diagram snapshots are naturally documents) — PostgreSQL would work as
-  well behind the same `lib/data.js` functions; GitHub Actions for the scheduled jobs, since Vercel's free cron runs
-  once a day.
+- Vercel: `MONGODB_URI` (set). Optional: `ANTHROPIC_API_KEY`, `ATN_SECRET` (key for encrypting saved credentials).
+- GitHub Actions secrets: `MONGODB_URI` (set); optional `ANTHROPIC_API_KEY`.
+- First account: open `/signin` and use the setup code (only its hash is in the code: `lib/auth.js`). That account is the
+  owner; it can invite editors. Fans sign up themselves.
+- History: run **History backfill** (Actions) once; then **Live monitor** runs on its own every night.
 
 ## Development
 
 ```sh
 npm install
-MONGODB_URI=... npm run dev              # the app and API on http://localhost:5173
-MONGODB_URI=... npm run auto             # one automation run (or --date 20250115 [--force])
-MONGODB_URI=... npm run backfill -- --season 2026
-npm test                                 # unit: formulas, every intersection, layout, rendering
-MONGODB_URI=mongodb://localhost:27017 npm run test:e2e   # mock ESPN -> automation and API -> MongoDB
-npm run test:ui                          # Chromium: the app on desktop and phone
+MONGODB_URI=... npm run dev                     # app + API on http://localhost:5173
+ATN_MEMDB=1 MOCK_SOURCES=1 npm run dev          # no database or network: saved ESPN responses, in-memory data
+node tools/tick-sample.mjs                      # run the monitor once on saved games and print the feed
+npm test                                        # unit: intelligence on real games, feed rules, records, graphics
+MONGODB_URI=mongodb://localhost:27017 npm run test:e2e
+npm run build && npm run test:ui                # Chromium: feed, live arrival, phones, editor
 ```
 
 ## Licenses
 
 | Resource | Use | License |
 |---|---|---|
-| React 18, Vite 5 | Interface, build | MIT |
-| MongoDB Node driver 6 | Database | Apache-2.0 |
-| resvg-js | Server-side PNG rendering | MPL-2.0 |
-| Inter (`lib/fonts`) | Text in server-rendered images | SIL Open Font License 1.1 |
-| ESPN public API, headshots and logos | Statistics and images | ESPN's property, used through its public endpoints under ESPN's terms. Not affiliated with or endorsed by ESPN or the NBA. |
+| React, Vite | Interface, build | MIT |
+| MongoDB Node driver | Database | Apache-2.0 |
+| resvg-js | Server rendering | MPL-2.0 |
+| jpeg-js | JPEG encoding | BSD-3-Clause |
+| Anthropic SDK | AI summaries | MIT |
+| Barlow Condensed, Inter | Type | SIL Open Font License 1.1 |
+| mingo, opentype.js (dev) | In-memory database for development; font metrics | MIT |
+| ESPN and NBA.com data, headshots, logos | Statistics and images | Property of their owners, used through public endpoints. Not affiliated with or endorsed by the NBA or ESPN. |

@@ -1,132 +1,105 @@
-// Browser test: the real app (dev server, Vite) on a database filled by the automation from mock ESPN; desktop and
-// phone. Headshots are blocked, so their fallbacks are exercised too.
+// Browser test: the built app served with the API (in-memory database, saved ESPN responses), driven by Chromium.
+// The feed renders and filters; a new event arrives without a refresh; details show sources and verification; phones
+// get no sideways scrolling; the graphics editor selects, drags and saves.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { mockEspn } from './mock-espn.mjs';
+import crypto from 'node:crypto';
+import { createRequire } from 'node:module';
+import { mockSources } from './mock-sources.mjs';
 
-const pw = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const { chromium } = pw.chromium ? pw : pw.default;
-const MONGO = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
-const DB = `overlap_ui_${process.pid}`;
-let espn, server, browser, base, lib, d, total;
+const require = createRequire(import.meta.url);
+const pw = (() => { for (const p of [process.env.PLAYWRIGHT_MODULE, 'playwright', '/opt/node-tools/node_modules/playwright']) { try { if (p) return require(p); } catch { /* next */ } } throw new Error('playwright not found'); })();
+let m, browser, base, d, upsert, getSettings;
 
 before(async () => {
-  espn = await mockEspn();
-  Object.assign(process.env, espn.env, { MONGODB_URI: MONGO, LIBRARY_DB: DB });
-  lib = { db: await import('../lib/db.js'), jobs: await import('../lib/jobs.js') };
-  d = await lib.db.db();
-  await d.dropDatabase();
-  const r = await lib.jobs.processDate(d, '20250115', { log: () => {} });
-  total = r.made.daily.result.total;
-  const port = 5900 + (process.pid % 90);
-  base = `http://127.0.0.1:${port}`;
-  server = spawn(process.execPath, ['scripts/dev.mjs'], { env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'inherit'] });
-  await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('server did not start')), 30000); server.stdout.on('data', b => { if (String(b).includes('dev on')) { clearTimeout(t); res(); } }); });
-  browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--headless=new'] });
+  m = await mockSources();
+  const port = 4900 + Math.floor(Math.random() * 500);
+  Object.assign(process.env, m.env, { ATN_MEMDB: '1', STATIC_DIR: 'dist', PORT: String(port), ATN_SETUP_HASH: crypto.createHash('sha256').update('atn-setup:uicode').digest('hex'), ATN_INSECURE_COOKIE: '1', ATN_STREAM_POLL_MS: '500' });
+  const { db } = await import('../lib/db.js');
+  d = await db();
+  const { tick } = await import('../lib/automation.js');
+  ({ upsert } = await import('../lib/feed.js'));
+  ({ getSettings } = await import('../lib/settings.js'));
+  // NBA.com has no box score here, so finals verify on consistency after the wait.
+  for (const now of [new Date(), new Date(Date.now() + 40 * 3600e3)]) await tick(d, { dates: ['20261104', '20250115'], now, log: () => {} });
+  await import('../scripts/dev.mjs');
+  base = `http://localhost:${port}`;
+  browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--headless=new'] });
 });
-after(async () => { await browser?.close(); server?.kill(); try { await d.dropDatabase(); } catch { /* */ } await lib?.db.close(); await espn?.close(); });
+after(async () => { await browser?.close(); await m?.close(); setTimeout(() => process.exit(0), 200); });
 
 async function page(path, opts = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, acceptDownloads: true, ...opts });
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, ...opts });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
-  p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED/.test(m.text())) errors.push(m.text()); });
   await p.route(/espncdn\.com/, r => r.abort());
   await p.goto(base + path);
-  return { p, errors };
+  return { p, errors, ctx };
 }
-const players = p => p.locator('.diagram-svg [data-pid]').count();
 
-test('today: the automatic diagram, every qualifying player, the facts', async () => {
-  const { p, errors } = await page('/');
-  await p.locator('.diagram-svg').first().waitFor();
-  assert.equal(await p.locator('.stage-head h1').first().textContent(), 'Wednesday, January 15, 2025');
-  assert.equal(await p.locator('.studio').first().locator('.diagram-svg [data-pid]').count(), total, 'every player is drawn');
-  const facts = await p.locator('.studio').first().locator('.facts').textContent();
-  assert.match(facts, /Players\s*\d+/);
-  assert.match(facts, /All 2 final \(1 postponed\)/);
-  assert.deepEqual((await p.locator('.studio').first().locator('.legend-row .pill').allTextContents()).map(t => t.replace(/\d+$/, '')), ['10+ REB', '6+ AST', '90%+ FT']);
-  // A headshot opens the player's numbers.
-  await p.locator('.studio').first().locator('.diagram-svg [data-pid]').first().click();
-  await p.locator('.modal.player').waitFor();
-  assert.ok(await p.locator('.crit-values li').count() === 3);
+test('the feed renders, filters, and expands to sources and verification', async () => {
+  const { p, errors, ctx } = await page('/');
+  await p.waitForSelector('.card');
+  assert.ok(await p.locator('.card').count() >= 5);
+  await p.click('.seg button:has-text("Runs")');
+  await p.waitForTimeout(800);
+  const cats = await p.locator('.card .chip.c-orange').allTextContents();
+  assert.ok(cats.length > 0 && cats.every(c => /run/i.test(c)), cats.join(','));
+  await p.click('.card >> nth=0 >> button:has-text("Details")');
+  await p.waitForSelector('.details');
+  assert.match(await p.locator('.details').first().innerText(), /sources[\s\S]*ESPN/i);
+  assert.match(await p.locator('.details').first().innerText(), /verification/i);
   assert.deepEqual(errors, []);
-  await p.context().close();
+  await ctx.close();
 });
 
-test('modify: add a criterion from the searchable catalog, undo and redo, switch views', async () => {
-  const { p, errors } = await page('/daily/20250115');
-  await p.getByRole('button', { name: 'Modify' }).first().click();
-  await p.locator('.crit-editor li').first().waitFor();
-  assert.equal(await p.locator('.crit-editor li').count(), 3);
-  await p.getByRole('button', { name: '+ Add a criterion' }).click();
-  await p.locator('.picker .search').fill('steals');
-  await p.locator('.stat-row', { hasText: 'Steals' }).first().click();
-  await p.locator('.legend-row .pill').nth(3).waitFor();
-  assert.equal(await p.locator('.legend-row .pill').count(), 4, 'four criteria: a 4-set diagram');
-  assert.equal(await p.locator('.diagram-svg ellipse').count(), 4);
-  // Undo, redo.
-  await p.getByRole('button', { name: 'Undo' }).click();
-  await p.waitForFunction(() => document.querySelectorAll('.legend-row .pill').length === 3);
-  await p.getByRole('button', { name: 'Redo' }).click();
-  await p.waitForFunction(() => document.querySelectorAll('.legend-row .pill').length === 4);
-  // Unavailable statistics are listed but can't be picked.
-  await p.getByRole('button', { name: '+ Add a criterion' }).click();
-  assert.match(await p.locator('.picker .unavailable').textContent(), /Win Shares/);
-  await p.locator('.picker .x').click();
-  // The intersection view shows the same players.
-  const inVenn = await players(p);
-  await p.getByRole('tab', { name: 'Style' }).click();
-  await p.getByRole('radio', { name: 'Intersections' }).click();
-  await p.waitForFunction(() => !document.querySelector('.diagram-svg ellipse'));
-  assert.equal(await players(p), inVenn, 'same players, different view');
+test('a new event appears without refreshing', async () => {
+  const { p, errors, ctx } = await page('/');
+  await p.waitForSelector('.card');
+  await p.waitForSelector('.conn-live', { timeout: 10000 });
+  await upsert(d, { _id: 'ui:live-test', category: 'game-winner', significance: 95, status: 'final', headline: 'AT THE BUZZER', body: 'A test of the live stream.', teams: [], players: [], game: { id: '401909922', teams: [] }, occurredAt: new Date(), sources: [{ name: 'test' }], verification: { status: 'verified' } }, await getSettings(d));
+  await p.waitForSelector('.card.fresh:has-text("AT THE BUZZER")', { timeout: 15000 });
   assert.deepEqual(errors, []);
-  await p.context().close();
+  await ctx.close();
 });
 
-test('share: the standalone graphic, downloads', async () => {
-  const { p, errors } = await page('/daily/20250115');
-  await p.locator('.diagram-svg').waitFor();
-  await p.getByRole('button', { name: 'Share' }).first().click();
-  await p.locator('.preview img').waitFor({ timeout: 20000 });
-  const [png] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'PNG', exact: true }).click()]);
-  assert.match(png.suggestedFilename(), /^wednesday-january-15-2025-square\.png$/);
-  const [svg] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'SVG' }).click()]);
-  assert.match(svg.suggestedFilename(), /\.svg$/);
-  await p.locator('.share-modal select').selectOption('portrait');
-  const [pdf] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'PDF' }).click()]);
-  assert.match(pdf.suggestedFilename(), /portrait\.pdf$/);
-  assert.deepEqual(errors, []);
-  await p.context().close();
-});
-
-test('season, history, custom', async () => {
-  const { p, errors } = await page('/season?season=2025&stype=regular');
-  await p.locator('.diagram-svg').waitFor();
-  assert.match(await p.locator('.stage-head h1').textContent(), /2024-25 Regular Season/);
-  await p.goto(`${base}/history`);
-  await p.locator('.hist li').first().waitFor();
-  assert.ok(await p.locator('.hist li').count() >= 2);
-  await p.locator('.hist-main').first().click();
-  await p.locator('.diagram-svg').waitFor();
-  await p.goto(`${base}/custom`);
-  await p.locator('.crit-editor li').first().waitFor();
-  assert.deepEqual(errors, []);
-  await p.context().close();
-});
-
-test('phone: no sideways scrolling', async () => {
-  for (const path of ['/', '/daily/20250115', '/custom', '/history']) {
-    const { p, errors } = await page(path, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    await p.locator('.diagram-svg, .hist li, .crit-editor li').first().waitFor();
+test('phones: no sideways scrolling, tab bar present', async () => {
+  for (const path of ['/', '/intel', '/records', '/performances', '/games/401909922']) {
+    const { p, errors, ctx } = await page(path, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await p.waitForSelector('.card, .section, .empty, .perf, .scoreboard-hero', { timeout: 10000 });
+    await p.waitForTimeout(400);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth), 390, path);
-    // Every section stays reachable in the bottom tab bar.
-    const bar = await p.locator('.tabs-nav').boundingBox();
-    assert.ok(bar.y + bar.height <= 844 && bar.y > 700, `${path}: tab bar at ${bar.y}`);
-    for (const label of ['Today', 'Daily', 'Season', 'History', 'Custom', 'Settings']) assert.ok(await p.locator('.tabs-nav a', { hasText: label }).isVisible(), `${path}: ${label}`);
+    assert.ok(await p.locator('.tabbar').isVisible(), path);
     assert.deepEqual(errors, [], path);
-    await p.context().close();
+    await ctx.close();
   }
+});
+
+test('graphics editor: create from an event, select, drag, save', async () => {
+  const { p, errors, ctx } = await page('/signin');
+  await p.waitForSelector('h1:has-text("Set up")');
+  await p.fill('form input >> nth=0', 'uicode');
+  await p.fill('form input >> nth=1', 'Owner');
+  await p.fill('input[type=email]', 'owner@example.com');
+  await p.fill('input[type=password]', 'a-long-password');
+  await p.click('form button');
+  await p.waitForURL(base + '/');
+  await p.goto(base + '/studio');
+  await p.click('.mini >> nth=0');
+  await p.waitForSelector('.canvas [data-id]');
+  const id = await p.locator('.canvas [data-id="note"], .canvas [data-id="headline"], .canvas [data-id="name-last"]').first().getAttribute('data-id');
+  const box = await p.locator(`.canvas [data-id="${id}"]`).first().boundingBox();
+  await p.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await p.waitForSelector('.sel-box');
+  const sel = await p.locator('.sel-box').boundingBox();
+  await p.mouse.move(sel.x + 10, sel.y + 10); await p.mouse.down(); await p.mouse.move(sel.x + 70, sel.y + 40, { steps: 6 }); await p.mouse.up();
+  await p.click('button:has-text("Save")');
+  await p.waitForSelector('button:has-text("Saved")');
+  const gid = p.url().split('/').pop();
+  const { ObjectId } = await import('mongodb');
+  const doc = await d.collection('content').findOne({ _id: new ObjectId(gid) });
+  assert.ok(doc.project.overrides[id]?.x != null, 'the drag was saved as an override');
+  assert.deepEqual(errors, []);
+  await ctx.close();
 });

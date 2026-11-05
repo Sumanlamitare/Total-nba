@@ -1,85 +1,58 @@
-// Exporting a diagram as a standalone graphic (never a screenshot of the page): the same SVG renderer at the chosen
-// size, with every headshot embedded so the file stands on its own; then PNG (any scale), PDF or the clipboard.
-import { composeGraphic } from '../../lib/venn/render.js';
-import { buildDiagram } from '../../lib/venn/index.js';
+// Exporting a graphic in the browser: the same SVG the editor shows, with its fonts and images embedded, rasterized in
+// a canvas to PNG or JPEG; then downloaded or handed to the device's share sheet.
+import { renderScene, sceneImages } from '../../lib/graphics/render.js';
 
-export const FORMATS = {
-  square: { label: 'Square 1080 × 1080', width: 1080, height: 1080 },
-  portrait: { label: 'Portrait 1080 × 1350', width: 1080, height: 1350 },
-  landscape: { label: 'Landscape 1920 × 1080', width: 1920, height: 1080 },
-  custom: { label: 'Custom', width: 1600, height: 1200 },
-};
-
-// ESPN serves its headshots with open CORS; the resizing service gives smaller files. Either is embedded as data.
-const small = href => (/a\.espncdn\.com\/i\/headshots/.test(href) ? `https://a.espncdn.com/combiner/i?img=${new URL(href).pathname}&w=220&h=161` : href);
+const FONT_FILES = [
+  ['Barlow Condensed', 600, 'normal', 'BarlowCondensed-600.ttf'], ['Barlow Condensed', 700, 'normal', 'BarlowCondensed-700.ttf'], ['Barlow Condensed', 800, 'normal', 'BarlowCondensed-800.ttf'],
+  ['Barlow Condensed', 900, 'normal', 'BarlowCondensed-900.ttf'], ['Barlow Condensed', 800, 'italic', 'BarlowCondensed-800i.ttf'],
+  ['Inter', 400, 'normal', 'Inter_400Regular.ttf'], ['Inter', 600, 'normal', 'Inter_600SemiBold.ttf'], ['Inter', 700, 'normal', 'Inter_700Bold.ttf'], ['Inter', 800, 'normal', 'Inter_800ExtraBold.ttf'],
+];
+let fontCss = null;
 const toDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
-async function fetchImage(href) {
-  for (const u of [small(href), href]) {
-    try {
-      const r = await fetch(u, { mode: 'cors', signal: AbortSignal.timeout(12000) });
-      if (r.ok && /^image\//.test(r.headers.get('content-type') || '')) return await toDataUrl(await r.blob());
-    } catch { /* next */ }
-  }
-  return null;
-}
-const imageCache = new Map();
-export async function embedImages(players) {
-  const hrefs = [...new Set(players.map(p => p.headshot).filter(Boolean))];
-  await Promise.all(hrefs.map(async h => { if (!imageCache.has(h)) imageCache.set(h, await fetchImage(h)); }));
-  return p => imageCache.get(p.headshot) || null;
+
+async function fonts() {
+  if (fontCss) return fontCss;
+  const parts = await Promise.all(FONT_FILES.map(async ([fam, w, style, file]) => {
+    const b = await fetch(`/fonts/${file}`).then(r => r.blob());
+    return `@font-face{font-family:'${fam}';font-weight:${w};font-style:${style};src:url(${await toDataUrl(b)}) format('truetype');}`;
+  }));
+  return (fontCss = parts.join(''));
 }
 
-// The standalone SVG. result/criteria/style as for the in-app diagram; frame: { width, height, title, subtitle,
-// brand, attribution, legend }.
-export async function standaloneSvg(result, criteria, style, frame) {
-  const img = await embedImages(result.players);
-  const landscape = frame.width > frame.height * 1.2;
-  const d = buildDiagram(result, criteria, style, { img, width: landscape ? 1400 : 1000 });
-  return composeGraphic(d, { ...frame, criteria, style, showLegend: frame.legend ?? d.view === 'upset' });
+export async function embeddedSvg(scene) {
+  const images = {};
+  await Promise.all(sceneImages(scene).map(async src => {
+    try { const r = await fetch(src, { mode: 'cors' }); if (r.ok) images[src] = await toDataUrl(await r.blob()); } catch { /* left as a link: the image is skipped in the export */ }
+  }));
+  return renderScene(scene, { images, fontCss: await fonts() });
 }
 
-export async function svgToPng(svg, width, height, scale = 1, type = 'image/png') {
+export async function rasterize(scene, { type = 'image/png', scale = 1, quality = 0.92 } = {}) {
+  const svg = await embeddedSvg(scene);
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   try {
     const img = new Image();
     img.decoding = 'async';
     await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('The graphic could not be drawn')); img.src = url; });
     const c = document.createElement('canvas');
-    c.width = Math.round(width * scale); c.height = Math.round(height * scale);
+    c.width = Math.round(scene.w * scale); c.height = Math.round(scene.h * scale);
     const ctx = c.getContext('2d');
+    ctx.fillStyle = scene.bg || '#0a0a0b'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, c.height);
-    return await new Promise(res => c.toBlob(res, type, 0.95));
+    return await new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error('Export failed'))), type, quality));
   } finally { URL.revokeObjectURL(url); }
-}
-
-// A one-page PDF holding the graphic as a high-quality JPEG, sized to the graphic (72 dpi points).
-export async function pngToPdf(svg, width, height) {
-  const jpeg = new Uint8Array(await (await svgToPng(svg, width, height, 2, 'image/jpeg')).arrayBuffer());
-  const W = width * 0.75, H = height * 0.75, pw = width * 2, ph = height * 2;
-  const enc = new TextEncoder(), parts = [], offsets = [];
-  let len = 0;
-  const push = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
-  const obj = (n, body) => { offsets[n] = len; push(`${n} 0 obj\n`); for (const b of [].concat(body)) push(b); push('\nendobj\n'); };
-  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
-  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
-  obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
-  obj(4, [`<< /Type /XObject /Subtype /Image /Width ${pw} /Height ${ph} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`, jpeg, '\nendstream']);
-  const content = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
-  obj(5, `<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
-  const xref = len;
-  push(`xref\n0 6\n0000000000 65535 f \n${[1, 2, 3, 4, 5].map(n => `${String(offsets[n]).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
-  return new Blob(parts, { type: 'application/pdf' });
 }
 
 export function download(blob, name) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = name;
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
-export async function copyImage(svgPromise, width, height) {
-  // The clipboard item gets a promise so the browser keeps the click's permission while the image is made.
-  const blob = (async () => svgToPng(await svgPromise, width, height, 1))();
-  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+
+export async function share(blob, name, text) {
+  const file = new File([blob], name, { type: blob.type });
+  if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text }); return 'shared'; }
+  if (navigator.clipboard && window.ClipboardItem && blob.type === 'image/png') { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); return 'copied'; }
+  download(blob, name); return 'downloaded';
 }

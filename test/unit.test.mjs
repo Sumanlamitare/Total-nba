@@ -1,171 +1,155 @@
-// Unit tests: the statistic formulas, the engine (every intersection), the layout (every player inside his exact region,
-// nobody overlapping, nobody hidden), the renderer and the provider's checks on real ESPN box scores.
-import { test } from 'node:test';
+// Unit tests: game intelligence on real saved games, feed rules, records, detection, graphics, settings, auth helpers.
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import { evaluate, compare, maskList, bits, configKey } from '../lib/engine.js';
-import { dailyValues, seasonValues, sumRecords, hasSample, DEFAULT_MINIMUMS, gameScore } from '../lib/stats/compute.js';
-import { catalog, statMap, availableStats, criterionLabel, UNAVAILABLE } from '../lib/stats/catalog.js';
-import { layoutVenn, maskAt, baseShapes } from '../lib/venn/layout.js';
-import { buildDiagram, labels } from '../lib/venn/index.js';
-import { composeGraphic, chooseView, DEFAULT_STYLE } from '../lib/venn/render.js';
-import { statusOf, isCupFinal } from '../lib/providers/espn.js';
+import { mockSources } from './mock-sources.mjs';
 
-const raw = f => JSON.parse(fs.readFileSync(new URL(`./fixtures/espn/${f}.json`, import.meta.url)));
-const line = o => ({ min: 30, pts: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, pf: 0, pm: 0, ...o });
-const team = o => ({ min: 240, pts: 110, fgm: 40, fga: 88, tpa: 35, fta: 20, oreb: 10, dreb: 34, reb: 44, to: 14, ...o });
+let m, espn;
+before(async () => { m = await mockSources(); Object.assign(process.env, m.env); espn = await import('../lib/providers/espn.js'); });
+after(() => m.close());
 
-test('box-score formulas: shooting, rates, game score', () => {
-  const s = line({ min: 36, pts: 30, fgm: 11, fga: 20, tpm: 3, tpa: 7, ftm: 5, fta: 6, oreb: 2, dreb: 8, reb: 10, ast: 7, stl: 2, blk: 1, to: 3, pf: 2 });
-  const { v, n } = dailyValues({ s, tm: team(), op: team({ reb: 46, oreb: 12, dreb: 34, fga: 90, tpa: 30, fta: 18, to: 13 }), starter: true, won: true });
-  assert.equal(v.fg_pct, 55);
-  assert.ok(Math.abs(v.tp_pct - 42.857) < 0.01);
-  assert.ok(Math.abs(v.ts_pct - (100 * 30) / (2 * (20 + 0.44 * 6))) < 1e-9);
-  assert.equal(v.efg_pct, 100 * (11 + 1.5) / 20);
-  assert.equal(v.fg2m, 8);
-  assert.equal(v.pra, 47);
-  assert.equal(v.dd, 1);
-  assert.equal(v.td, 0);
-  assert.equal(v.starter, 1);
-  assert.equal(v.ast_to, 7 / 3);
-  // USG% = 100 (20 + 0.44·6 + 3)(240/5) / (36 (88 + 0.44·20 + 14))
-  assert.ok(Math.abs(v.usg_pct - (100 * (20 + 2.64 + 3) * 48) / (36 * (88 + 8.8 + 14))) < 1e-9);
-  // TRB% = 100 · 10 · 48 / (36 (44 + 46))
-  assert.ok(Math.abs(v.trb_pct - (100 * 10 * 48) / (36 * 90)) < 1e-9);
-  assert.ok(Math.abs(v.gmsc - gameScore(s)) < 1e-9);
-  assert.deepEqual([n.fga, n.fta, n.tpa], [20, 6, 7]);
-  // No turnovers: assists over one.
-  assert.equal(dailyValues({ s: line({ ast: 6 }), tm: team(), op: team() }).v.ast_to, 6);
+test('provider normalizes a final game and its checks pass', async () => {
+  const c = await espn.game('401909922');
+  assert.equal(c.game.status, 'final');
+  assert.equal(c.game.teams.length, 2);
+  assert.ok(c.plays.length > 400);
+  assert.deepEqual(c.problems, []);
+  const pts = id => c.players.filter(p => p.team === id && p.line).reduce((a, p) => a + p.line.pts, 0);
+  for (const t of c.game.teams) assert.equal(pts(t.id), t.score);
 });
 
-test('season values come from sums, never averages of percentages', () => {
-  const a = { s: line({ fgm: 1, fga: 1, ftm: 1, fta: 1, pts: 3 }), tm: team(), op: team() }, b = { s: line({ fgm: 4, fga: 10, ftm: 8, fta: 10, pts: 16 }), tm: team(), op: team() };
-  const { v, n } = seasonValues(sumRecords([a, b]));
-  assert.equal(v.fg_pct, (100 * 5) / 11, 'not the mean of 100% and 40%');
-  assert.equal(v.ft_pct, (100 * 9) / 11);
-  assert.equal(v.pts_pg, 9.5);
-  assert.equal(v.pts_tot, 19);
-  assert.equal(v.pts_p36, (36 * 19) / 60);
-  assert.equal(v.gp, 2);
-  assert.equal(n.gp, 2);
+test('box score checks catch a score that does not add up', async () => {
+  const c = await espn.game('401909922');
+  c.players.find(p => p.line).line.pts += 2;
+  assert.ok(espn.checks(c.game, c.players).some(p => /points/.test(p)));
 });
 
-test('minimum samples: a 1-for-1 night is not 100% free throws', () => {
-  const ft = statMap('daily').get('ft_pct');
-  assert.equal(hasSample(ft, { fta: 1 }, 'daily'), false);
-  assert.equal(hasSample(ft, { fta: 4 }, 'daily'), true);
-  const ftS = statMap('season').get('ft_pct'), ppg = statMap('season').get('pts_pg'), tot = statMap('season').get('pts_tot');
-  // Season: NBA's leader qualifiers prorated (1.5 FTM per team game) and half the games.
-  assert.equal(hasSample(ftS, { gp: 20, ftm: 25 }, 'season', DEFAULT_MINIMUMS, 20), false);
-  assert.equal(hasSample(ftS, { gp: 20, ftm: 30 }, 'season', DEFAULT_MINIMUMS, 20), true);
-  assert.equal(hasSample(ppg, { gp: 9 }, 'season', DEFAULT_MINIMUMS, 20), false);
-  assert.equal(hasSample(ppg, { gp: 10 }, 'season', DEFAULT_MINIMUMS, 20), true);
-  assert.equal(hasSample(tot, { gp: 1 }, 'season', DEFAULT_MINIMUMS, 20), true, 'totals need no minimum');
+test('intelligence: real games produce runs, comebacks, close finishes, overtime — each once', async () => {
+  const { analyze } = await import('../lib/intel.js');
+  const ot = await espn.game('401705127'); // Knicks at 76ers, overtime
+  const s = analyze(ot);
+  const keys = s.map(x => x.key);
+  assert.equal(new Set(keys).size, keys.length, 'no duplicate stories');
+  assert.ok(s.some(x => x.category === 'overtime'));
+  assert.ok(s.some(x => x.category === 'close'));
+  const cb = s.find(x => x.category === 'comeback');
+  assert.ok(cb && cb.status === 'final' && /trailed by 16/.test(cb.body), 'the 76ers comeback fell short, told once');
+  assert.ok(!s.some(x => x.category === 'collapse' && x.team === cb.team === false && false));
+  assert.ok(!s.some(x => x.category === 'comeback-done'), 'not completed: they lost');
+  for (const r of s.filter(x => x.category === 'run')) assert.ok(r.facts.a >= 8 && r.facts.b <= Math.floor(r.facts.a / 4));
+  // Stable keys: the same game analyzed again gives the same stories.
+  assert.deepEqual(analyze(ot).map(x => x.key).sort(), [...keys].sort());
 });
 
-test('operators, with decimals', () => {
-  assert.ok(compare(10, '>=', 10) && !compare(10, '>', 10) && compare(10, '<=', 10) && !compare(10, '<', 10));
-  assert.ok(compare(90, '>=', 90) && compare((100 * 27) / 30, '>=', 90));
-  assert.ok(compare(2.51, '>', 2.5) && !compare(2.5, '>', 2.5) && compare(0.49, '<', 0.5));
+test('intelligence: a game in progress has no outcomes', async () => {
+  const { analyze } = await import('../lib/intel.js');
+  const c = await espn.game('401705128');
+  const cut = c.plays.findIndex(p => p.period === 4 && /^[0-5]:/.test(p.clock));
+  c.plays = c.plays.slice(0, cut); c.game.status = 'in';
+  const s = analyze(c);
+  assert.ok(s.every(x => x.status === 'developing'));
+  assert.ok(!s.some(x => ['game-winner', 'defensive-winner', 'comeback-done'].includes(x.category)));
 });
 
-// Every possible combination of n criteria, with one player meeting exactly it and one meeting none.
-for (const n of [2, 3, 4, 5, 6]) {
-  test(`the engine puts every player in his exact intersection (${n} criteria, all ${(1 << n) - 1} combinations)`, () => {
-    const criteria = Array.from({ length: n }, (_, i) => ({ id: i, stat: ['pts', 'reb', 'ast', 'stl', 'blk', 'to'][i], op: i === 5 ? '<=' : '>=', value: i === 5 ? 1 : 5 }));
-    const rows = maskList(n).map(mask => {
-      const v = {};
-      criteria.forEach((c, i) => { const meet = (mask >> i) & 1; v[c.stat] = c.op === '<=' ? (meet ? 0 : 4) : meet ? 8 : 1; });
-      return { id: `p${mask}`, name: `P ${mask}`, v, n: { min: 30 } };
-    });
-    rows.push({ id: 'none', name: 'Nobody', v: Object.fromEntries(criteria.map(c => [c.stat, c.op === '<=' ? 9 : 0])), n: { min: 30 } });
-    const r = evaluate(rows, criteria, { mode: 'daily' });
-    assert.equal(r.total, (1 << n) - 1, 'the player meeting nothing is left out');
-    for (const reg of r.regions) assert.deepEqual(reg.players.map(p => p.id), [`p${reg.mask}`], `mask ${reg.mask}`);
-    criteria.forEach((_, i) => assert.equal(r.setSizes[i], 1 << (n - 1), `criterion ${i}`));
-    assert.equal(r.regions.reduce((s, x) => s + x.players.length, 0), r.total, 'everyone accounted for, once');
-  });
-}
-
-test('the engine: filters, exclusions, sample shortfalls, the same statistic twice', () => {
-  const rows = [
-    { id: 'a', name: 'A', team: { id: '1' }, v: { pts: 30, ft_pct: 100 }, n: { fta: 1 } },
-    { id: 'b', name: 'B', team: { id: '2' }, v: { pts: 22, ft_pct: 95 }, n: { fta: 10 } },
-    { id: 'c', name: 'C', team: { id: '2' }, v: { pts: 12, ft_pct: 50 }, n: { fta: 10 } },
+test('intelligence: game winner and defensive stop detected from constructed final plays', async () => {
+  const { analyze } = await import('../lib/intel.js');
+  const c = await espn.game('401909922');
+  const [away, home] = [c.game.teams.find(t => !t.home), c.game.teams.find(t => t.home)];
+  const shooter = c.players.find(p => p.team === home.id && p.line), blocker = c.players.find(p => p.team === home.id && p.line && p.id !== shooter.id);
+  const base = { period: 4, type: '', team: null, scoring: false, value: 0, players: [], shooting: false, wall: '2026-11-05T02:30:00Z' };
+  c.plays = [
+    { ...base, id: 'p1', period: 1, clock: '11:40', text: 'start', away: 0, home: 0 },
+    { ...base, id: 'p2', clock: '0:20', text: 'away basket', team: away.id, scoring: true, value: 2, players: [], away: 100, home: 99 },
+    { ...base, id: 'p3', clock: '0:03.2', text: `${shooter.name} makes 26-foot three point jumper`, team: home.id, scoring: true, value: 3, players: [shooter.id], shooting: true, away: 100, home: 102 },
+    { ...base, id: 'p4', clock: '0:01.0', text: `${blocker.name} blocks Someone's 24-foot three point shot`, team: home.id, away: 100, home: 102 },
+    { ...base, id: 'p5', clock: '0:00.0', text: 'End of the 4th Quarter', away: 100, home: 102 },
   ];
-  const crit = [{ stat: 'pts', op: '>=', value: 20 }, { stat: 'ft_pct', op: '>=', value: 90 }, { stat: 'pts', op: '<', value: 25 }];
-  const r = evaluate(rows, crit, { mode: 'daily' });
-  assert.deepEqual(r.players.map(p => [p.id, p.mask]).sort(), [['a', 1], ['b', 7], ['c', 4]]);
-  assert.deepEqual(r.players.find(p => p.id === 'a').shortOf, [1], 'A is 1-for-1 from the line');
-  assert.deepEqual(evaluate(rows, crit, { mode: 'daily', teams: ['2'] }).players.map(p => p.id), ['b', 'c']);
-  assert.deepEqual(evaluate(rows, crit, { mode: 'daily', exclude: ['b'] }).players.map(p => p.id).sort(), ['a', 'c']);
-  assert.notEqual(configKey({ mode: 'daily', date: '20250101', criteria: crit }), configKey({ mode: 'daily', date: '20250102', criteria: crit }));
+  away.score = 100; home.score = 102; away.winner = false; home.winner = true; c.game.status = 'final';
+  const s = analyze(c);
+  const gw = s.find(x => x.category === 'game-winner');
+  assert.ok(gw && gw.players[0] === shooter.id && /three/.test(gw.facts.kind));
+  const dw = s.find(x => x.category === 'defensive-winner');
+  assert.ok(dw && dw.players[0] === blocker.id && dw.facts.kind === 'block');
 });
 
-test('the catalog: every statistic labeled by kind; provider statistics only when real', () => {
-  const d = catalog('daily'), s = catalog('season');
-  for (const k of ['pts', 'reb', 'oreb', 'dreb', 'ast', 'stl', 'blk', 'to', 'pf', 'min', 'fgm', 'fga', 'fg_pct', 'tpm', 'tpa', 'tp_pct', 'ftm', 'fta', 'ft_pct', 'ts_pct', 'efg_pct', 'usg_pct', 'ast_pct', 'trb_pct']) assert.ok(d.some(x => x.key === k), k);
-  for (const k of ['pts_pg', 'pts_tot', 'pts_p36', 'reb_pg', 'ft_pct', 'usg_pct', 'per', 'gp', 'dd']) assert.ok(s.some(x => x.key === k), k);
-  assert.ok([...d, ...s].every(x => ['total', 'average', 'per36', 'percentage', 'rate', 'advanced', 'count', 'flag'].includes(x.kind)));
-  assert.ok(UNAVAILABLE.includes('Win Shares') && !s.some(x => /win shares|box plus/i.test(x.label)));
-  const rows = Array.from({ length: 40 }, (_, i) => ({ v: { per: 10 + i * 0.7, usage_espn: 0, vorp_espn: 800 + i } }));
-  const avail = availableStats('season', rows).map(x => x.key);
-  assert.ok(avail.includes('per'), 'PER has real values');
-  assert.ok(!avail.includes('usage_espn'), 'ESPN serves usage as 0 for everyone');
-  assert.ok(!avail.includes('vorp_espn'), "ESPN's VORP isn't on VORP's scale");
-  assert.equal(criterionLabel(statMap('season').get('reb_pg'), '>=', 10), '10+ RPG');
-  assert.equal(criterionLabel(statMap('daily').get('ft_pct'), '>=', 90), '90%+ FT');
-  assert.equal(criterionLabel(statMap('daily').get('to'), '<', 2), 'Under 2 TOV');
+test('feed: levels, unverified outcomes are held back, performance floors', async () => {
+  const { levelOf, fromIntel, fromPerformance } = await import('../lib/feed.js');
+  assert.equal(levelOf(90), 'critical'); assert.equal(levelOf(70), 'high'); assert.equal(levelOf(45), 'medium'); assert.equal(levelOf(10), 'low');
+  const { analyze } = await import('../lib/intel.js');
+  const c = await espn.game('401705127');
+  const st = analyze(c).find(x => x.status === 'final');
+  assert.equal(fromIntel(st, c, null).significance, 0, 'no verification, nothing published');
+  assert.equal(fromIntel(st, c, { status: 'problems' }).status, 'pending');
+  assert.ok(fromIntel(st, c, { status: 'verified' }).significance > 0);
+  const perf = { _id: 'g:p', gid: c.game.id, pid: 'p', name: 'Test Player', team: { id: c.game.teams[0].id, abbr: 'X' }, opp: { id: c.game.teams[1].id, abbr: 'Y' }, state: 'final', starter: true, line: { pts: 12, reb: 11, ast: 10, stl: 1, blk: 0, fgm: 5, fga: 9, min: 30 }, tags: [{ key: 'td', label: 'Triple-double', weight: 45 }], score: 20, disappointment: 0, angle: 'x' };
+  const e = fromPerformance(perf, c, { status: 'verified' });
+  assert.equal(e.category, 'triple-double'); assert.ok(e.significance >= 58);
 });
 
-for (const n of [1, 2, 3, 4, 5]) {
-  test(`the layout: every region exists and every player sits inside his own region, none overlapping (${n} criteria)`, () => {
-    // Every region of the shapes exists (true Venn diagrams).
-    const shapes = baseShapes(n), seen = new Set();
-    for (let i = 0; i < 400; i++) for (let j = 0; j < 400; j++) seen.add(maskAt(shapes, -1.3 + (2.6 * i) / 400, -1.3 + (2.6 * j) / 400));
-    for (const m of maskList(n)) assert.ok(seen.has(m), `region ${bits(m).join('+')} exists`);
-    const regions = maskList(n).map(mask => ({ mask, players: Array.from({ length: 1 + ((mask * 5) % 4) }, (_, k) => ({ id: `${mask}-${k}`, label: 'Antetokounmpo'.slice(0, 4 + k * 3) })) }));
-    const L = layoutVenn(n, regions, {});
-    assert.ok(L.ok);
-    assert.equal(L.nodes.length, regions.reduce((s, r) => s + r.players.length, 0), 'nobody hidden');
-    for (const nd of L.nodes) assert.equal(maskAt(L.shapes, nd.x, nd.y), nd.mask, `${nd.id} in its region`);
-    for (let a = 0; a < L.nodes.length; a++) for (let b = a + 1; b < L.nodes.length; b++) assert.ok(Math.hypot(L.nodes[a].x - L.nodes[b].x, L.nodes[a].y - L.nodes[b].y) >= 2 * L.r, 'no overlap');
-  });
-}
-
-test('the layout grows rather than hiding players', () => {
-  const regions = [{ mask: 7, players: Array.from({ length: 60 }, (_, k) => ({ id: `x${k}`, label: 'Player' })) }];
-  const L = layoutVenn(3, regions, { size: 800 });
-  assert.ok(L.ok && L.nodes.length === 60 && L.size > 800);
+test('records: insert keeps order, standing knows tied from broken', async () => {
+  const { insert, standing, qualifies } = await import('../lib/records.js');
+  let l = [];
+  for (const v of [50, 60, 55, 60]) l = insert(l, { v, gid: `g${v}${Math.random()}`, pid: 'p', date: '20250101' });
+  assert.deepEqual(l.map(x => x.v), [60, 60, 55, 50]);
+  assert.equal(standing(l, 61).state, 'broken');
+  assert.equal(standing(l, 60).state, 'tied');
+  assert.equal(standing(l, 55).rank, 3);
+  assert.ok(qualifies(l, 1));
 });
 
-test('rendering: Venn up to 5 (when readable), intersections otherwise; standalone graphics at any size', () => {
-  assert.equal(chooseView(DEFAULT_STYLE, 3, 40), 'venn');
-  assert.equal(chooseView(DEFAULT_STYLE, 6, 10), 'upset');
-  assert.equal(chooseView(DEFAULT_STYLE, 5, 80), 'upset');
-  assert.equal(chooseView({ ...DEFAULT_STYLE, view: 'upset' }, 2, 3), 'upset');
-  const rows = [{ id: '1', name: 'Nikola Jokic', team: { id: '7', color: '#0e2240' }, headshot: 'h.png', v: { reb: 12, ast: 11, ft_pct: 95 }, n: { fta: 6 } }, { id: '2', name: 'Josh Hart', team: { id: '18' }, v: { reb: 11, ast: 2, ft_pct: 50 }, n: { fta: 2 } }];
-  const crit = [{ stat: 'reb', op: '>=', value: 10, label: '10+ REB' }, { stat: 'ast', op: '>=', value: 6, label: '6+ AST' }, { stat: 'ft_pct', op: '>=', value: 90, label: '90%+ FT' }];
-  const r = evaluate(rows, crit, { mode: 'daily' });
-  const d = buildDiagram(r, crit, DEFAULT_STYLE);
-  assert.equal(d.view, 'venn');
-  assert.ok(d.body.includes('data-pid="1"') && d.body.includes('data-pid="2"') && d.body.includes('10+ REB'));
-  assert.ok(d.body.includes('href="h.png"'));
-  for (const [w, h] of [[1080, 1080], [1080, 1350], [1920, 1080]]) {
-    const svg = composeGraphic(d, { width: w, height: h, title: 'Night', subtitle: 'x', criteria: crit });
-    assert.ok(svg.startsWith('<svg') && svg.includes(`width="${w}" height="${h}"`) && svg.includes('Data: ESPN'));
+test('detection: thresholds, career-high context, no pronouns in the angle', async () => {
+  const { detectLines, angle } = await import('../lib/detect.js');
+  const { DEFAULTS } = await import('../lib/settings.js');
+  const c = await espn.game('401705127');
+  const perfs = detectLines(c, new Map(), {}, DEFAULTS, {});
+  assert.ok(perfs.length > 0);
+  for (const p of perfs) assert.doesNotMatch(angle(p), /\b(he|his|him|she|her)\b/i);
+  const hart = perfs.find(p => p.name === 'Josh Hart');
+  assert.ok(hart.tags.some(t => t.key === 'td'));
+});
+
+test('graphics: every template renders at every size; text fits', async () => {
+  const { TEMPLATES, buildScene } = await import('../lib/graphics/templates.js');
+  const { renderScene } = await import('../lib/graphics/render.js');
+  const { FORMATS } = await import('../lib/graphics/kit.js');
+  const { layoutText } = await import('../lib/graphics/text.js');
+  const data = { kicker: 'TEST', headline: 'A VERY LONG HEADLINE THAT MUST FIT', note: 'Note text', player: { name: 'Shai Gilgeous-Alexander', first: 'Shai', last: 'Gilgeous-Alexander', headshot: 'x.png' }, team: { abbr: 'OKC', color: '#007ac1', alt: '#ef3b24', logo: 'l.png' },
+    game: { teams: [{ abbr: 'OKC', score: 120, winner: true }, { abbr: 'DAL', score: 118 }], status: 'FINAL' }, stats: [{ label: 'PTS', value: 40 }], rows: [{ rank: 1, name: 'A', value: 3 }], compare: { a: { name: 'A' }, b: { name: 'B' }, rows: [{ label: 'PTS', a: 1, b: 2, better: 'b' }] }, record: { title: 'Most points', value: 50, target: 49 } };
+  for (const t of TEMPLATES) for (const f of Object.keys(FORMATS)) {
+    const svg = renderScene(buildScene({ template: t.id, size: FORMATS[f], data }));
+    assert.match(svg, /^<svg/, `${t.id} ${f}`);
+    assert.doesNotMatch(svg, /NaN|undefined/, `${t.id} ${f}`);
   }
-  assert.deepEqual([...labels([{ id: 1, name: 'Jalen Williams' }, { id: 2, name: 'Jaylin Williams' }, { id: 3, name: 'Gary Trent Jr.' }]).values()], ['J. Williams', 'J. Williams', 'Trent']);
+  const L = layoutText({ text: 'Gilgeous-Alexander', w: 300, h: 80, size: 200, fit: true, upper: true });
+  assert.ok(L.size < 200 && L.widest <= 300.5);
 });
 
-test('provider: game status, and a real box score passes the checks', async () => {
-  assert.equal(statusOf({ name: 'STATUS_FINAL', completed: true }), 'final');
-  assert.equal(statusOf({ name: 'STATUS_POSTPONED' }), 'postponed');
-  assert.equal(statusOf({ name: 'STATUS_CANCELED' }), 'canceled');
-  assert.equal(statusOf({ name: 'STATUS_SUSPENDED' }), 'suspended');
-  assert.equal(statusOf({ name: 'STATUS_IN_PROGRESS', state: 'in' }), 'in');
-  assert.equal(statusOf({ name: 'STATUS_SCHEDULED', state: 'pre' }), 'scheduled');
-  // The NBA Cup final counts toward no season statistics; the semifinals do.
-  assert.ok(isCupFinal('Emirates NBA Cup Championship') && isCupFinal('NBA Cup Final'));
-  assert.ok(!isCupFinal('Emirates NBA Cup Semifinal') && !isCupFinal('NBA Cup - Quarterfinals') && !isCupFinal('East 1st Round - Game 3'));
+test('editor overrides survive a data refresh', async () => {
+  const { buildScene } = await import('../lib/graphics/templates.js');
+  const p = { template: 'player-story', size: { w: 1600, h: 900 }, data: { headline: 'ONE', player: { name: 'A B', first: 'A', last: 'B' }, stats: [] }, overrides: { 'name-last': { x: 10, y: 20 } }, removed: ['ghost'], extra: [{ id: 'xa', type: 'text', text: 'hi', x: 0, y: 0, w: 10, h: 10 }] };
+  const s1 = buildScene(p), s2 = buildScene({ ...p, data: { ...p.data, player: { name: 'C D', first: 'C', last: 'D' } } });
+  const n = s2.elements.find(e => e.id === 'name-last');
+  assert.equal(n.x, 10); assert.equal(n.text, 'D');
+  assert.ok(!s1.elements.some(e => e.id === 'ghost'));
+  assert.ok(s2.elements.some(e => e.id === 'xa'));
+});
+
+test('settings: only known keys with the right types', async () => {
+  const { sanitize } = await import('../lib/settings.js');
+  assert.deepEqual(sanitize({ feed: { minScore: '55', evil: 1, categories: { run: false, nope: true } }, hack: { x: 1 } }), { feed: { minScore: 55, categories: { run: false } } });
+});
+
+test('auth: scrypt passwords; voice helpers', async () => {
+  const { hashPassword, checkPassword } = await import('../lib/auth.js');
+  const h = hashPassword('correct horse battery');
+  assert.ok(checkPassword('correct horse battery', h)); assert.ok(!checkPassword('wrong', h));
+  const { possessive, pick } = await import('../lib/voice.js');
+  assert.equal(possessive('Heat'), "Heat's"); assert.equal(possessive('Knicks'), "Knicks'");
+  assert.equal(pick('k', ['a', 'b']), pick('k', ['a', 'b']));
+});
+
+test('NBA.com cross-check matches names across sources', async () => {
+  const { normName, tricode } = await import('../lib/providers/nbacdn.js');
+  assert.equal(normName('Luka Dončić'), normName('Luka Doncic'));
+  assert.equal(normName('Jaren Jackson Jr.'), normName('Jaren Jackson'));
+  assert.equal(tricode('GS'), 'GSW'); assert.equal(tricode('PHI'), 'PHI');
 });

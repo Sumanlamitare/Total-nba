@@ -1,0 +1,36 @@
+name: Live monitor
+
+# Watches every game through the night: a tick every 20 seconds while games are live, slower while waiting for tip-off,
+# and it stops once every game is final and verified. Several starts cover afternoon games, the evening slate and late
+# West Coast games (a run lasts at most ~6 hours; the next start picks up). Off nights exit within a few minutes.
+on:
+  schedule:
+    - cron: '20 16 * * *'   # weekend and holiday matinees
+    - cron: '35 22 * * *'   # the evening slate
+    - cron: '50 3 * * *'    # late games, verification and the night's last stories
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: How long to run at most (minutes)
+        default: '350'
+
+concurrency:
+  group: live-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - run: node scripts/monitor.mjs --minutes "${MINUTES:-350}"
+        env:
+          MINUTES: ${{ inputs.minutes }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

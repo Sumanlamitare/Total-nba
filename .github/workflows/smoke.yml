@@ -1,39 +1,27 @@
-name: Smoke test the live site
+name: Live smoke test
 
+# Checks the deployed site end to end: the app, the feed, the live stream, a game page, records, rendering.
 on:
   workflow_dispatch:
     inputs:
       url:
-        description: Site to check
         default: https://total-nba-ja9d.vercel.app
-  deployment_status:
 
 jobs:
   smoke:
-    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Check the pages and the API
+      - name: Check the live site
         env:
-          URL: ${{ inputs.url || github.event.deployment_status.environment_url || 'https://total-nba-ja9d.vercel.app' }}
+          URL: ${{ inputs.url }}
         run: |
-          set -u
-          fail=0
-          check() { # path, expected status, text that must appear
-            body=$(curl -s -w '\n%{http_code}' --max-time 60 "$URL$1"); code=${body##*$'\n'}
-            if [ "$code" = "$2" ] && grep -q -- "$3" <<<"$body"; then echo "ok   $1"; else echo "FAIL $1 ($code)"; echo "${body:0:300}"; fail=1; fi
-          }
-          check / 200 'Overlap'
-          check /daily/20250115 200 'id="root"'
-          check '/api/data?q=home' 200 '"daily"'
-          check '/api/data?q=seasons' 200 '"seasons"'
-          check '/api/data?q=catalog&mode=season' 200 'Win Shares'
-          check '/api/data?q=dataset&mode=daily&date=20250115' 200 '"rows"'
-          check '/api/data?q=dataset&mode=daily&date=Jan15' 400 'error'
-          check '/api/diagram?list=1' 200 '"diagrams"'
-          check '/api/admin?q=settings' 200 '"daily"'
-          id=$(curl -s "$URL/api/data?q=home" | jq -r '.daily._id // empty'); echo "latest daily diagram: $id"; [ -n "$id" ] || fail=1
-          check "/d/$id" 200 'og:image'
-          t=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 60 "$URL/api/og?id=$id"); echo "preview image: $t"; [ "$t" = "200 image/png" ] || fail=1
-          exit $fail
+          set -e
+          curl -fsS "$URL/" | grep -q 'Around the NBA'
+          curl -fsS "$URL/api/feed?action=list" | python3 -c "import json,sys; j=json.load(sys.stdin); print('feed entries:', len(j['items'])); [print(' ', e['level'], e['category'], e['headline']) for e in j['items'][:8]]"
+          curl -fsS "$URL/api/feed?action=ticker" | python3 -c "import json,sys; print('games today:', len(json.load(sys.stdin)))"
+          curl -fsS "$URL/api/feed?action=rail" > /dev/null
+          curl -fsS "$URL/api/feed?action=intel" > /dev/null
+          curl -fsS "$URL/api/records?action=overview" | python3 -c "import json,sys; j=json.load(sys.stdin); print('record coverage:', j.get('coverage'))"
+          curl -fsS "$URL/api/admin?action=status" | python3 -c "import json,sys; print('status:', json.load(sys.stdin))"
+          timeout 12 curl -sN "$URL/api/stream" | head -c 300 > stream.txt || true
+          grep -q 'event: hello' stream.txt && echo "stream: hello received" || (echo "stream did not answer"; cat stream.txt; exit 1)

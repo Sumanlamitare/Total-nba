@@ -1,325 +1,209 @@
-// Overlap: automatic NBA statistical Venn diagrams — every night once the games are final, and for the season.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { getHome, getSeasons, getAutoDiagram, getDiagram, getHistory, getSettings, saveSettings, getConfigs, refreshDate, forget, getDataset, longDay, shortDay, ago, isoDay, encodeState, decodeState } from './api.js';
-import { Studio, Diagram, CriteriaEditor, withIds, labeled, describePeriod } from './studio.jsx';
-import { DEFAULT_STYLE } from '../../lib/venn/render.js';
-import { evaluate } from '../../lib/engine.js';
+// The app shell: top bar (brand, live game indicators, search, notifications, profile), left navigation, the page, and
+// the right rail (top performances, live alerts, storylines).
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { get, post, useLoad, useStream, useStreamStatus, useMe, loadMe, setMe, useRoute, go, can } from './api.js';
+import { Link, Logo, Avatar, TeamLogo, CatChip } from './components.jsx';
+import { FeedPage, EntryPage, GamePage, IntelPage, RecordsPage, RecordListPage, PerformancesPage, TeamsPage, TeamPage, PlayersPage, PlayerPage, SettingsPage, SignInPage } from './pages.jsx';
+import { StudioPage, EditorPage } from './studio.jsx';
 
-// ---- Routing --------------------------------------------------------------------------------------------------------
-function parseRoute() {
-  const p = location.pathname, q = new URLSearchParams(location.search);
-  let m;
-  if ((m = p.match(/^\/daily\/(\d{8})\/?$/))) return { page: 'daily', date: m[1] };
-  if (/^\/daily\/?$/.test(p)) return { page: 'daily', date: null };
-  if (/^\/season\/?$/.test(p)) return { page: 'season', season: +q.get('season') || null, stype: q.get('stype') || 'regular' };
-  if (/^\/history\/?$/.test(p)) return { page: 'history' };
-  if (/^\/compare\/?$/.test(p)) return { page: 'compare', a: q.get('a'), b: q.get('b') };
-  if (/^\/custom\/?$/.test(p)) return { page: 'custom', c: q.get('c') };
-  if ((m = p.match(/^\/d\/([\w-]+)\/?$/))) return { page: 'saved', id: m[1], edit: q.has('edit') };
-  if (/^\/settings\/?$/.test(p)) return { page: 'settings' };
-  return { page: 'home' };
-}
-function useRoute() {
-  const [route, setRoute] = useState(parseRoute);
-  useEffect(() => { const on = () => setRoute(parseRoute()); addEventListener('popstate', on); return () => removeEventListener('popstate', on); }, []);
-  const go = useCallback((path, { replace = false } = {}) => {
-    if (path !== location.pathname + location.search) history[replace ? 'replaceState' : 'pushState'](null, '', path);
-    setRoute(parseRoute()); scrollTo({ top: 0 });
-  }, []);
-  return [route, go];
-}
-const Link = ({ to, go, children, ...rest }) => <a href={to} onClick={e => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); go(to); }} {...rest}>{children}</a>;
-// Icons for the phone's bottom tab bar (hidden on wider screens).
-const ICONS = {
-  home: <><circle cx="9" cy="10" r="5.5" /><circle cx="15" cy="10" r="5.5" /><circle cx="12" cy="15" r="5.5" /></>,
-  daily: <><rect x="4" y="5" width="16" height="15" rx="3" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
-  season: <path d="M4 19V11M10 19V5M16 19v-6M22 19H2" />,
-  history: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
-  custom: <path d="M5 7h9M18 7h1M5 17h3M12 17h7M16 4.5v5M10 14.5v5" />,
+const NAV = [
+  ['/', 'Live Feed', 'feed'], ['/intel', 'Game Intelligence', 'intel'], ['/records', 'Records & Milestones', 'records'], ['/performances', 'Top Performances', 'perf'],
+  ['/teams', 'Teams', 'teams'], ['/players', 'Players', 'players'], ['/studio', 'Graphics Studio', 'studio'], ['/settings', 'Settings', 'settings'],
+];
+// Phone: the five most-used sections in a bottom tab bar (the rest are in Settings and search).
+const TABS = [['/', 'Feed', 'feed'], ['/intel', 'Intel', 'intel'], ['/records', 'Records', 'records'], ['/performances', 'Top', 'perf'], ['/settings', 'More', 'settings']];
+const ICON = {
+  feed: <path d="M4 6h16M4 12h16M4 18h10" />, intel: <><path d="M3 12h4l3-8 4 16 3-8h4" /></>, records: <><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>,
+  perf: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />, teams: <><circle cx="9" cy="8" r="3.5" /><circle cx="17" cy="9" r="2.5" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 20c0-2.4 1.3-4.4 4-4.9" /></>,
+  players: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" /></>, studio: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 15l5-5 4 4 3-3 6 6" /><circle cx="15.5" cy="8.5" r="1.5" /></>,
   settings: <><circle cx="12" cy="12" r="3" /><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" /></>,
 };
-const TabIcon = ({ page }) => <svg className="tab-icon" viewBox="0 0 24 24" aria-hidden="true">{ICONS[page]}</svg>;
-const Logo = () => <svg className="logo" viewBox="0 0 44 36" aria-hidden><circle cx="14" cy="14" r="11" /><circle cx="28" cy="14" r="11" /><circle cx="21" cy="24" r="11" /></svg>;
+const Icon = ({ name }) => <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">{ICON[name]}</svg>;
 
-// ---- Facts above a diagram -------------------------------------------------------------------------------------------
-function facts(kind, config) {
-  return (result, meta) => {
-    const items = [
-      ['Date', config.mode === 'daily' ? shortDay(config.date) : meta?.through ? `Through ${shortDay(meta.through)}` : '—'],
-      ['Period', config.mode === 'daily' ? 'Single night' : describePeriod(config)],
-      ['Players', result ? result.total : '…'],
-      ['Criteria', config.criteria?.length || 0],
-      ['Updated', meta?.updated ? ago(meta.updated) : '—'],
-    ];
-    const left = (meta?.excluded || []).reduce((m, x) => ({ ...m, [x.status]: (m[x.status] || 0) + 1 }), {});
-    const leftText = Object.entries(left).map(([k, n]) => `${n} ${k}`).join(', ');
-    if (config.mode === 'daily') items.push(['Games', meta ? (meta.noGames ? 'No games' : meta.complete ? `All ${meta.final} final${leftText ? ` (${leftText})` : ''}` : `${meta.final} of ${meta.games} final`) : '—']);
-    return <>{items.map(([k, v]) => <div key={k} className={`fact${k === 'Games' && meta && !meta.complete && !meta.noGames ? ' pending' : ''}`}><span>{k}</span><b>{v}</b></div>)}{kind && <div className="fact kind"><span>Diagram</span><b>{kind}</b></div>}</>;
-  };
-}
-
-// ---- Home: the latest automatic diagram ------------------------------------------------------------------------------
-function Home({ go }) {
-  const [home, setHome] = useState(null);
-  const [err, setErr] = useState(null);
-  useEffect(() => { getHome().then(setHome).catch(setErr); }, []);
-  if (err) return <ErrorBox err={err} />;
-  if (!home) return <Loading />;
-  const today = home.days.find(x => x.date === home.today);
-  const d = home.daily;
+function Ticker() {
+  const { data, reload } = useLoad(() => get('feed', { action: 'ticker' }), []);
+  useEffect(() => { const t = setInterval(reload, 20000); return () => clearInterval(t); }, [reload]);
+  const games = data || [];
+  if (!games.length) return <div className="ticker empty-ticker">{data ? 'No games today' : ''}</div>;
+  const order = [...games].sort((a, b) => (b.live - a.live) || (a.status === 'final') - (b.status === 'final'));
   return (
-    <>
-      <StatusBar day={today} />
-      {d ? (
-        <Studio key={d._id} initial={{ config: d.config, style: { ...DEFAULT_STYLE, ...d.style } }} stored={d} title={d.title} subtitle={`Daily diagram · ${d.config.criteria.map(c => c.label).join(' · ')}`}
-          facts={facts(d.version > 1 ? `Automatic · corrected (v${d.version})` : 'Automatic', d.config)} actions={<Link className="btn ghost" to={`/daily/${d.date}`} go={go}>Other nights</Link>} />
-      ) : <div className="empty"><h2>No diagram yet</h2><p>The first daily diagram appears after the next night of games is final.</p></div>}
-      {home.season && (
-        <section className="second">
-          <h2>Season to date</h2>
-          <Studio key={home.season._id} initial={{ config: home.season.config, style: { ...DEFAULT_STYLE, ...home.season.style } }} stored={home.season} title={home.season.title} subtitle={`${home.season.period} · ${home.season.config.criteria.map(c => c.label).join(' · ')}`}
-            facts={facts('Automatic', home.season.config)} actions={<Link className="btn ghost" to={`/season?season=${home.season.season}&stype=${home.season.config.stype}`} go={go}>Season view</Link>} />
-        </section>
-      )}
-    </>
-  );
-}
-
-function StatusBar({ day }) {
-  if (!day) return null;
-  const text = day.noGames ? 'No NBA games today.' : day.complete ? `Tonight's ${day.final} games are final — the diagram is published.` : `Tonight: ${day.final} of ${day.games} games final. The diagram publishes when every game is final.`;
-  return <div className={`status${day.complete || day.noGames ? '' : ' live'}`}><span className="dot" />{text}<span className="muted"> Checked {ago(day.checkedAt)}.</span></div>;
-}
-
-// ---- A night ----------------------------------------------------------------------------------------------------------
-function Daily({ date, go }) {
-  const [seasons, setSeasons] = useState(null);
-  const [state, setState] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [tick, setTick] = useState(0);
-  useEffect(() => { getSeasons().then(s => setSeasons(s)).catch(() => setSeasons({ seasons: [] })); }, []);
-  const dates = useMemo(() => (seasons?.seasons || []).flatMap(s => s.dates).sort(), [seasons]);
-  const today = seasons?.today;
-  const cur = date || dates.filter(x => x <= (today || '99999999')).pop();
-  useEffect(() => { if (!date && cur) go(`/daily/${cur}`, { replace: true }); }, [date, cur, go]);
-  useEffect(() => {
-    if (!cur) return;
-    let alive = true; setState(null);
-    Promise.all([getAutoDiagram('daily', cur).catch(e => (e.status === 404 ? null : Promise.reject(e))), getSettings()])
-      .then(([r, s]) => alive && setState({ doc: r?.diagram || null, versions: r?.versions || [], settings: s })).catch(e => alive && setState({ error: e }));
-    return () => { alive = false; };
-  }, [cur, tick]);
-  const i = dates.indexOf(cur), prev = i > 0 ? dates[i - 1] : null, next = i >= 0 && i < dates.length - 1 ? dates[i + 1] : null;
-  const refresh = async () => { setBusy(true); setMsg(''); try { const r = await refreshDate(cur); forget('ds:'); setMsg(r.skipped || (r.day?.complete ? 'Checked: all games final.' : `Checked: ${r.day?.final || 0} of ${r.day?.games || 0} games final.`)); setTick(t => t + 1); } catch (e) { setMsg(e.message); } finally { setBusy(false); } };
-  const nav = (
-    <div className="datebar">
-      <button type="button" className="icon" disabled={!prev} onClick={() => go(`/daily/${prev}`)} aria-label="Previous game night">‹</button>
-      <label className="day"><span>{cur ? longDay(cur) : '…'}</span><input type="date" value={cur ? isoDay(cur) : ''} onChange={e => { const d = e.target.value.replace(/-/g, ''); if (d) go(`/daily/${dates.filter(x => x <= d).pop() || d}`); }} aria-label="Pick a night" /></label>
-      <button type="button" className="icon" disabled={!next || next > today} onClick={() => go(`/daily/${next}`)} aria-label="Next game night">›</button>
-      <button type="button" className="btn ghost small" onClick={refresh} disabled={busy}>{busy ? 'Checking…' : 'Refresh'}</button>
-      {msg && <span className="muted small">{msg}</span>}
+    <div className="ticker" role="list" aria-label="Today's games">
+      {order.map(g => (
+        <Link key={g.id} to={`/games/${g.id}`} className={`tick ${g.live ? 'is-live' : ''}`} role="listitem">
+          <span className="tick-teams">{g.teams.map((t, i) => <span key={i} className={t.winner ? 'won' : ''}><b>{t.abbr}</b>{g.status !== 'scheduled' && <em>{t.score}</em>}</span>)}</span>
+          <span className="tick-clock">{g.live ? <><i className="dot" />{g.detail}</> : g.status === 'scheduled' ? new Date(g.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : g.status === 'final' ? 'Final' : g.detail}</span>
+        </Link>
+      ))}
     </div>
   );
-  if (!cur) return <Loading />;
-  if (!state) return <>{nav}<Loading /></>;
-  if (state.error) return <>{nav}<ErrorBox err={state.error} /></>;
-  const { doc, settings } = state;
-  if (doc) return <>{nav}<Studio key={doc._id} initial={{ config: doc.config, style: { ...DEFAULT_STYLE, ...doc.style } }} stored={doc} title={doc.title} subtitle={`Daily diagram${doc.version > 1 ? ` · corrected after a stat change (version ${doc.version})` : ''}`} facts={facts('Automatic', doc.config)} /></>;
-  // No published diagram: the night isn't final (or had no games). A preview from the verified games so far.
-  const config = { mode: 'daily', date: cur, criteria: settings.daily.criteria };
-  return <>{nav}<div className="diagram-note">This night's diagram isn't published: it appears once every game is final and verified. Below is a preview from the finished games so far.</div>
-    <Studio key={`p${cur}${tick}`} initial={{ config, style: DEFAULT_STYLE }} title={longDay(cur)} subtitle="Preview — not final" facts={facts('Preview', config)} /></>;
 }
 
-// ---- Season -----------------------------------------------------------------------------------------------------------
-function Season({ season, stype, go }) {
-  const [seasons, setSeasons] = useState(null);
-  const [settings, setSettings] = useState(null);
-  useEffect(() => { getSeasons().then(setSeasons).catch(() => setSeasons({ seasons: [] })); getSettings().then(setSettings).catch(() => setSettings({ season: { criteria: [] } })); }, []);
-  if (!seasons || !settings) return <Loading />;
-  const year = season || seasons.seasons[0]?.year;
-  if (!year) return <div className="empty"><h2>No season data yet</h2></div>;
-  const config = { mode: 'season', season: year, stype: stype || 'regular', from: null, to: null, criteria: settings.season.criteria };
+function Search() {
+  const [term, setTerm] = useState('');
+  const [res, setRes] = useState(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (term.trim().length < 2) { setRes(null); return; }
+    const t = setTimeout(() => get('nba', { action: 'search', term }).then(setRes).catch(() => setRes(null)), 200);
+    return () => clearTimeout(t);
+  }, [term]);
+  const pick = to => { setOpen(false); setTerm(''); go(to); };
   return (
-    <>
-      <div className="datebar">
-        <select value={year} onChange={e => go(`/season?season=${e.target.value}&stype=${stype}`)} aria-label="Season">{seasons.seasons.map(s => <option key={s.year} value={s.year}>{s.label}</option>)}</select>
-        <div className="seg">{[['regular', 'Regular season'], ['playoffs', 'Playoffs'], ['all', 'Both']].map(([k, l]) => <button key={k} type="button" className={stype === k ? 'on' : ''} onClick={() => go(`/season?season=${year}&stype=${k}`)}>{l}</button>)}</div>
-      </div>
-      <Studio key={`${year}${stype}`} initial={{ config, style: DEFAULT_STYLE }} title={describePeriod(config)} subtitle="Season to date · updates every night" facts={facts('Season', config)} />
-    </>
-  );
-}
-
-// ---- History and comparison ---------------------------------------------------------------------------------------------
-function History({ go }) {
-  const [kind, setKind] = useState('');
-  const [season, setSeason] = useState('');
-  const [list, setList] = useState(null);
-  const [seasons, setSeasons] = useState([]);
-  const [pick, setPick] = useState([]);
-  useEffect(() => { getSeasons().then(s => setSeasons(s.seasons)).catch(() => {}); }, []);
-  useEffect(() => { setList(null); getHistory({ ...(kind ? { kind } : {}), ...(season ? { season } : {}), limit: 120 }).then(r => setList(r.diagrams)).catch(e => setList({ error: e })); }, [kind, season]);
-  const toggle = id => setPick(p => (p.includes(id) ? p.filter(x => x !== id) : [...p, id].slice(-2)));
-  return (
-    <section className="history">
-      <header className="page-head"><h1>Diagram history</h1><p className="muted">Every automatic diagram (and every shared custom one), with the data it was made from. Open one to view, modify, download or share it; pick two to compare.</p></header>
-      <div className="datebar">
-        <div className="seg">{[['', 'All'], ['daily', 'Daily'], ['season', 'Season'], ['custom', 'Custom']].map(([k, l]) => <button key={k} type="button" className={kind === k ? 'on' : ''} onClick={() => setKind(k)}>{l}</button>)}</div>
-        <select value={season} onChange={e => setSeason(e.target.value)} aria-label="Season"><option value="">All seasons</option>{seasons.map(s => <option key={s.year} value={s.year}>{s.label}</option>)}</select>
-        <button type="button" className="btn" disabled={pick.length !== 2} onClick={() => go(`/compare?a=${pick[0]}&b=${pick[1]}`)}>Compare {pick.length}/2</button>
-      </div>
-      {!list ? <Loading /> : list.error ? <ErrorBox err={list.error} /> : !list.length ? <div className="empty"><p>Nothing here yet.</p></div> : (
-        <ul className="hist">
-          {list.map(x => (
-            <li key={x.id} className={pick.includes(x.id) ? 'picked' : ''}>
-              <Link to={`/d/${x.id}`} go={go} className="hist-main">
-                <span className={`tag ${x.kind}`}>{x.kind}</span>
-                <b>{x.title}</b>
-                <small className="muted">{x.period}{x.version > 1 ? ` · v${x.version}` : ''}</small>
-                <span className="crits">{(x.criteria || []).join(' · ')}</span>
-                <span className="count">{x.total} players</span>
-              </Link>
-              <div className="hist-tools">
-                <Link to={`/d/${x.id}?edit=1`} go={go} className="btn small ghost">Modify</Link>
-                <button type="button" className={`btn small ghost${pick.includes(x.id) ? ' on' : ''}`} onClick={() => toggle(x.id)}>{pick.includes(x.id) ? 'Picked' : 'Compare'}</button>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <div className="search" onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}>
+      <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg>
+      <input type="search" placeholder="Search players, teams, stories" value={term} onChange={e => setTerm(e.target.value)} aria-label="Search" />
+      {open && res && (
+        <div className="search-pop">
+          {res.players.slice(0, 6).map(p => <button key={p.id} onMouseDown={() => pick(`/players/${p.id}`)}><Avatar src={p.headshot} name={p.name} size={28} /><span>{p.name}</span><small>{p.team || ''}</small></button>)}
+          {res.teams.map(t => <button key={t.id} onMouseDown={() => pick(`/teams/${t.id}`)}><TeamLogo src={t.logo} abbr={t.abbr} size={24} /><span>{t.name}</span></button>)}
+          {res.events.map(e => <button key={e._id} onMouseDown={() => pick(`/e/${encodeURIComponent(e._id)}`)}><CatChip cat={e.category} /><span>{e.headline}</span><small>{e.players?.[0]?.name || ''}</small></button>)}
+          {res.records.map(r => <button key={r._id} onMouseDown={() => pick(`/records/${encodeURIComponent(r._id)}`)}><span className="chip c-orange">Record</span><span>{r.title}</span><small>{r.entries?.[0]?.name}</small></button>)}
+          {!res.players.length && !res.teams.length && !res.events.length && !res.records.length && <p className="muted pad">Nothing found.</p>}
+        </div>
       )}
-    </section>
+    </div>
   );
 }
 
-function Compare({ a, b, go }) {
-  const [docs, setDocs] = useState(null);
-  const [bDate, setBDate] = useState('');
-  const [live, setLive] = useState(null);
-  useEffect(() => { Promise.all([a, b].filter(Boolean).map(id => getDiagram(id).then(r => r.diagram))).then(setDocs).catch(e => setDocs({ error: e })); }, [a, b]);
-  // "Same criteria on another night": evaluate A's configuration on a chosen date.
-  useEffect(() => {
-    if (!bDate || !docs?.[0]) return;
-    const cfg = { ...docs[0].config, date: bDate.replace(/-/g, '') };
-    getDataset(cfg).then(ds => setLive({ cfg, result: evaluate(ds.rows, labeled(cfg.mode, withIds(cfg.criteria)), { mode: cfg.mode, minimums: ds.minimums, teams: cfg.teams, exclude: cfg.exclude }) })).catch(e => setLive({ error: e }));
-  }, [bDate, docs]);
-  if (!docs) return <Loading />;
-  if (docs.error) return <ErrorBox err={docs.error} />;
-  const sides = docs.map(d => ({ title: d.title, sub: d.period, criteria: labeled(d.config.mode, withIds(d.config.criteria)), result: resultOf(d), style: { ...DEFAULT_STYLE, ...d.style } }));
-  if (live?.result) sides[1] = { title: longDay(live.cfg.date), sub: 'Same criteria', criteria: labeled(live.cfg.mode, withIds(live.cfg.criteria)), result: live.result, style: sides[0].style };
+// Notifications: critical entries, and entries about the user's favorites, that arrived while the app was open.
+function Bell() {
+  const { user } = useMe();
+  const [items, setItems] = useState([]);
+  const [seen, setSeen] = useState(() => { try { return +localStorage.getItem('atn-seen') || 0; } catch { return 0; } });
+  const [open, setOpen] = useState(false);
+  const favs = user?.prefs || {};
+  useStream(e => {
+    const fav = favs.teams?.some(t => e.teams?.includes(t)) || favs.players?.some(p => e.players?.some(x => x.id === p));
+    if (e.level !== 'critical' && !fav) return;
+    setItems(list => [e, ...list.filter(x => x._id !== e._id)].slice(0, 30));
+    if (favs.notify?.browser && typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) new Notification(e.headline, { body: e.body, icon: '/favicon.svg', tag: e._id });
+  });
+  const unread = items.filter(i => i.seq > seen).length;
+  const toggle = () => { setOpen(o => !o); if (!open && items[0]) { setSeen(items[0].seq); try { localStorage.setItem('atn-seen', items[0].seq); } catch { /* */ } } };
   return (
-    <section>
-      <header className="page-head"><h1>Compare</h1>
-        {docs[0]?.config.mode === 'daily' && <label className="field inline">Same criteria on another night <input type="date" value={bDate} onChange={e => setBDate(e.target.value)} /></label>}
-      </header>
-      <div className="compare">{sides.map((s, i) => <div key={i} className="cmp"><h3>{s.title}</h3><p className="muted">{s.sub} · {s.result.total} players · {s.criteria.map(c => c.label).join(' · ')}</p><Diagram result={s.result} criteria={s.criteria} style={s.style} compact /></div>)}</div>
-      {sides.length < 2 && <p className="hint">Pick a second diagram in <Link to="/history" go={go}>History</Link>, or choose a night above.</p>}
-    </section>
+    <div className="bell">
+      <button type="button" className="icon-btn" onClick={toggle} aria-label={`Notifications${unread ? ` (${unread} new)` : ''}`} aria-expanded={open}>
+        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" /><path d="M10 20a2 2 0 0 0 4 0" /></svg>
+        {unread > 0 && <span className="badge">{unread}</span>}
+      </button>
+      {open && (
+        <div className="pop">
+          <h4>Alerts</h4>
+          {items.length ? items.map(e => <Link key={e._id} to={`/e/${encodeURIComponent(e._id)}`} className="pop-item" onClick={() => setOpen(false)}><CatChip cat={e.category} /><b>{e.headline}</b><span className="muted">{e.players?.[0]?.name || e.team?.name || ''}</span></Link>)
+            : <p className="muted pad">Critical moments{user ? ' and stories about your favorites' : ''} show up here while the app is open.</p>}
+        </div>
+      )}
+    </div>
   );
 }
-function resultOf(d) {
-  const n = d.config.criteria.length, ps = d.result.players;
-  return { players: ps, regions: Array.from({ length: (1 << n) - 1 }, (_, i) => ({ mask: i + 1, players: ps.filter(p => p.mask === i + 1) })), setSizes: d.result.setSizes, total: d.result.total };
-}
 
-// ---- A stored diagram ----------------------------------------------------------------------------------------------------
-function Saved({ id, edit, go }) {
-  const [r, setR] = useState(null);
-  useEffect(() => { setR(null); getDiagram(id).then(setR).catch(e => setR({ error: e })); }, [id]);
-  if (!r) return <Loading />;
-  if (r.error) return <ErrorBox err={r.error} />;
-  const d = r.diagram;
-  const versions = r.versions.length > 1 && <div className="versions">Versions: {r.versions.map(v => <Link key={v.id} to={`/d/${v.id}`} go={go} className={v.id === d._id ? 'on' : ''}>v{v.version}{v.latest ? ' (latest)' : ''}</Link>)}</div>;
-  return <>{versions}<Studio key={d._id + edit} initial={{ config: d.config, style: { ...DEFAULT_STYLE, ...d.style } }} stored={d} startEditing={edit} title={d.title} subtitle={`${d.kind === 'custom' ? 'Custom diagram' : d.kind === 'daily' ? 'Daily diagram' : 'Season diagram'} · ${d.period}${d.latest ? '' : ' · superseded by a corrected version'}`} facts={facts(d.kind, d.config)} /></>;
-}
-
-// ---- Custom ---------------------------------------------------------------------------------------------------------------
-function Custom({ c, go }) {
-  const [init, setInit] = useState(null);
-  const [configs, setConfigs] = useState([]);
-  useEffect(() => {
-    getConfigs().then(r => setConfigs(r.configs)).catch(() => {});
-    const fromUrl = c ? decodeState(c) : null;
-    if (fromUrl?.config) { setInit(fromUrl); return; }
-    getSeasons().then(s => {
-      const dates = s.seasons.flatMap(x => x.dates).sort().filter(x => x <= s.today);
-      setInit({ config: { mode: 'daily', date: dates.pop(), criteria: [{ stat: 'pts', op: '>=', value: 30 }, { stat: 'reb', op: '>=', value: 10 }, { stat: 'ast', op: '>=', value: 8 }, { stat: 'stl', op: '>=', value: 2 }] }, style: DEFAULT_STYLE });
-    }).catch(() => setInit({ config: { mode: 'daily', date: '', criteria: [] }, style: DEFAULT_STYLE }));
-  }, [c]);
-  if (!init) return <Loading />;
+function Profile() {
+  const { user } = useMe();
+  const [open, setOpen] = useState(false);
+  if (!user) return <Link to="/signin" className="btn small">Sign in</Link>;
   return (
-    <>
-      {configs.length > 0 && <div className="datebar"><span className="muted small">Saved:</span>{configs.slice(0, 10).map(x => <button key={x.id} type="button" className="btn small ghost" onClick={() => go(`/custom?c=${encodeState({ config: x.config, style: { ...DEFAULT_STYLE, ...x.style } })}`)}>{x.name}</button>)}</div>}
-      <Studio key={c || 'new'} initial={{ config: init.config, style: { ...DEFAULT_STYLE, ...init.style } }} startEditing title="Custom diagram" subtitle={describePeriod(init.config)} facts={facts('Custom', init.config)}
-        onConfig={v => { const url = `/custom?c=${encodeState(v)}`; if (url !== location.pathname + location.search) history.replaceState(null, '', url); }} />
-    </>
+    <div className="profile">
+      <button type="button" className="icon-btn me" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label="Account"><span className="me-initial">{user.name?.[0]?.toUpperCase() || '?'}</span></button>
+      {open && (
+        <div className="pop" onClick={() => setOpen(false)}>
+          <p className="pad"><b>{user.name}</b><br /><span className="muted small">{user.email} · {user.role}</span></p>
+          <Link to="/settings" className="pop-item">Preferences</Link>
+          {can(user, 'editor') && <Link to="/studio" className="pop-item">Graphics Studio</Link>}
+          <button type="button" className="pop-item" onClick={async () => { await post('admin', 'logout'); setMe(null); go('/'); }}>Sign out</button>
+        </div>
+      )}
+    </div>
   );
 }
 
-// ---- Settings -------------------------------------------------------------------------------------------------------------
-function Settings() {
-  const [s, setS] = useState(null);
-  const [pass, setPass] = useState('');
-  const [msg, setMsg] = useState('');
-  useEffect(() => { getSettings().then(x => setS({ ...x, daily: { ...x.daily, criteria: withIds(x.daily.criteria) }, season: { ...x.season, criteria: withIds(x.season.criteria) } })).catch(e => setMsg(e.message)); }, []);
-  if (!s) return msg ? <ErrorBox err={{ message: msg }} /> : <Loading />;
-  const num = (grp, k, label, step = 1) => <label className="field small">{label}<input type="number" step={step} value={s.minimums[grp][k]} onChange={e => setS({ ...s, minimums: { ...s.minimums, [grp]: { ...s.minimums[grp], [k]: +e.target.value } } })} /></label>;
-  const save = () => saveSettings({ passcode: pass, daily: s.daily, season: s.season, minimums: s.minimums }).then(() => setMsg('Saved. Tonight\'s automatic diagram uses these.')).catch(e => setMsg(e.message));
+function Rail() {
+  const { data, reload } = useLoad(() => get('feed', { action: 'rail' }), []);
+  useEffect(() => { const t = setInterval(reload, 30000); return () => clearInterval(t); }, [reload]);
+  useStream(e => { if (e.level === 'critical' || e.status === 'developing') reload(); });
+  if (!data) return <aside className="rail" aria-label="Highlights" />;
   return (
-    <section className="settings">
-      <header className="page-head"><h1>Settings</h1><p className="muted">The automatic diagrams and the minimum samples behind percentages and rates. Times are Eastern (the NBA's game dates).</p></header>
-      <div className="settings-grid">
-        <div className="card"><h3>Default daily diagram</h3><CriteriaEditor mode="daily" criteria={s.daily.criteria} onChange={cs => setS({ ...s, daily: { ...s.daily, criteria: cs } })} /></div>
-        <div className="card"><h3>Default season diagram</h3>
-          <label className="field">Games<select value={s.season.stype} onChange={e => setS({ ...s, season: { ...s.season, stype: e.target.value } })}><option value="regular">Regular season</option><option value="playoffs">Playoffs</option></select></label>
-          <CriteriaEditor mode="season" criteria={s.season.criteria} onChange={cs => setS({ ...s, season: { ...s.season, criteria: cs } })} /></div>
-        <div className="card"><h3>Minimum samples: one night</h3><p className="hint">A percentage only counts with enough attempts (a 1-for-1 night isn't 100% free throws).</p>
-          <div className="mins">{num('daily', 'fga', 'FG attempts')}{num('daily', 'tpa', '3P attempts')}{num('daily', 'fta', 'FT attempts')}{num('daily', 'fg2a', '2P attempts')}{num('daily', 'tsa', 'TS attempts')}{num('daily', 'minutes', 'Minutes (rates)')}</div></div>
-        <div className="card"><h3>Minimum samples: season</h3><p className="hint">Averages, percentages and rates need a share of the team's games; percentages also need NBA-style made shots per team game.</p>
-          <div className="mins">{num('season', 'gamesPct', 'Games played %')}{num('season', 'fgmPerGame', 'FGM per team game', 0.05)}{num('season', 'tpmPerGame', '3PM per team game', 0.05)}{num('season', 'ftmPerGame', 'FTM per team game', 0.05)}{num('season', 'mpg', 'Minutes per game (rates)')}</div></div>
-        <div className="card"><h3>Save</h3><p className="hint">{s.hasPasscode ? 'Enter the owner passcode to change these.' : 'Set a passcode: whoever sets it first is the owner, and it is needed for every later change.'}</p>
-          <div className="field-row"><input type="password" placeholder="Passcode" value={pass} onChange={e => setPass(e.target.value)} /><button type="button" className="btn primary" onClick={save}>Save settings</button></div>
-          {msg && <p className="note-line">{msg}</p>}</div>
-        <div className="card"><h3>How the automation works</h3><ul className="hint list">
-          <li>Every 20 minutes from noon to 6 a.m. Eastern, the day's games are checked.</li>
-          <li>A game's box score is stored only once it's final and passes checks: both teams present, players' points adding up to the score, minutes adding up to the game.</li>
-          <li>The night's diagram is published once every game is final; postponed, canceled and suspended games don't hold it up.</li>
-          <li>The last three nights are re-checked every six hours; a stat correction makes a new version (the old one stays in History).</li>
-          <li>Data: ESPN box scores; season statistics are summed from them, plus ESPN's own season figures (PER and others) where ESPN has real values.</li></ul></div>
-      </div>
-    </section>
+    <aside className="rail" aria-label="Highlights">
+      <section className="panel">
+        <h4><Link to="/performances">Top Performances</Link></h4>
+        {data.performances.length ? data.performances.map(p => (
+          <Link key={p.id} to={`/players/${p.pid}`} className="rail-perf">
+            <Avatar src={p.headshot} name={p.name} color={p.team?.color} size={40} />
+            <span><b>{p.name}</b>{p.potn && <span className="chip c-gold tiny">POTN</span>}<br /><span className="muted small">{p.line}</span></span>
+            <span className="muted small">{p.team?.abbr}</span>
+          </Link>
+        )) : <p className="muted small">The night's best performances appear once games are under way.</p>}
+      </section>
+      <section className="panel">
+        <h4><Link to="/intel">Game Intelligence</Link></h4>
+        {data.live.length === 0 && data.alerts.length === 0 && <p className="muted small">No live alerts right now.</p>}
+        {data.live.map(g => <Link key={g.id} to={`/games/${g.id}`} className="rail-alert"><span className="chip live"><i className="dot" />{g.situation.label}</span><span>{g.situation.score}</span><span className="muted small">{g.detail}</span></Link>)}
+        {data.alerts.map(e => <Link key={e._id} to={`/e/${encodeURIComponent(e._id)}`} className="rail-alert"><CatChip cat={e.category} /><span>{e.headline}</span><span className="muted small">{e.game?.moment || ''}</span></Link>)}
+      </section>
+      <section className="panel">
+        <h4>Trending storylines</h4>
+        {data.storylines.length ? data.storylines.map(s => (
+          <Link key={s.key} to={s.link} className="rail-story">
+            {s.img ? <Avatar src={s.img} name={s.name} size={32} square={s.key.startsWith('t:')} /> : null}
+            <span><b>{s.name}</b><br /><span className="muted small">{s.headlines.join(' · ')}</span></span>
+          </Link>
+        )) : <p className="muted small">Storylines build up as the night goes on.</p>}
+      </section>
+    </aside>
   );
 }
 
-const Loading = () => <div className="loading-page"><span className="spinner" />Loading…</div>;
-const ErrorBox = ({ err }) => <div className="empty"><h2>Something went wrong</h2><p>{err?.message || String(err)}</p></div>;
-
-export default function App() {
-  const [route, go] = useRoute();
-  useEffect(() => {
-    const boot = document.getElementById('boot');
-    if (boot) { const t = setTimeout(() => { boot.classList.add('done'); setTimeout(() => boot.remove(), 400); }, 250); return () => clearTimeout(t); }
-  }, []);
-  const tabs = [['/', 'Today', 'home'], ['/daily', 'Daily', 'daily'], ['/season', 'Season', 'season'], ['/history', 'History', 'history'], ['/custom', 'Custom', 'custom'], ['/settings', 'Settings', 'settings']];
-  useEffect(() => { document.title = `${tabs.find(t => t[2] === route.page)?.[1] || 'Diagram'} · Overlap`; }, [route.page]); // eslint-disable-line react-hooks/exhaustive-deps
+function Shell({ children, wide }) {
+  const route = useRoute();
+  const status = useStreamStatus();
+  const path = route.split('?')[0];
+  const active = to => (to === '/' ? path === '/' : path.startsWith(to));
   return (
     <div className="app">
-      <nav className="nav">
-        <Link to="/" go={go} className="brand"><Logo /><span>Overlap</span></Link>
-        <div className="tabs-nav">{tabs.map(([to, label, page]) => <Link key={page} to={to} go={go} aria-current={route.page === page || (page === 'history' && route.page === 'compare') ? 'page' : undefined}><TabIcon page={page} /><span>{label}</span></Link>)}</div>
+      <header className="topbar">
+        <Link to="/" className="brand" aria-label="Around the NBA, home"><Logo /><span className="brand-name">AROUND <em>THE</em> NBA</span></Link>
+        <Ticker />
+        <Search />
+        <span className={`conn conn-${status}`} title={status === 'live' ? 'Connected: new events arrive on their own' : 'Reconnecting…'}><i className="dot" /></span>
+        <Bell />
+        <Profile />
+      </header>
+      <div className={`layout ${wide ? 'wide' : ''}`}>
+        <nav className="sidenav" aria-label="Sections">
+          {NAV.map(([to, label, icon]) => <Link key={to} to={to} className={`nav-item ${active(to) ? 'on' : ''}`} aria-current={active(to) ? 'page' : undefined}><Icon name={icon} /><span>{label}</span></Link>)}
+          <p className="nav-foot muted small">Data: ESPN, verified against NBA.com. Not affiliated with the NBA.</p>
+        </nav>
+        <main className="main">{children}</main>
+        {!wide && <Rail />}
+      </div>
+      <nav className="tabbar" aria-label="Sections">
+        {TABS.map(([to, label, icon]) => <Link key={to} to={to} className={active(to) ? 'on' : ''} aria-current={active(to) ? 'page' : undefined}><Icon name={icon} /><span>{label}</span></Link>)}
       </nav>
-      <main className="main">
-        {route.page === 'home' && <Home go={go} />}
-        {route.page === 'daily' && <Daily date={route.date} go={go} />}
-        {route.page === 'season' && <Season season={route.season} stype={route.stype} go={go} />}
-        {route.page === 'history' && <History go={go} />}
-        {route.page === 'compare' && <Compare a={route.a} b={route.b} go={go} />}
-        {route.page === 'custom' && <Custom c={route.c} go={go} />}
-        {route.page === 'saved' && <Saved id={route.id} edit={route.edit} go={go} />}
-        {route.page === 'settings' && <Settings />}
-      </main>
-      <footer className="foot">Data: ESPN box scores and season figures. Not affiliated with the NBA or ESPN.</footer>
     </div>
   );
+}
+
+export default function App() {
+  const route = useRoute();
+  useEffect(() => { loadMe(); }, []);
+  const path = route.split('?')[0];
+  const m = (re) => path.match(re);
+  let page, wide = false, title = 'Live Feed';
+  if (path === '/') page = <FeedPage />;
+  else if (m(/^\/e\/(.+)$/)) { page = <EntryPage id={decodeURIComponent(m(/^\/e\/(.+)$/)[1])} />; title = 'Event'; }
+  else if (m(/^\/games\/(\d+)$/)) { page = <GamePage id={m(/^\/games\/(\d+)$/)[1]} />; title = 'Game'; }
+  else if (path === '/intel') { page = <IntelPage />; title = 'Game Intelligence'; }
+  else if (path === '/records') { page = <RecordsPage />; title = 'Records & Milestones'; }
+  else if (m(/^\/records\/(.+)$/)) { page = <RecordListPage id={decodeURIComponent(m(/^\/records\/(.+)$/)[1])} />; title = 'Record'; }
+  else if (path === '/performances') { page = <PerformancesPage />; title = 'Top Performances'; }
+  else if (path === '/teams') { page = <TeamsPage />; title = 'Teams'; }
+  else if (m(/^\/teams\/(\d+)$/)) { page = <TeamPage id={m(/^\/teams\/(\d+)$/)[1]} />; title = 'Team'; }
+  else if (path === '/players') { page = <PlayersPage />; title = 'Players'; }
+  else if (m(/^\/players\/(\d+)$/)) { page = <PlayerPage id={m(/^\/players\/(\d+)$/)[1]} />; title = 'Player'; }
+  else if (path === '/studio') { page = <StudioPage />; wide = true; title = 'Graphics Studio'; }
+  else if (m(/^\/studio\/(.+)$/)) { page = <EditorPage id={m(/^\/studio\/(.+)$/)[1]} />; wide = true; title = 'Editor'; }
+  else if (path === '/settings') { page = <SettingsPage />; title = 'Settings'; }
+  else if (path === '/signin') { page = <SignInPage />; title = 'Sign in'; }
+  else page = <div className="empty"><h3>Not found</h3><p><Link to="/">Back to the live feed</Link></p></div>;
+  useEffect(() => { document.title = `${title} · Around the NBA`; }, [title]);
+  return <Shell wide={wide}>{page}</Shell>;
 }

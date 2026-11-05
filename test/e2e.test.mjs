@@ -1,158 +1,142 @@
-// End to end: mock ESPN (real responses, test/fixtures/espn) -> the automation and the API (dev server) -> MongoDB.
-// Needs MongoDB (CI starts one; MONGODB_URI, default localhost).
+// End to end against MongoDB (CI runs a Mongo container): saved ESPN responses and a matching NBA.com box score →
+// the monitor → verified games, feed entries (no duplicates on re-runs), the API (feed, entry, rail, intel, pages),
+// accounts, reactions and comments, graphics (create, save, render PNG/JPEG), and the live stream.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { mockEspn } from './mock-espn.mjs';
+import crypto from 'node:crypto';
+import { Readable } from 'node:stream';
+import { mockSources } from './mock-sources.mjs';
 
-const MONGO = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
-const DB = `overlap_e2e_${process.pid}`;
-let espn, server, base, lib, d;
+const GID = '401909922'; // 76ers at Pistons, final
+let m, d, lib = {};
+
+// Call an API function with a fake request/response.
+async function call(name, { method = 'GET', query = {}, body, cookie } = {}) {
+  const { default: fn } = await import(`../api/${name}.js`);
+  const req = Readable.from(body ? [Buffer.from(JSON.stringify(body))] : []);
+  Object.assign(req, { method, url: `/api/${name}`, query, headers: { host: 'test', ...(cookie ? { cookie } : {}) } });
+  const out = { status: 200, headers: {}, chunks: [] };
+  const res = {
+    statusCode: 200, setHeader(k, v) { out.headers[k.toLowerCase()] = v; }, getHeader(k) { return out.headers[k.toLowerCase()]; },
+    write(c) { out.chunks.push(Buffer.from(c)); return true; }, end(c) { if (c) out.chunks.push(Buffer.from(c)); this.writableEnded = true; out.status = this.statusCode; },
+  };
+  await fn(req, res);
+  const raw = Buffer.concat(out.chunks);
+  let json = null; try { json = JSON.parse(raw.toString()); } catch { /* binary */ }
+  const set = out.headers['set-cookie'];
+  return { status: out.status, json, raw, headers: out.headers, cookie: set ? String(set).split(';')[0] : null };
+}
 
 before(async () => {
-  espn = await mockEspn();
-  Object.assign(process.env, espn.env, { MONGODB_URI: MONGO, LIBRARY_DB: DB });
-  lib = { db: await import('../lib/db.js'), jobs: await import('../lib/jobs.js'), data: await import('../lib/data.js') };
-  d = await lib.db.db();
-  await d.dropDatabase();
-  const port = 5600 + (process.pid % 300);
-  base = `http://127.0.0.1:${port}`;
-  server = spawn(process.execPath, ['scripts/dev.mjs'], { env: { ...process.env, PORT: String(port), NO_VITE: '1' }, stdio: ['ignore', 'pipe', 'inherit'] });
-  await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('server did not start')), 20000); server.stdout.on('data', b => { if (String(b).includes('dev on')) { clearTimeout(t); res(); } }); });
-});
-after(async () => {
-  server?.kill();
-  try { await d.dropDatabase(); } catch { /* ignore */ }
-  await lib?.db.close(); await espn?.close();
-});
-
-const get = async path => { const r = await fetch(base + path); return { status: r.status, body: await r.json().catch(() => null), headers: r.headers }; };
-const post = async (path, body) => { const r = await fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); return { status: r.status, body: await r.json().catch(() => null) }; };
-const quiet = { log: () => {}, now: new Date('2025-01-16T15:00:00Z') }; // the morning after
-
-test('a night still being played publishes nothing; an incomplete box score is never trusted', async () => {
-  // One game still in progress.
-  espn.tweak.scoreboard = sb => { const e = sb.events.find(x => x.id === '401705128'); e.status = { type: { name: 'STATUS_IN_PROGRESS', state: 'in', completed: false, shortDetail: 'Q3 5:01' } }; };
-  let r = await lib.jobs.processDate(d, '20250115', quiet);
-  assert.equal(r.day.complete, false);
-  assert.equal(r.day.pending, 1);
-  assert.equal(r.made, null, 'no diagram while a game is on');
-  assert.equal(await d.collection('diagrams').countDocuments(), 0);
-  // Final on the scoreboard, but the box score is missing a team's points: not verified, still nothing published.
-  espn.tweak.scoreboard = null;
-  espn.tweak.summary = (id, j) => { if (id === '401705128') { const a = j.boxscore.players[0].statistics[0].athletes.find(x => x.stats?.length); a.stats[1] = String(+a.stats[1] - 2); } };
-  r = await lib.jobs.processDate(d, '20250115', quiet);
-  assert.equal(r.day.complete, false);
-  assert.match(r.day.problems[0], /points .* score/);
-  assert.equal(await d.collection('diagrams').countDocuments(), 0);
-  // Two days on and still broken: the night publishes without that game, which is noted as unverified.
-  const later = await lib.jobs.processDate(d, '20250115', { log: () => {}, now: new Date('2025-01-18T15:00:00Z') });
-  assert.equal(later.day.complete, true);
-  assert.deepEqual(later.day.excluded.map(x => x.status).sort(), ['postponed', 'unverified']);
-  assert.equal(await d.collection('pgames').countDocuments({ gid: '401705128' }), 0, 'its box score is never stored');
-  espn.tweak.summary = null;
-  await d.collection('diagrams').deleteMany({});
-  await d.collection('games').updateOne({ _id: '401705128' }, { $set: { status: 'final' } });
-});
-
-test('when every game is final and verified: the daily and season diagrams, once', async () => {
-  const r = await lib.jobs.processDate(d, '20250115', quiet);
-  assert.equal(r.day.complete, true);
-  assert.equal(r.day.final, 2);
-  assert.deepEqual(r.day.excluded.map(x => x.status), ['postponed'], 'the postponed game does not hold the night up');
-  const daily = r.made.daily;
-  assert.equal(daily.kind, 'daily');
-  assert.deepEqual(daily.config.criteria.map(c => c.label), ['10+ REB', '6+ AST', '90%+ FT']);
-  // Every qualifier, checked against the box score: 10+ rebounds or 6+ assists or 90%+ FT on 4+ attempts.
-  const box = await d.collection('pgames').find({ date: '20250115' }).toArray();
-  const expected = box.filter(g => g.s.reb >= 10 || g.s.ast >= 6 || (g.s.fta >= 4 && g.s.ftm / g.s.fta >= 0.9)).map(g => g.pid).sort();
-  assert.deepEqual(daily.result.players.map(p => p.id).sort(), expected);
-  for (const p of daily.result.players) {
-    const g = box.find(x => x.pid === p.id);
-    assert.equal(!!(p.mask & 1), g.s.reb >= 10, `${p.name} rebounds`);
-    assert.equal(!!(p.mask & 2), g.s.ast >= 6, `${p.name} assists`);
-  }
-  assert.ok(r.made.season, 'the season to date');
-  // Running again on unchanged data makes no copy.
-  const again = await lib.jobs.processDate(d, '20250115', quiet);
-  assert.equal(again.made.daily._id, daily._id);
-  assert.equal(await d.collection('diagrams').countDocuments({ kind: 'daily' }), 1);
-});
-
-test('a stat correction makes a new version and supersedes the old one', async () => {
-  espn.tweak.summary = (id, j) => {
-    if (id !== '401705127') return;
-    const st = j.boxscore.players.map(p => p.statistics[0]).find(x => x.athletes.some(a => a.athlete.displayName === 'Kelly Oubre Jr.'));
-    const a = st.athletes.find(x => x.athlete.displayName === 'Kelly Oubre Jr.'), i = st.names.indexOf('REB'), o = st.names.indexOf('OREB');
-    a.stats[i] = String(+a.stats[i] + 3); a.stats[o] = String(+a.stats[o] + 3);
+  m = await mockSources();
+  Object.assign(process.env, m.env, { ATN_DB: `atn_e2e_${process.pid}`, ATN_SETUP_HASH: crypto.createHash('sha256').update('atn-setup:testcode').digest('hex'), ATN_INSECURE_COOKIE: '1', ATN_STREAM_SECONDS: '4', ATN_STREAM_POLL_MS: '300' });
+  // NBA.com agrees with ESPN on the 76ers–Pistons game (built from the same box score).
+  const espn = await import('../lib/providers/espn.js');
+  const c = await espn.game(GID);
+  m.tweak.nba = (path) => {
+    if (path.includes('todaysScoreboard')) return { scoreboard: { games: [{ gameId: '0022600173', gameStatus: 3, gameTimeUTC: c.game.start, awayTeam: { teamTricode: 'PHI' }, homeTeam: { teamTricode: 'DET' } }] } };
+    if (path.includes('boxscore_0022600173')) {
+      const side = t => ({ teamTricode: t.abbr, score: t.score, players: c.players.filter(p => p.team === t.id && p.line).map(p => ({ name: p.name, played: '1', statistics: { points: p.line.pts, reboundsTotal: p.line.reb, assists: p.line.ast } })) });
+      return { game: { gameStatus: 3, awayTeam: side(c.game.teams.find(t => !t.home)), homeTeam: side(c.game.teams.find(t => t.home)) } };
+    }
+    return null;
   };
-  const r = await lib.jobs.processDate(d, '20250115', { ...quiet, recheck: true });
-  espn.tweak.summary = null;
-  assert.equal(r.made.daily.version, 2);
-  const v1 = await d.collection('diagrams').findOne({ kind: 'daily', version: 1 });
-  assert.equal(v1.latest, false);
-  assert.equal(v1.supersededBy, r.made.daily._id);
+  const { db } = await import('../lib/db.js');
+  d = await db();
+  lib.tick = (await import('../lib/automation.js')).tick;
+});
+after(async () => { try { await d.dropDatabase(); } catch { /* */ } await (await import('../lib/db.js')).close(); await m.close(); });
+
+test('the monitor verifies a final against NBA.com and turns it into feed entries', async () => {
+  const s = await lib.tick(d, { dates: ['20261104'], log: () => {} });
+  assert.equal(s.errors, 0);
+  const g = await d.collection('games').findOne({ _id: GID });
+  assert.equal(g.verify.status, 'verified');
+  assert.ok(g.verify.checks.every(c => c.ok !== false));
+  assert.ok(await d.collection('pgames').countDocuments({ g: GID }) >= 16);
+  const feed = await d.collection('feed').find({ 'game.id': GID }).toArray();
+  assert.ok(feed.length >= 3);
+  assert.ok(feed.every(e => e.verification && e.sources?.length && e.game?.id === GID));
+  assert.ok(feed.some(e => e.published && e.status === 'final'));
+  assert.ok(feed.find(e => e.category === 'comeback')?.body.includes('trailed by 17'));
 });
 
-test('the API: home, datasets, statistics, diagrams, history', async () => {
-  const home = await get('/api/data?q=home');
-  assert.equal(home.status, 200);
-  assert.equal(home.body.daily.date, '20250115');
-  assert.equal(home.body.daily.version, 2);
-  const ds = await get('/api/data?q=dataset&mode=daily&date=20250115');
-  assert.equal(ds.body.rows.length, 41);
-  assert.equal(ds.body.meta.complete, true);
-  assert.ok(ds.body.available.includes('usg_pct') && ds.body.available.includes('ft_pct'));
-  const brunson = ds.body.rows.find(r => r.name === 'Jalen Brunson');
-  assert.deepEqual([brunson.v.pts, brunson.v.fgm, brunson.v.fga, brunson.n.fta], [38, 14, 22, 9]);
-  const season = await get('/api/data?q=dataset&mode=season&season=2025&stype=regular');
-  assert.equal(season.body.rows.find(r => r.name === 'Jalen Brunson').v.pts_pg, 38);
-  assert.ok(!season.body.available.includes('per'), "no ESPN season figures in the mock: PER isn't offered");
-  assert.equal((await get('/api/data?q=dataset&mode=daily&date=Jan15')).status, 400);
-  const cat = await get('/api/data?q=catalog&mode=season');
-  assert.ok(cat.body.stats.length > 80 && cat.body.unavailable.includes('Win Shares'));
-  const auto = await get('/api/diagram?kind=daily&date=20250115');
-  assert.equal(auto.body.diagram.version, 2);
-  assert.equal(auto.body.versions.length, 2);
-  const list = await get('/api/diagram?list=1');
-  assert.ok(list.body.diagrams.length >= 2 && list.body.diagrams.every(x => x.latest));
-  // A custom diagram evaluated on the server and saved for sharing: 6 criteria, two on the same statistic.
-  const criteria = [{ stat: 'pts', op: '>=', value: 20 }, { stat: 'reb', op: '>=', value: 5 }, { stat: 'ast', op: '>', value: 4.5 }, { stat: 'stl', op: '>=', value: 1 }, { stat: 'fg_pct', op: '>=', value: 50 }, { stat: 'pts', op: '<', value: 30 }];
-  const saved = await post('/api/diagram', { config: { mode: 'daily', date: '20250115', criteria }, style: { view: 'upset' } });
-  assert.equal(saved.status, 200);
-  const one = await get(`/api/diagram?id=${saved.body.id}`);
-  assert.equal(one.body.diagram.kind, 'custom');
-  assert.equal(one.body.diagram.config.criteria.length, 6);
-  assert.equal(one.body.diagram.config.criteria[2].label, 'Over 4.5 AST');
-  assert.equal((await post('/api/diagram', { config: { mode: 'daily', date: '20250115', criteria: [] } })).status, 400);
+test('running again creates no duplicates; a game waiting for NBA.com publishes no outcomes', async () => {
+  const before = await d.collection('feed').countDocuments();
+  const seq = (await d.collection('meta').findOne({ _id: 'feedseq' })).n;
+  await lib.tick(d, { dates: ['20261104'], force: true, log: () => {} });
+  assert.equal(await d.collection('feed').countDocuments(), before);
+  assert.equal((await d.collection('meta').findOne({ _id: 'feedseq' })).n, seq, 'nothing changed, nothing re-sent');
+  await lib.tick(d, { dates: ['20250115'], log: () => {} }); // NBA.com has no box score for these
+  const g = await d.collection('games').findOne({ _id: '401705127' });
+  assert.equal(g.verify.status, 'pending');
+  assert.equal(await d.collection('feed').countDocuments({ 'game.id': '401705127', published: true }), 0);
 });
 
-test('settings: the first passcode owns them; refresh is limited', async () => {
-  const s = await get('/api/admin?q=settings');
-  assert.equal(s.body.hasPasscode, false);
-  assert.equal((await post('/api/admin?q=settings', { passcode: 'ab' })).status, 400);
-  const set = await post('/api/admin?q=settings', { passcode: 'secret-1', daily: { criteria: [{ stat: 'pts', op: '>=', value: 25 }] } });
-  assert.equal(set.status, 200);
-  assert.equal(set.body.daily.criteria[0].stat, 'pts');
-  assert.equal((await post('/api/admin?q=settings', { passcode: 'wrong-1', daily: { criteria: [{ stat: 'reb', op: '>=', value: 5 }] } })).status, 403);
-  const saved = await post('/api/admin?q=configs', { name: 'Scorers', config: { mode: 'daily', date: '20250115', criteria: [{ stat: 'pts', op: '>=', value: 25 }] } });
-  assert.equal(saved.status, 200);
-  assert.equal((await get('/api/admin?q=configs')).body.configs[0].name, 'Scorers');
-  const r1 = await post('/api/admin?q=refresh', { date: '20250115' });
-  assert.ok(r1.body.skipped, 'checked under a minute ago');
+test('feed API: list, entry, rail, intel, ticker, pages', async () => {
+  const list = await call('feed', { query: { action: 'list' } });
+  assert.equal(list.status, 200);
+  assert.ok(list.json.items.length > 0 && list.json.items.every(e => e.published));
+  const e = list.json.items[0];
+  const one = await call('feed', { query: { action: 'entry', id: e._id } });
+  assert.equal(one.json.entry._id, e._id);
+  assert.ok((await call('feed', { query: { action: 'rail' } })).json.performances.length > 0);
+  assert.ok('sections' in (await call('feed', { query: { action: 'intel', date: '20261104' } })).json);
+  assert.ok(Array.isArray((await call('feed', { query: { action: 'ticker' } })).json));
+  const game = await call('nba', { query: { action: 'game', id: GID } });
+  assert.equal(game.json.game.id, GID);
+  assert.ok(game.json.feed.length > 0);
+  const pid = e.players?.[0]?.id || (await d.collection('pgames').findOne({ g: GID })).p;
+  assert.equal((await call('nba', { query: { action: 'player', id: pid } })).status, 200);
+  assert.equal((await call('nba', { query: { action: 'team', id: '20' } })).status, 200);
+  assert.ok((await call('nba', { query: { action: 'search', term: 'embiid' } })).json.players.length >= 1);
+  assert.equal((await call('records', { query: { action: 'overview' } })).status, 200);
 });
 
-test('sharing: the preview page and the diagram as a PNG', async () => {
-  const home = (await get('/api/data?q=home')).body;
-  const png = await fetch(`${base}/api/og?id=${home.daily._id}`);
-  assert.equal(png.headers.get('content-type'), 'image/png');
-  const buf = Buffer.from(await png.arrayBuffer());
-  assert.equal(buf.subarray(1, 4).toString(), 'PNG');
-  assert.deepEqual([buf.readUInt32BE(16), buf.readUInt32BE(20)], [1200, 630]);
-  const sq = Buffer.from(await (await fetch(`${base}/api/og?id=${home.daily._id}&f=square`)).arrayBuffer());
-  assert.deepEqual([sq.readUInt32BE(16), sq.readUInt32BE(20)], [1080, 1080]);
-  const html = await (await fetch(`${base}/api/share?id=${home.daily._id}`)).text();
-  assert.match(html, /<meta property="og:image" content="[^"]+\/api\/og\?id=/);
-  assert.match(html, /twitter:card" content="summary_large_image"/);
-  assert.match(html, /10\+ REB · 6\+ AST · 90%\+ FT/);
+test('accounts: setup code, fan sign-up, reactions and comments, roles', async () => {
+  assert.equal((await call('admin', { method: 'POST', query: { action: 'setup' }, body: { code: 'wrong', email: 'o@x.co', name: 'Owner', password: 'long-enough-1' } })).status, 403);
+  const owner = await call('admin', { method: 'POST', query: { action: 'setup' }, body: { code: 'testcode', email: 'o@x.co', name: 'Owner', password: 'long-enough-1' } });
+  assert.equal(owner.json.user.role, 'owner');
+  const fan = await call('admin', { method: 'POST', query: { action: 'signup' }, body: { email: 'fan@x.co', name: 'Fan', password: 'long-enough-2' } });
+  assert.equal(fan.json.user.role, 'fan');
+  const e = (await call('feed', { query: { action: 'list' } })).json.items[0];
+  const r = await call('feed', { method: 'POST', query: { action: 'react' }, body: { id: e._id, emoji: 'fire' }, cookie: fan.cookie });
+  assert.equal(r.json.reactions.fire, 1);
+  const c = await call('feed', { method: 'POST', query: { action: 'comment' }, body: { id: e._id, text: 'What a stretch' }, cookie: fan.cookie });
+  assert.equal(c.json.text, 'What a stretch');
+  assert.equal((await call('feed', { query: { action: 'entry', id: e._id }, cookie: fan.cookie })).json.comments.length, 1);
+  assert.equal((await call('feed', { method: 'POST', query: { action: 'react' }, body: { id: e._id, emoji: 'fire' } })).status, 401, 'signed out');
+  assert.equal((await call('graphics', { query: { action: 'list' }, cookie: fan.cookie })).status, 403, 'fans cannot edit graphics');
+  assert.equal((await call('admin', { method: 'POST', query: { action: 'settings' }, body: { settings: { feed: { minScore: 60 } } }, cookie: fan.cookie })).status, 403);
+  const s = await call('admin', { method: 'POST', query: { action: 'settings' }, body: { settings: { feed: { minScore: 55 } } }, cookie: owner.cookie });
+  assert.equal(s.json.settings.feed.minScore, 55);
+  lib.owner = owner.cookie;
+});
+
+test('graphics: create from an event, edit, render PNG and JPEG', async () => {
+  const e = (await call('feed', { query: { action: 'list' } })).json.items[0];
+  const g = await call('graphics', { method: 'POST', query: { action: 'create' }, body: { feedId: e._id }, cookie: lib.owner });
+  const id = g.json.id;
+  const doc = (await call('graphics', { query: { action: 'get', id }, cookie: lib.owner })).json;
+  assert.equal(doc.feedId, e._id);
+  const project = { ...doc.project, overrides: { headline: { text: 'EDITED' } }, format: 'ig_portrait' };
+  assert.equal((await call('graphics', { method: 'POST', query: { action: 'save' }, body: { id, project, title: 'Edited' }, cookie: lib.owner })).status, 200);
+  const png = await call('graphics', { query: { action: 'render', id } });
+  assert.equal(png.headers['content-type'], 'image/png');
+  assert.equal(png.raw.subarray(1, 4).toString(), 'PNG');
+  const jpg = await call('graphics', { query: { action: 'render', id, f: 'jpeg' } });
+  assert.equal(jpg.raw[0], 0xff); assert.equal(jpg.raw[1], 0xd8);
+});
+
+test('the live stream pushes a new entry', async () => {
+  const p = call('stream', { query: {} });
+  await new Promise(r => setTimeout(r, 800));
+  const { upsert } = await import('../lib/feed.js');
+  const { getSettings } = await import('../lib/settings.js');
+  await upsert(d, { _id: 'test:stream', category: 'close', significance: 80, status: 'developing', headline: 'ONE-POSSESSION GAME', body: 'Test', teams: [], players: [], game: { id: 'x' }, occurredAt: new Date(), sources: [], verification: { status: 'developing' } }, await getSettings(d));
+  const r = await p;
+  const text = r.raw.toString();
+  assert.match(text, /event: hello/);
+  assert.match(text, /event: entry\ndata:/);
+  assert.match(text, /ONE-POSSESSION GAME/);
 });
