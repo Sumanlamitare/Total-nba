@@ -60,12 +60,11 @@ export function FeedPage() {
     setMore(j.items.length >= 30);
   };
   const filter = q.category || '';
+  const [sel, setSel] = useState(null);
+  const selected = sel || items?.[0] || null;
   return (
     <div className="feed-page">
-      <div className="page-head">
-        <h1>Live Feed</h1>
-        <p className="muted">Every game, watched at once. The moments worth talking about, as they happen.</p>
-      </div>
+      <h1 className="sr-only">Live Feed</h1>
       <div className="filters" role="toolbar" aria-label="Filter the feed">
         <div className="seg">{FILTER_GROUPS.map(([label, cats]) => <button key={label} type="button" className={filter === cats ? 'on' : ''} onClick={() => setQuery({ category: cats })}>{label}</button>)}</div>
         <div className="filter-row">
@@ -77,14 +76,40 @@ export function FeedPage() {
       </div>
       {pending.length > 0 && <button type="button" className="new-pill" onClick={() => { flush(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>↑ {pending.length} new {pending.length === 1 ? 'event' : 'events'}</button>}
       {error ? <ErrorBox error={error} /> : !items ? <Loading label="Loading the feed" /> : !items.length ? (
-        <Empty title="Nothing here yet">{filter || q.team || q.player ? 'No events match these filters.' : 'When games tip off, the stories show up here as they happen — no refresh needed.'}</Empty>
+        <Empty title="Nothing here yet">{filter || q.team || q.player ? 'No events match these filters.' : "Today's stories show up here the moment they happen — no refresh needed. The feed starts fresh each game day."}</Empty>
       ) : (
         <div className="feed">
-          {items.map(e => <FeedCard key={e._id} e={e} fresh={fresh.has(e._id)} onChange={n => setItems(list => list.map(x => (x._id === n._id ? n : x)))} />)}
+          {items.map(e => <FeedCard key={e._id} e={e} fresh={fresh.has(e._id)} selected={selected?._id === e._id} onSelect={setSel} onChange={n => setItems(list => list.map(x => (x._id === n._id ? n : x)))} />)}
           {more && <button type="button" className="btn ghost wide" onClick={loadMore}>Load earlier events</button>}
         </div>
       )}
+      {selected && <Composer e={selected} onPosted={() => setItems(list => list.map(x => (x._id === selected._id ? { ...x, comments: (x.comments || 0) + 1 } : x)))} />}
     </div>
+  );
+}
+
+// The conversation bar: comment on the selected event (tap a card to choose it).
+function Composer({ e, onPosted }) {
+  const { user } = useMe();
+  const [text, setText] = useState('');
+  const [msg, setMsg] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const send = async ev => {
+    ev.preventDefault();
+    if (!user) return go(`/signin?next=${encodeURIComponent('/')}`);
+    if (!text.trim()) return;
+    setBusy(true); setMsg(null);
+    try { await post('feed', 'comment', { id: e._id, text }); setText(''); onPosted?.(); setMsg('Posted'); setTimeout(() => setMsg(null), 2500); } catch (x) { setMsg(x.message); } finally { setBusy(false); }
+  };
+  return (
+    <form className="composer" onSubmit={send}>
+      <Link to={`/e/${encodeURIComponent(e._id)}#comments`} className="composer-icon" aria-label="Open the conversation">💬</Link>
+      <div className="composer-box">
+        <small className="muted">{msg || <>Replying to <b>{e.title || e.headline}</b></>}</small>
+        <input value={text} onChange={x => setText(x.target.value)} maxLength={500} placeholder={user ? 'Join the conversation…' : 'Sign in to join the conversation…'} aria-label="Comment on the selected event" onFocus={() => { if (!user) go('/signin?next=/'); }} />
+      </div>
+      <button className="composer-send" disabled={busy} aria-label="Post"><svg viewBox="0 0 24 24" className="icon"><path d="M4 12l16-8-6 16-2.5-6.5z" /></svg></button>
+    </form>
   );
 }
 

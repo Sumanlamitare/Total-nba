@@ -40,13 +40,13 @@ async function page(path, opts = {}) {
 
 test('the feed renders, filters, and expands to sources and verification', async () => {
   const { p, errors, ctx } = await page('/');
-  await p.waitForSelector('.card');
-  assert.ok(await p.locator('.card').count() >= 5);
+  await p.waitForSelector('.ev');
+  assert.ok(await p.locator('.ev').count() >= 5);
   await p.click('.seg button:has-text("Runs")');
   await p.waitForTimeout(800);
-  const cats = await p.locator('.card .chip.c-orange').allTextContents();
-  assert.ok(cats.length > 0 && cats.every(c => /run/i.test(c)), cats.join(','));
-  await p.click('.card >> nth=0 >> button:has-text("Details")');
+  const kinds = await p.locator('.ev').evaluateAll(els => els.map(e => e.className));
+  assert.ok(kinds.length > 0 && kinds.every(c => /p-purple/.test(c)), kinds.join(','));
+  await p.click('.ev >> nth=0 >> button:has-text("Details")');
   await p.waitForSelector('.details');
   assert.match(await p.locator('.details').first().innerText(), /sources[\s\S]*ESPN/i);
   assert.match(await p.locator('.details').first().innerText(), /verification/i);
@@ -56,10 +56,10 @@ test('the feed renders, filters, and expands to sources and verification', async
 
 test('a new event appears without refreshing', async () => {
   const { p, errors, ctx } = await page('/');
-  await p.waitForSelector('.card');
+  await p.waitForSelector('.ev');
   await p.waitForSelector('.conn-live', { timeout: 10000 });
   await upsert(d, { _id: 'ui:live-test', category: 'game-winner', significance: 95, status: 'final', headline: 'AT THE BUZZER', body: 'A test of the live stream.', teams: [], players: [], game: { id: '401909922', teams: [] }, occurredAt: new Date(), sources: [{ name: 'test' }], verification: { status: 'verified' } }, await getSettings(d));
-  await p.waitForSelector('.card.fresh:has-text("AT THE BUZZER")', { timeout: 15000 });
+  await p.waitForSelector('.ev.fresh:has-text("AT THE BUZZER")', { timeout: 15000 });
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -67,7 +67,7 @@ test('a new event appears without refreshing', async () => {
 test('phones: no sideways scrolling, tab bar present', async () => {
   for (const path of ['/', '/intel', '/records', '/performances', '/games/401909922']) {
     const { p, errors, ctx } = await page(path, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    await p.waitForSelector('.card, .section, .empty, .perf, .scoreboard-hero', { timeout: 10000 });
+    await p.waitForSelector('.ev, .section, .empty, .perf, .scoreboard-hero', { timeout: 10000 });
     await p.waitForTimeout(400);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth), 390, path);
     assert.ok(await p.locator('.tabbar').isVisible(), path);

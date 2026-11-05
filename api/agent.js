@@ -40,7 +40,7 @@ export default route({
         entries: items.map(e => ({
           id: e._id, link: `${b}/e/${encodeURIComponent(e._id)}`, category: e.category, categoryLabel: CATEGORIES[e.category]?.label, level: e.level, significance: e.significance,
           status: e.status, confirmed: ['final', 'confirmed'].includes(e.status), developing: e.status === 'developing', verification: e.verification?.status,
-          headline: e.headline, text: e.body, aiText: e.aiBody || null, stats: e.stats, players: e.players, team: e.team ? { id: e.team.id, name: e.team.name, abbr: e.team.abbr } : null,
+          title: e.title || e.headline, label: e.headline, headline: e.headline, text: e.body, aiText: e.aiBody || null, stats: e.stats, players: e.players, team: e.team ? { id: e.team.id, name: e.team.name, abbr: e.team.abbr } : null,
           game: { id: e.game?.id, teams: e.game?.teams?.map(t => ({ abbr: t.abbr, score: t.score })), moment: e.game?.moment || e.game?.label, playoffs: e.game?.stype === 3 },
           occurredAt: e.occurredAt, updatedAt: e.updatedAt, sources: e.sources, graphicSuggested: !!e.graphicable,
           images: { x: img(e._id, 'x_landscape'), square: img(e._id, 'x_square'), portrait: img(e._id, 'ig_portrait'), story: img(e._id, 'ig_story') },

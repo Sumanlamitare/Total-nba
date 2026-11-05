@@ -1,7 +1,7 @@
 // History and setup: teams, box scores by season (newest first, stopping before the database gets too big), player
 // bios, the record lists, career totals, and a replay of recent nights into the feed (real stories from their final
 // play-by-play, marked as recaps).
-//   MONGODB_URI=... node scripts/backfill.mjs --seasons 2027,2026,...  [--records] [--highs] [--bios] [--careers] [--replay 20261101-20261105] [--max-mb 380]
+//   MONGODB_URI=... node scripts/backfill.mjs --seasons 2027,2026,...  [--records] [--highs] [--bios] [--careers] [--drop-history] [--replay 20261101-20261105] [--max-mb 380]
 // The bulky box-score history only lives until the next daily reset: what's kept is the record book and career highs.
 import { db, close } from '../lib/db.js';
 import { syncTeams, backfillSeason, backfillBios } from '../lib/history.js';
@@ -41,6 +41,12 @@ try {
     console.log(`career highs: ${n} players`);
   }
   if (flag('careers')) await refreshCareers(d, { L: async (l, m) => console.log(m) });
+  // Once the record book and career highs exist, the bulky history isn't needed: drop it now.
+  if (flag('drop-history')) {
+    const g = await d.collection('pgames').deleteMany({});
+    const gm = await d.collection('games').deleteMany({});
+    console.log(`history dropped: ${g.deletedCount} player lines, ${gm.deletedCount} games`);
+  }
   const r = arg('replay');
   if (r) {
     const [from, to] = r.split('-');
