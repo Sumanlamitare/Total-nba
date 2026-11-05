@@ -70,8 +70,9 @@ export function FeedPage() {
         <div className="seg">{FILTER_GROUPS.map(([label, cats]) => <button key={label} type="button" className={filter === cats ? 'on' : ''} onClick={() => setQuery({ category: cats })}>{label}</button>)}</div>
         <div className="filter-row">
           <select aria-label="Importance" value={q.level || 'medium'} onChange={e => setQuery({ level: e.target.value === 'medium' ? '' : e.target.value })}>{LEVELS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+          <TeamFilter value={q.team} onChange={v => setQuery({ team: v })} />
           {user && <label className="check"><input type="checkbox" checked={q.mine === '1'} onChange={e => setQuery({ mine: e.target.checked ? '1' : '' })} /> My teams & players</label>}
-          {(q.team || q.player || q.game) && <button type="button" className="chip clear" onClick={() => setQuery({ team: '', player: '', game: '' })}>Clear {q.game ? 'game' : q.team ? 'team' : 'player'} filter ×</button>}
+          {(q.player || q.game) && <button type="button" className="chip clear" onClick={() => setQuery({ player: '', game: '' })}>Clear {q.game ? 'game' : 'player'} filter ×</button>}
         </div>
       </div>
       {pending.length > 0 && <button type="button" className="new-pill" onClick={() => { flush(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>↑ {pending.length} new {pending.length === 1 ? 'event' : 'events'}</button>}
@@ -85,6 +86,11 @@ export function FeedPage() {
       )}
     </div>
   );
+}
+
+function TeamFilter({ value, onChange }) {
+  const { data } = useLoad(() => get('nba', { action: 'teams' }), []);
+  return <select aria-label="Team" value={value || ''} onChange={e => onChange(e.target.value)}><option value="">All teams</option>{(data || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select>;
 }
 
 // ── One event, its context and comments ──────────────────────────────────────────────────────────────────────────
