@@ -340,3 +340,7 @@ input[type=color] { width: 44px; height: 32px; padding: 2px; border: 1px solid v
   .hero h1 { font-size: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+.graphic-preview img { width: 100%; max-width: 640px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-2); aspect-ratio: 16 / 9; display: block; }
+.graphic-preview p { margin-top: 8px; } .graphic-preview a { color: var(--orange-2); }
+code.key { display: block; margin-top: 6px; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; word-break: break-all; }

@@ -5,6 +5,8 @@ import { route, actions, fail, int, str, privateCache } from '../lib/http.js';
 import { requireUser, currentUser } from '../lib/auth.js';
 import { getSettings } from '../lib/settings.js';
 import { graphicForFeed, newProject, idOf } from '../lib/content.js';
+import { fromFeed } from '../lib/graphics/data.js';
+import { CATEGORIES } from '../lib/feed.js';
 import { TEMPLATES, TEMPLATE } from '../lib/graphics/templates.js';
 import { FORMATS, sizeOf } from '../lib/graphics/kit.js';
 import { renderProject } from '../lib/graphics/server.js';
@@ -59,6 +61,22 @@ export default route({
       res.setHeader('content-type', out.type);
       res.setHeader('cache-control', 'public, max-age=60, s-maxage=300');
       res.setHeader('content-disposition', `inline; filename="around-the-nba-${g._id}.${format === 'jpeg' ? 'jpg' : 'png'}"`);
+      res.end(out.buffer);
+      res.raw = true;
+    },
+    // A feed entry's graphic, rendered on demand from its data (nothing stored). format: x_landscape | x_square |
+    // ig_portrait | ig_story (TikTok / Reels / Stories); f: png | jpeg.
+    async feed({ res, query }) {
+      const d = await db();
+      const e = await d.collection('feed').findOne({ _id: str(query.id, 160) });
+      if (!e) fail(404, 'No such event');
+      const settings = await getSettings(d);
+      const { template, data } = fromFeed({ ...e, categoryLabel: CATEGORIES[e.category]?.label }, { brand: { name: settings.brand.name, handle: settings.brand.handle } });
+      const format = FORMATS[query.format] ? query.format : 'x_landscape';
+      const out = await renderProject(newProject(template, data, format), { format: query.f === 'jpeg' || query.f === 'jpg' ? 'jpeg' : 'png', scale: Math.min(2, Math.max(0.25, +query.scale || 1)) });
+      res.statusCode = 200;
+      res.setHeader('content-type', out.type);
+      res.setHeader('cache-control', 'public, max-age=60, s-maxage=120');
       res.end(out.buffer);
       res.raw = true;
     },

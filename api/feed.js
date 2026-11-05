@@ -9,12 +9,15 @@ import { isLive } from '../lib/providers/espn.js';
 import { CATEGORIES, levelOf } from '../lib/feed.js';
 import { etDate, addDays, escapeRe } from '../lib/util.js';
 import { idOf } from '../lib/content.js';
+import { slate } from '../lib/reset.js';
 
 export const REACTIONS = ['fire', 'wow', 'ice', 'clap', 'goat'];
 const LEVELS = ['low', 'medium', 'high', 'critical'];
 
-function feedQuery(query, user) {
+function feedQuery(query, user, slateDate) {
   const q = { published: true };
+  // The feed is today's game day only (the daily reset clears earlier days; this keeps it that way in between).
+  if (slateDate) q['game.date'] = { $gte: slateDate };
   if (query.all === '1') delete q.published;
   if (query.game) q['game.id'] = str(query.game, 20);
   if (query.team) q.teams = str(query.team, 4);
@@ -38,7 +41,7 @@ export default route({
     async list({ req, res, query }) {
       const d = await db();
       const user = query.favorites === '1' ? await currentUser(d, req) : null;
-      const q = feedQuery(query, user);
+      const q = feedQuery(query, user, await slate(d));
       if (query.before) q.sortAt = { $lt: new Date(String(query.before)) };
       const items = await d.collection('feed').find(q).sort({ sortAt: -1 }).limit(int(query.limit, 30, 1, 100)).toArray();
       const meta = await d.collection('meta').findOne({ _id: 'feedseq' });

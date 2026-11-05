@@ -1,5 +1,6 @@
 // Accounts (setup, sign up, sign in, roles), each person's preferences, site settings (detection, feed, AI, graphics),
 // integrations and data-source status, the automation log, and "run the monitor now".
+import crypto from 'node:crypto';
 import { db } from '../lib/db.js';
 import { route, actions, fail, int, str } from '../lib/http.js';
 import { currentUser, requireUser, setupNeeded, setup, signup, login, logout, invite, changePassword, ROLES } from '../lib/auth.js';
@@ -32,7 +33,8 @@ export default route({
     async integrations({ req }) {
       const d = await db(); await requireUser(d, req, 'editor');
       const status = await credentialStatus(d);
-      return { credentials: Object.fromEntries(Object.entries(CREDENTIALS).map(([k, v]) => [k, { label: v.label, fields: v.fields, env: v.env, ...status[k] }])), sources: sourceStatus() };
+      const agent = await d.collection('secrets').findOne({ _id: 'agentkey' }, { projection: { at: 1 } });
+      return { credentials: Object.fromEntries(Object.entries(CREDENTIALS).map(([k, v]) => [k, { label: v.label, fields: v.fields, env: v.env, ...status[k] }])), sources: sourceStatus(), agentKey: agent ? { at: agent.at } : null };
     },
     async users({ req }) {
       const d = await db(); await requireUser(d, req, 'owner');
@@ -78,6 +80,13 @@ export default route({
       const d = await db(); const u = await requireUser(d, req, 'owner');
       await saveCredential(d, str(body.id, 20), body.values === null ? null : body.values || {}, u);
       return { ok: true };
+    },
+    // The agent key (for an automated publisher to mark stories as posted). Shown once; only its hash is kept.
+    async agentkey({ req }) {
+      const d = await db(); await requireUser(d, req, 'owner');
+      const key = `atn_${crypto.randomBytes(24).toString('base64url')}`;
+      await d.collection('secrets').updateOne({ _id: 'agentkey' }, { $set: { hash: crypto.createHash('sha256').update(`atn-agent:${key}`).digest('hex'), at: new Date() } }, { upsert: true });
+      return { key };
     },
     // Run the monitor now. At most once per 45 seconds across everyone.
     async tick({ req }) {

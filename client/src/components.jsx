@@ -115,6 +115,7 @@ export function Details({ e }) {
     <div className="details">
       {e.aiBody && <div className="detail-block"><h5>From the data</h5><p>{e.body}</p></div>}
       {e.facts?.verifiedHighs?.length > 0 && <div className="detail-block"><h5>Verified</h5><ul>{e.facts.verifiedHighs.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+      {e.facts?.history?.length > 0 && <div className="detail-block"><h5>Historical context (record book)</h5><ul>{e.facts.history.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
       {e.facts?.scope && <div className="detail-block"><h5>Scope</h5><p>{e.facts.title} · {e.facts.scope}</p></div>}
       {e.facts?.contributors?.length > 0 && <div className="detail-block"><h5>During the run</h5><p>{e.facts.contributors.map(c => `${c.name} ${c.pts}`).join(' · ')}{e.facts.before ? ` · ${e.facts.before} → ${e.facts.after}` : ''}{e.facts.duration ? ` · ${e.facts.duration}` : ''}</p></div>}
       {e.facts?.scorers?.length > 0 && <div className="detail-block"><h5>Who did it</h5><p>{e.facts.scorers.map(c => `${c.name} ${c.pts}`).join(' · ')}</p></div>}

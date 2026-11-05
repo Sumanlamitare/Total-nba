@@ -113,10 +113,15 @@ export function EntryPage({ id }) {
     <div className="entry-page">
       <p className="crumbs"><Link to="/">← Live Feed</Link>{e.game?.id && <> · <Link to={`/games/${e.game.id}`}>Game context</Link></>}</p>
       <FeedCard e={e} open onChange={n => setData(d => ({ ...d, entry: n }))} />
+      <section className="section graphic-preview">
+        <h2>Graphic</h2>
+        <img src={`/api/graphics?action=feed&id=${encodeURIComponent(e._id)}&format=x_landscape&scale=0.5`} alt={`Graphic: ${e.headline}`} loading="lazy" />
+        <p className="small">Download: {[['x_landscape', 'X 16:9'], ['x_square', 'Square'], ['ig_portrait', 'Portrait 4:5'], ['ig_story', 'TikTok / Story 9:16']].map(([f, l], i) => <React.Fragment key={f}>{i ? ' · ' : ''}<a href={`/api/graphics?action=feed&id=${encodeURIComponent(e._id)}&format=${f}&f=jpeg`} download>{l}</a></React.Fragment>)}</p>
+      </section>
       {can(user, 'editor') && (
         <div className="actions-row">
           {data.graphic ? <Link className="btn" to={`/studio/${data.graphic._id}`}>Open its graphic</Link>
-            : <button className="btn" onClick={async () => { const r = await post('graphics', 'create', { feedId: e._id }); go(`/studio/${r.id}`); }}>Make a graphic</button>}
+            : <button className="btn" onClick={async () => { const r = await post('graphics', 'create', { feedId: e._id }); go(`/studio/${r.id}`); }}>Edit this graphic</button>}
         </div>
       )}
       {data.related.length > 0 && (

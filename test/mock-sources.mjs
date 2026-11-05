@@ -31,6 +31,7 @@ export function mockSources() {
     if (p.endsWith('/site/news')) return raw('news');
     if (p.endsWith('/site/teams')) return raw('teams');
     if (/\/site\/teams\/\d+\/roster$/.test(p)) return raw('roster_13');
+    if (/\/site\/teams\/\d+\/schedule$/.test(p)) return raw('schedule_2');
     if (/\/site\/teams\/\d+$/.test(p)) return raw('team_13');
     if (p.endsWith('/standings/standings')) return raw('standings');
     if (/\/web\/athletes\/\d+\/stats$/.test(p)) return q.get('seasontype') === '3' ? raw('athlete_stats_post') : raw('athlete_stats');

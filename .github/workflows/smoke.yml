@@ -25,3 +25,13 @@ jobs:
           curl -fsS "$URL/api/admin?action=status" | python3 -c "import json,sys; print('status:', json.load(sys.stdin))"
           timeout 12 curl -sN "$URL/api/stream" | head -c 300 > stream.txt || true
           grep -q 'event: hello' stream.txt && echo "stream: hello received" || (echo "stream did not answer"; cat stream.txt; exit 1)
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Re-check every feed entry against ESPN
+        run: node tools/audit-feed.mjs "${{ inputs.url }}"

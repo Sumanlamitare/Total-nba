@@ -148,6 +148,7 @@ function Integrations({ owner }) {
         {owner && <form className="form inline" onSubmit={e => { e.preventDefault(); save({ apiKey: key }); }}><input type="password" placeholder="sk-ant-…" value={key} onChange={e => setKey(e.target.value)} autoComplete="off" /><button className="btn" disabled={!key}>Save key</button>{ai.configured && ai.from !== 'environment' && <button type="button" className="btn ghost" onClick={() => save(null)}>Remove</button>}</form>}
         {msg && <p className="muted small">{msg}</p>}
       </section>
+      <AgentPanel owner={owner} info={data.agentKey} />
       <section className="panel"><h3>Data sources</h3>
         <table className="table"><thead><tr><th>Source</th><th>Role</th><th>Coverage & limits</th><th>This server</th></tr></thead>
           <tbody>{data.sources.map(s => <tr key={s.id} className={s.unavailable ? 'muted' : ''}><td><b>{s.name}</b>{s.key ? <><br /><small>needs {s.env}</small></> : null}</td><td>{s.role}</td><td>{s.coverage}<br /><small>{s.limits}</small></td>
@@ -194,5 +195,18 @@ function Log() {
       </section>
       <ul className="log">{data.entries.map(l => <li key={l._id} className={`l-${l.level}`}><time>{new Date(l.at).toLocaleString()}</time><span>{l.message}</span></li>)}</ul>
     </div>
+  );
+}
+
+function AgentPanel({ owner, info }) {
+  const [key, setKey] = useState(null);
+  const make = async () => { if (info && !confirm('Replace the current agent key? The old one stops working.')) return; setKey((await post('admin', 'agentkey')).key); };
+  return (
+    <section className="panel"><h3>Publishing agent</h3>
+      <p className="muted small">For an AI agent that posts to X and TikTok: it reads <code>/api/agent?action=today</code> (stories, text, verification and ready-made images in 16:9 and 9:16) and marks what it posted with this key, so nothing goes out twice. Instructions: <a href="/api/agent?action=guide" target="_blank" rel="noreferrer">/api/agent?action=guide</a>.</p>
+      <p className="small">{info ? `A key exists (created ${ago(info.at)}).` : 'No key yet.'}</p>
+      {owner && <button className="btn small" onClick={make}>{info ? 'Replace the key' : 'Create a key'}</button>}
+      {key && <p className="small">Copy it now — it isn't shown again: <code className="key">{key}</code></p>}
+    </section>
   );
 }

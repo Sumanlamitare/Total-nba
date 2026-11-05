@@ -140,3 +140,57 @@ test('the live stream pushes a new entry', async () => {
   assert.match(text, /event: entry\ndata:/);
   assert.match(text, /ONE-POSSESSION GAME/);
 });
+
+test('agent API: today\'s stories with images; marking a post needs the key', async () => {
+  const t = await call('agent', { query: { action: 'today' }, });
+  assert.ok(t.json.entries.length > 0);
+  const e = t.json.entries[0];
+  assert.match(e.images.story, /format=ig_story/);
+  assert.ok('confirmed' in e && 'developing' in e && e.sources);
+  assert.equal((await call('agent', { method: 'POST', query: { action: 'posted' }, body: { id: e.id, platform: 'x', url: 'https://x.com/a/1' } })).status, 401);
+  const k = await call('admin', { method: 'POST', query: { action: 'agentkey' }, cookie: lib.owner });
+  const { default: fn } = await import('../api/agent.js');
+  const ok = await (async () => { // with the key
+    const req = Readable.from([Buffer.from(JSON.stringify({ id: e.id, platform: 'x', url: 'https://x.com/a/1' }))]);
+    Object.assign(req, { method: 'POST', url: '/api/agent', query: { action: 'posted' }, headers: { host: 'test', authorization: `Bearer ${k.json.key}` } });
+    let status = 0; const res = { statusCode: 200, setHeader() {}, getHeader() {}, end() { status = this.statusCode; this.writableEnded = true; }, write() {} };
+    await fn(req, res); return status;
+  })();
+  assert.equal(ok, 200);
+  const after = await call('agent', { query: { action: 'today', unposted: 'x' } });
+  assert.ok(!after.json.entries.some(x => x.id === e.id), 'posted entries drop out of unposted');
+});
+
+test('feed graphics render on demand in every size', async () => {
+  const e = (await call('feed', { query: { action: 'list' } })).json.items[0];
+  for (const format of ['x_landscape', 'ig_story']) {
+    const r = await call('graphics', { query: { action: 'feed', id: e._id, format, f: 'jpeg' } });
+    assert.equal(r.headers['content-type'], 'image/jpeg', format);
+  }
+});
+
+test('streaks come from the team schedule', async () => {
+  const { streakStories } = await import('../lib/feed.js');
+  const { getSettings } = await import('../lib/settings.js');
+  const g = await d.collection('games').findOne({ _id: GID });
+  const s = await streakStories(d, g, await getSettings(d));
+  for (const x of s) assert.match(x.headline, /STRAIGHT|SNAPPED|SKID/);
+});
+
+test('the daily reset clears the day an hour before the first game, keeps the record book and accounts', async () => {
+  const { maybeReset } = await import('../lib/reset.js');
+  await d.collection('records').updateOne({ _id: 'keep' }, { $set: { title: 'x' } }, { upsert: true });
+  await d.collection('meta').deleteOne({ _id: 'slate' });
+  // Today's mock scoreboard (Nov 4, 2026) has games; "now" an hour before the first is due.
+  const sb = await (await import('../lib/providers/espn.js')).scoreboard('20261104');
+  const first = sb.games.map(x => new Date(x.start)).sort((a, b) => a - b)[0];
+  const early = await maybeReset(d, { now: new Date(+first - 2 * 3600e3) });
+  assert.equal(early.reset, false);
+  const r = await maybeReset(d, { now: new Date(+first - 50 * 60e3) });
+  assert.equal(r.reset, true);
+  assert.equal(await d.collection('feed').countDocuments(), 0);
+  assert.equal(await d.collection('pgames').countDocuments(), 0);
+  assert.ok(await d.collection('records').findOne({ _id: 'keep' }));
+  assert.ok(await d.collection('users').countDocuments() >= 2);
+  assert.equal((await maybeReset(d, { now: new Date(+first - 40 * 60e3) })).reset, false, 'once per day');
+});
