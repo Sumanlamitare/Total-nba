@@ -153,3 +153,21 @@ test('NBA.com cross-check matches names across sources', async () => {
   assert.equal(normName('Jaren Jackson Jr.'), normName('Jaren Jackson'));
   assert.equal(tricode('GS'), 'GSW'); assert.equal(tricode('PHI'), 'PHI');
 });
+
+test('runs agree with the scoreboard: the score moved by exactly the run, and "flipped" is true', async () => {
+  const { analyze } = await import('../lib/intel.js');
+  for (const id of ['401909922', '401705127', '401705128']) {
+    const c = await espn.game(id);
+    const home = c.game.teams.find(t => t.home);
+    for (const r of analyze(c).filter(x => x.category === 'run')) {
+      const [a0, h0] = r.facts.before.match(/\d+/g).map(Number).filter((_, i) => i % 1 === 0).filter((v, i, arr) => i === arr.length - 3 || i === arr.length - 1);
+      const n = s => s.match(/\b\d+\b/g).map(Number);
+      const b = n(r.facts.before), a = n(r.facts.after);
+      const us = r.team === home.id;
+      const ours = us ? a[1] - b[1] : a[0] - b[0], theirs = us ? a[0] - b[0] : a[1] - b[1];
+      assert.equal(`${ours}-${theirs}`, `${r.facts.a}-${r.facts.b}`, `${id} ${r.headline}`);
+      if (r.facts.flipped) assert.ok((us ? b[1] - b[0] : b[0] - b[1]) < 0 && (us ? a[1] - a[0] : a[0] - a[1]) > 0);
+      void a0; void h0;
+    }
+  }
+});

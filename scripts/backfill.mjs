@@ -1,7 +1,7 @@
 // History and setup: teams, box scores by season (newest first, stopping before the database gets too big), player
 // bios, the record lists, career totals, and a replay of recent nights into the feed (real stories from their final
 // play-by-play, marked as recaps).
-//   MONGODB_URI=... node scripts/backfill.mjs --seasons 2027,2026,...  [--records] [--highs] [--bios] [--careers] [--drop-history] [--replay 20261101-20261105] [--max-mb 380]
+//   MONGODB_URI=... node scripts/backfill.mjs --seasons 2027,2026,...  [--records] [--highs] [--bios] [--careers] [--drop-history] [--reset-to YYYYMMDD] [--replay 20261101-20261105] [--max-mb 380]
 // The bulky box-score history only lives until the next daily reset: what's kept is the record book and career highs.
 import { db, close } from '../lib/db.js';
 import { syncTeams, backfillSeason, backfillBios } from '../lib/history.js';
@@ -46,6 +46,14 @@ try {
     const g = await d.collection('pgames').deleteMany({});
     const gm = await d.collection('games').deleteMany({});
     console.log(`history dropped: ${g.deletedCount} player lines, ${gm.deletedCount} games`);
+  }
+  // Start a game day over: clear the day's collections and show this date as the current game day.
+  const day = arg('reset-to');
+  if (day) {
+    const { DAILY } = await import('../lib/reset.js');
+    for (const c of DAILY) await d.collection(c).deleteMany({});
+    await d.collection('meta').updateOne({ _id: 'slate' }, { $set: { date: day, resetAt: new Date(), manual: true } }, { upsert: true });
+    console.log(`game day reset to ${day}`);
   }
   const r = arg('replay');
   if (r) {
