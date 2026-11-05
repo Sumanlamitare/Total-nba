@@ -60,6 +60,12 @@ test('a new event appears without refreshing', async () => {
   await p.waitForSelector('.conn-live', { timeout: 10000 });
   await upsert(d, { _id: 'ui:live-test', category: 'game-winner', significance: 95, status: 'final', headline: 'AT THE BUZZER', body: 'A test of the live stream.', teams: [], players: [], game: { id: '401909922', teams: [] }, occurredAt: new Date(), sources: [{ name: 'test' }], verification: { status: 'verified' } }, await getSettings(d));
   await p.waitForSelector('.ev.fresh:has-text("AT THE BUZZER")', { timeout: 15000 });
+  // Someone else's chat message arrives too, and its picture-carrying story stays put.
+  const { nextSeq } = await import('../lib/feed.js');
+  const { slate } = await import('../lib/reset.js');
+  await d.collection('comments').insertOne({ _id: 'ui-chat-1', room: await slate(d), feedId: null, reply: null, uid: 'someone', name: 'Courtside', role: 'fan', text: 'This crowd is loud tonight', createdAt: new Date(), seq: await nextSeq(d) });
+  await p.waitForSelector('.fan-msg:has-text("This crowd is loud tonight")', { timeout: 15000 });
+  assert.ok(await p.locator('.ev-msg .msg-pic img').count() > 0, 'stories carry pictures');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

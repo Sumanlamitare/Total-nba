@@ -1,12 +1,13 @@
 // The live feed and everything around it: the feed itself (filters, paging), one entry with its comments, the top bar's
 // live scores, the right rail (top performances, live alerts, storylines), Game Intelligence, Top Performances;
 // fans' reactions and comments.
+import crypto from 'node:crypto';
 import { db } from '../lib/db.js';
 import { route, actions, fail, int, str, ymdParam, privateCache, cache } from '../lib/http.js';
 import { currentUser, requireUser, throttle } from '../lib/auth.js';
 import { data } from '../lib/providers/index.js';
 import { isLive } from '../lib/providers/espn.js';
-import { CATEGORIES, levelOf } from '../lib/feed.js';
+import { CATEGORIES, levelOf, nextSeq } from '../lib/feed.js';
 import { etDate, addDays, escapeRe } from '../lib/util.js';
 import { idOf } from '../lib/content.js';
 import { slate } from '../lib/reset.js';
@@ -51,8 +52,25 @@ export default route({
     // Entries changed since a sequence number (the stream's fallback when SSE isn't available).
     async since({ req, query }) {
       const d = await db();
-      const items = await d.collection('feed').find({ seq: { $gt: int(query.seq) } }).sort({ seq: 1 }).limit(50).toArray();
-      return { items, seq: items.at(-1)?.seq || int(query.seq) };
+      const from = int(query.seq);
+      const [items, chat] = await Promise.all([
+        d.collection('feed').find({ seq: { $gt: from } }).sort({ seq: 1 }).limit(50).toArray(),
+        d.collection('comments').find({ seq: { $gt: from } }).sort({ seq: 1 }).limit(100).toArray(),
+      ]);
+      // Never skip past an entry or a message the other list has not reached yet.
+      const top = Math.min(items.length === 50 ? items.at(-1).seq : Infinity, chat.length === 100 ? chat.at(-1).seq : Infinity);
+      const seq = Number.isFinite(top) ? top : Math.max(from, items.at(-1)?.seq || 0, chat.at(-1)?.seq || 0);
+      return { items: items.filter(x => x.seq <= seq), chat: chat.filter(x => x.seq <= seq).map(publicMsg), seq };
+    },
+    // The day's chat: fans' messages (and their replies to stories), oldest first, the latest 150 by default.
+    async chat({ req, res, query }) {
+      const d = await db();
+      const room = await slate(d) || etDate();
+      const q = { room, deleted: { $ne: true } };
+      if (query.before) q.createdAt = { $lt: new Date(String(query.before)) };
+      const items = (await d.collection('comments').find(q).sort({ createdAt: -1 }).limit(int(query.limit, 150, 1, 300)).toArray()).reverse();
+      privateCache(res, 2);
+      return { room, items: items.map(publicMsg) };
     },
     async entry({ req, query }) {
       const d = await db();
@@ -61,12 +79,12 @@ export default route({
       if (!e) fail(404, 'No such event');
       const user = await currentUser(d, req);
       const [comments, mine, related, graphic] = await Promise.all([
-        d.collection('comments').find({ feedId: id }).sort({ createdAt: 1 }).limit(200).toArray(),
+        d.collection('comments').find({ feedId: id, deleted: { $ne: true } }).sort({ createdAt: 1 }).limit(200).toArray(),
         user ? d.collection('reactions').find({ feedId: id, uid: user._id }).toArray() : [],
         e.game?.id ? d.collection('feed').find({ 'game.id': e.game.id, _id: { $ne: id }, published: true }).sort({ sortAt: -1 }).limit(12).toArray() : [],
         e.graphic ? d.collection('content').findOne({ _id: e.graphic }, { projection: { title: 1, project: 1 } }) : null,
       ]);
-      return { entry: e, comments: comments.map(c => ({ ...c, mine: user && c.uid === user._id })), myReactions: mine.map(r => r.emoji), related, graphic };
+      return { entry: e, comments: comments.map(c => ({ ...publicMsg(c), mine: !!user && c.uid === user._id })), myReactions: mine.map(r => r.emoji), related, graphic };
     },
     // The top bar: today's games, compact.
     async ticker({ res }) {
@@ -147,26 +165,45 @@ export default route({
       const e = await d.collection('feed').findOne({ _id: id }, { projection: { reactions: 1 } });
       return { reactions: e.reactions, on: !had };
     },
+    // A chat message, optionally a reply to a story (id). It goes to everyone watching through the stream.
     async comment({ req, body }) {
       const d = await db(); const u = await requireUser(d, req);
-      const id = str(body.id, 160), text = str(body.text, 500);
+      const id = body.id ? str(body.id, 160) : null, text = str(body.text, 500).trim();
       if (text.length < 1) fail(400, 'Write something first');
-      if (!(await d.collection('feed').findOne({ _id: id }, { projection: { _id: 1 } }))) fail(404, 'No such event');
-      await throttle(d, `comment:${u._id}`);
-      const c = { feedId: id, uid: u._id, name: u.name, role: u.role, text, createdAt: new Date() };
-      const r = await d.collection('comments').insertOne(c);
-      await d.collection('feed').updateOne({ _id: id }, { $inc: { comments: 1 } });
-      return { ...c, _id: r.insertedId, mine: true };
+      const e = id ? await d.collection('feed').findOne({ _id: id }, { projection: { title: 1, headline: 1, category: 1 } }) : null;
+      if (id && !e) fail(404, 'No such event');
+      await slowMode(d, u._id);
+      const c = { _id: crypto.randomUUID(), room: await slate(d) || etDate(), feedId: id, reply: e ? { id: e._id, title: e.title || e.headline, category: e.category } : null,
+        uid: u._id, name: u.name, role: u.role, text, createdAt: new Date(), seq: await nextSeq(d) };
+      await d.collection('comments').insertOne(c);
+      if (id) await d.collection('feed').updateOne({ _id: id }, { $inc: { comments: 1 } });
+      return { ...publicMsg(c), mine: true };
     },
     async uncomment({ req, body }) {
       const d = await db(); const u = await requireUser(d, req);
-      const c = await d.collection('comments').findOne({ _id: idOf(body.id) });
+      const c = await d.collection('comments').findOne({ _id: str(body.id, 64) }) || await d.collection('comments').findOne({ _id: idOf(body.id) });
       if (!c) fail(404, 'No such comment');
       if (c.uid !== u._id && u.role !== 'owner') fail(403, 'Not your comment');
-      await d.collection('comments').deleteOne({ _id: c._id });
-      await d.collection('feed').updateOne({ _id: c.feedId }, { $inc: { comments: -1 } });
+      // Kept as a tombstone with a new sequence number, so the message disappears from every open chat.
+      if (!c.deleted) {
+        await d.collection('comments').updateOne({ _id: c._id }, { $set: { deleted: true, text: '', seq: await nextSeq(d) } });
+        if (c.feedId) await d.collection('feed').updateOne({ _id: c.feedId }, { $inc: { comments: -1 } });
+      }
       return { ok: true };
     },
   }),
 });
 export { levelOf, escapeRe };
+
+// What a viewer may see of a message: the name and role shown in chat (no email or other account details).
+export const publicMsg = c => ({ _id: c._id, room: c.room, feedId: c.feedId || null, reply: c.reply || null, name: c.name, role: c.role, text: c.deleted ? '' : c.text, deleted: !!c.deleted, createdAt: c.createdAt, seq: c.seq, uid: c.uid });
+
+// Chat slow mode: one message every 3 seconds, at most 20 a minute.
+async function slowMode(d, uid) {
+  const now = new Date();
+  const m = await d.collection('meta').findOne({ _id: `comment:${uid}` });
+  if (m?.last && now - new Date(m.last) < 3000) fail(429, 'Slow mode: one message every 3 seconds');
+  const fresh = !m?.since || now - new Date(m.since) > 60e3;
+  if (!fresh && m.n >= 20) fail(429, 'Too many messages; wait a minute');
+  await d.collection('meta').updateOne({ _id: `comment:${uid}` }, fresh ? { $set: { since: now, n: 1, last: now } } : { $set: { last: now }, $inc: { n: 1 } }, { upsert: true });
+}

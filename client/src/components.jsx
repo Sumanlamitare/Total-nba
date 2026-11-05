@@ -10,7 +10,7 @@ export const CATS = {
   'triple-double': ['Triple-double', 'gold'], scoring: ['Scoring', 'orange'], defense: ['Defense', 'blue'], clutch: ['Clutch', 'red'], streak: ['Streak', 'orange'],
   blowout: ['Blowout alert', 'red'], collapse: ['Collapse', 'red'], disappointment: ['Rough night', 'gray'], potn: ['Performance of the Night', 'gold'],
 };
-const TEAM_STORY = new Set(['comeback', 'comeback-done', 'close', 'overtime', 'run', 'streak', 'blowout', 'collapse']);
+export const TEAM_STORY = new Set(['comeback', 'comeback-done', 'close', 'overtime', 'run', 'streak', 'blowout', 'collapse']);
 export const REACTIONS = [['fire', '🔥'], ['wow', '😮'], ['ice', '🧊'], ['clap', '👏'], ['goat', '🐐']];
 
 export const Link = ({ to, children, className, ...rest }) => (
@@ -44,7 +44,7 @@ export function TeamLogo({ src, abbr, size = 22, quiet = false }) {
   if (quiet && (bad || !src)) return null;
   return src && !bad ? <img className="team-logo" src={src} alt="" title={abbr || ''} width={size} height={size} loading="lazy" onError={() => setBad(true)} /> : <span className="team-abbr" style={{ fontSize: Math.max(11, size * 0.45) }}>{abbr}</span>;
 }
-function Cutout({ src, name }) {
+export function Cutout({ src, name }) {
   const [bad, setBad] = useState(false);
   if (!src || bad) return <span className="cutout-fallback">{String(name || '').split(' ').map(w => w[0]).slice(0, 2).join('')}</span>;
   return <img className="cutout" src={src} alt="" loading="lazy" onError={() => setBad(true)} />;

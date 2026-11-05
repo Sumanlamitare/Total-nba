@@ -36,7 +36,9 @@ const listeners = new Set();
 let es = null, status = 'connecting', lastSeq = 0, pollTimer = null;
 const statusSubs = new Set();
 const setStatus = s => { status = s; statusSubs.forEach(f => f()); };
+const chatListeners = new Set();
 function emit(entry) { if (entry.seq > lastSeq) lastSeq = entry.seq; listeners.forEach(f => f(entry)); }
+function emitChat(m) { if (m.seq > lastSeq) lastSeq = m.seq; chatListeners.forEach(f => f(m)); }
 function connect() {
   if (es || typeof EventSource === 'undefined') return poll();
   es = new EventSource(`/api/stream${lastSeq ? `?seq=${lastSeq}` : ''}`);
@@ -45,17 +47,23 @@ function connect() {
   es.addEventListener('hello', () => clearTimeout(guard), { once: true });
   es.addEventListener('hello', e => { const j = JSON.parse(e.data); if (!lastSeq) lastSeq = j.seq; setStatus('live'); });
   es.addEventListener('entry', e => emit(JSON.parse(e.data)));
+  es.addEventListener('chat', e => emitChat(JSON.parse(e.data)));
   es.addEventListener('bye', () => setStatus('live'));
   es.onerror = () => { setStatus('reconnecting'); if (es && es.readyState === 2) { es = null; setTimeout(connect, 3000); } };
 }
-// Fallback (no EventSource, or a proxy that buffers streams): ask for changes every 8 s.
+// Fallback (no EventSource, or a proxy that buffers streams): ask for changes every 3 s.
 function poll() {
   clearInterval(pollTimer);
-  pollTimer = setInterval(async () => { try { const j = await get('feed', { action: 'since', seq: lastSeq }); j.items.forEach(emit); lastSeq = j.seq || lastSeq; setStatus('live'); } catch { setStatus('reconnecting'); } }, 8000);
+  pollTimer = setInterval(async () => { try { const j = await get('feed', { action: 'since', seq: lastSeq }); j.items.forEach(emit); (j.chat || []).forEach(emitChat); lastSeq = j.seq || lastSeq; setStatus('live'); } catch { setStatus("reconnecting"); } }, 3000);
 }
 export function useStream(onEntry) {
   const ref = useRef(onEntry); ref.current = onEntry;
   useEffect(() => { const f = e => ref.current(e); listeners.add(f); connect(); return () => listeners.delete(f); }, []);
+}
+// Fans' chat messages as they arrive (a deleted one comes back with deleted: true).
+export function useChat(onMessage) {
+  const ref = useRef(onMessage); ref.current = onMessage;
+  useEffect(() => { const f = m => ref.current(m); chatListeners.add(f); connect(); return () => chatListeners.delete(f); }, []);
 }
 export const useStreamStatus = () => useSyncExternalStore(f => { statusSubs.add(f); return () => statusSubs.delete(f); }, () => status);
 export const seedSeq = n => { if (n > lastSeq) lastSeq = n; };

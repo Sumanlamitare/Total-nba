@@ -8,10 +8,14 @@ Live: https://total-nba-ja9d.vercel.app
 
 ## What's in the app
 
-- **Live Feed** (home): event cards arrive on their own (Server-Sent Events). Each card has its category and importance,
-  a headline and short story, the player or team, the game situation, the statistics that matter, and expandable
-  details: sources with retrieval times, verification checks, how the story developed. Filter by kind, importance,
-  game, team, player, or your favorites. Fans can react and comment (free account).
+- **Live Feed** (home): a stream chat. The night's stories and fans' messages run in one column, newest at the
+  bottom, delivered live (Server-Sent Events, a one-second check); it follows the bottom and pauses when you scroll up.
+  Each story is a message with the player's headshot or team logo, its category badge, the headline, a line of
+  context and its picture (the graphic rendered from the story's data, cached per version), plus expandable details:
+  sources with retrieval times, verification checks, how the story developed. Fans chat with a free account (slow
+  mode: one message every 3 seconds), reply to a story, react; the host and editors can delete messages. Filter by
+  kind, importance, game, team, player, or your favorites (chat shows on the full feed). The chat clears with the
+  rest of the day.
 - **Top bar**: live game indicators, search (players, teams, stories, records), alerts for critical moments and your
   favorites, profile.
 - **Right rail**: tonight's top performances, live Game Intelligence alerts, trending storylines.

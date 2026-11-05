@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { get, post, useLoad, useStream, useStreamStatus, useMe, loadMe, setMe, useRoute, go, can } from './api.js';
 import { Link, Logo, Wordmark, Avatar, TeamLogo, CatChip } from './components.jsx';
-import { FeedPage, EntryPage, GamePage, IntelPage, RecordsPage, RecordListPage, PerformancesPage, TeamsPage, TeamPage, PlayersPage, PlayerPage, SettingsPage, SignInPage } from './pages.jsx';
+import { FeedPage } from './chat.jsx';
+import { EntryPage, GamePage, IntelPage, RecordsPage, RecordListPage, PerformancesPage, TeamsPage, TeamPage, PlayersPage, PlayerPage, SettingsPage, SignInPage } from './pages.jsx';
 import { StudioPage, EditorPage } from './studio.jsx';
 
 const NAV = [

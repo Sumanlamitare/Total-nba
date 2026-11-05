@@ -76,7 +76,8 @@ export default route({
       const out = await renderProject(newProject(template, data, format), { format: query.f === 'jpeg' || query.f === 'jpg' ? 'jpeg' : 'png', scale: Math.min(2, Math.max(0.25, +query.scale || 1)) });
       res.statusCode = 200;
       res.setHeader('content-type', out.type);
-      res.setHeader('cache-control', 'public, max-age=60, s-maxage=120');
+      // A versioned picture (v = the entry's sequence number) never changes: the CDN keeps it; a new version is a new URL.
+      res.setHeader('cache-control', query.v ? 'public, max-age=86400, s-maxage=604800, immutable' : 'public, max-age=60, s-maxage=120');
       res.end(out.buffer);
       res.raw = true;
     },

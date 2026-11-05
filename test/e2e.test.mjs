@@ -122,6 +122,28 @@ test('accounts: setup code, fan sign-up, reactions and comments, roles', async (
   lib.owner = owner.cookie;
 });
 
+test('chat: the day room, slow mode, replies, delivered in order through the stream, deletions too', async () => {
+  const fan = await call('admin', { method: 'POST', query: { action: 'signup' }, body: { email: 'chat@x.co', name: 'Chatter', password: 'long-enough-3' } });
+  const seq = (await d.collection('meta').findOne({ _id: 'feedseq' })).n;
+  const a = await call('feed', { method: 'POST', query: { action: 'comment' }, body: { text: 'Who is watching?' }, cookie: fan.cookie });
+  assert.equal(a.status, 200);
+  assert.equal((await call('feed', { method: 'POST', query: { action: 'comment' }, body: { text: 'too fast' }, cookie: fan.cookie })).status, 429, 'slow mode');
+  await d.collection('meta').updateOne({ _id: `comment:${a.json.uid}` }, { $set: { last: new Date(Date.now() - 5000) } });
+  const e = (await call('feed', { query: { action: 'list' } })).json.items[0];
+  const b = await call('feed', { method: 'POST', query: { action: 'comment' }, body: { id: e._id, text: 'Called it' }, cookie: fan.cookie });
+  assert.equal(b.json.reply.id, e._id);
+  const room = (await call('feed', { query: { action: 'chat' } })).json;
+  assert.deepEqual(room.items.filter(m => m.name === 'Chatter').map(m => m.text), ['Who is watching?', 'Called it'], 'stored once each, oldest first');
+  assert.ok(room.items.every(m => !('email' in m)));
+  const since = (await call('feed', { query: { action: 'since', seq } })).json;
+  assert.deepEqual(since.chat.map(m => m.text), ['Who is watching?', 'Called it']);
+  assert.ok(since.chat.every(m => m.seq > seq && m.seq <= since.seq));
+  await call('feed', { method: 'POST', query: { action: 'uncomment' }, body: { id: a.json._id }, cookie: fan.cookie });
+  const after = (await call('feed', { query: { action: 'since', seq: since.seq } })).json;
+  assert.deepEqual(after.chat.map(m => [String(m._id), m.deleted, m.text]), [[String(a.json._id), true, '']], 'the deletion is streamed');
+  assert.deepEqual((await call('feed', { query: { action: 'chat' } })).json.items.filter(m => m.name === 'Chatter').map(m => m.text), ['Called it']);
+});
+
 test('graphics: create from an event, edit, render PNG and JPEG', async () => {
   const e = (await call('feed', { query: { action: 'list' } })).json.items[0];
   const g = await call('graphics', { method: 'POST', query: { action: 'create' }, body: { feedId: e._id }, cookie: lib.owner });

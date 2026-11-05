@@ -4,6 +4,7 @@
 // for over a minute) and a game is live, a connection runs a quick tick itself, so the feed keeps moving.
 import { db } from '../lib/db.js';
 import { tick } from '../lib/automation.js';
+import { publicMsg } from './feed.js';
 
 export const config = { maxDuration: 60 };
 const LIFETIME = (+process.env.ATN_STREAM_SECONDS || 50) * 1e3, POLL = +process.env.ATN_STREAM_POLL_MS || 1000;
@@ -40,9 +41,15 @@ export default async function handler(req, res) {
     let ticked = 0;
     while (!closed && Date.now() - start < LIFETIME) {
       // Every change, published or not: a page drops an entry that comes back unpublished (held, withdrawn).
-      const items = await d.collection('feed').find({ seq: { $gt: seq } }).sort({ seq: 1 }).limit(25).toArray();
-      for (const e of items) { seq = e.seq; send('entry', e, e.seq); }
-      if (!items.length) res.write(`: ping\n\n`);
+      // Chat messages share the sequence: one cursor resumes both.
+      const [items, chat] = await Promise.all([
+        d.collection('feed').find({ seq: { $gt: seq } }).sort({ seq: 1 }).limit(25).toArray(),
+        d.collection('comments').find({ seq: { $gt: seq } }).sort({ seq: 1 }).limit(50).toArray(),
+      ]);
+      const top = Math.min(items.length === 25 ? items.at(-1).seq : Infinity, chat.length === 50 ? chat.at(-1).seq : Infinity);
+      const out = [...items.map(x => ['entry', x]), ...chat.map(x => ['chat', publicMsg(x)])].filter(([, x]) => x.seq <= top).sort((a, b) => a[1].seq - b[1].seq);
+      for (const [kind, x] of out) { seq = x.seq; send(kind, x, x.seq); }
+      if (!out.length) res.write(`: ping\n\n`);
       if (Date.now() - ticked > 20e3 && Date.now() - start > 3e3) { ticked = Date.now(); await maybeTick(d); }
       await new Promise(r => setTimeout(r, POLL));
     }
