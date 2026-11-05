@@ -18,18 +18,6 @@ jobs:
         with:
           node-version: 22
       - run: node tools/probe-atn.mjs
-      - name: Database size
-        if: always()
-        run: |
-          npm ci --no-audit --no-fund >/dev/null
-          node -e "
-          const { MongoClient } = await import('mongodb');
-          const c = new MongoClient(process.env.MONGODB_URI); await c.connect();
-          const dbs = await c.db().admin().listDatabases();
-          for (const d of dbs.databases) { const s = await c.db(d.name).stats().catch(() => ({})); console.log(d.name, d.sizeOnDisk, 'data', s.dataSize, 'storage', s.storageSize, 'idx', s.indexSize); }
-          await c.close();" --input-type=module 2>&1 | tee probe/db.txt
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - name: Push results to the probe branch
         if: always()
         run: |
