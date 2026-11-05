@@ -66,7 +66,8 @@ test('running again creates no duplicates; a game waiting for NBA.com publishes 
   const seq = (await d.collection('meta').findOne({ _id: 'feedseq' })).n;
   await lib.tick(d, { dates: ['20261104'], force: true, log: () => {} });
   assert.equal(await d.collection('feed').countDocuments(), before);
-  assert.equal((await d.collection('meta').findOne({ _id: 'feedseq' })).n, seq, 'nothing changed, nothing re-sent');
+  const resent = await d.collection('feed').find({ seq: { $gt: seq } }, { projection: { category: 1, headline: 1, history: 1 } }).toArray();
+  assert.deepEqual(resent.map(e => `${e._id} ${e.headline} ${JSON.stringify(e.history?.slice(-2))}`), [], 'nothing changed, nothing re-sent');
   await lib.tick(d, { dates: ['20250115'], log: () => {} }); // NBA.com has no box score for these
   const g = await d.collection('games').findOne({ _id: '401705127' });
   assert.equal(g.verify.status, 'pending');
