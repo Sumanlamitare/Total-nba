@@ -67,5 +67,9 @@ for (const e of entries) {
     if (pts < e.facts.consecutive) bad(e, `${e.facts.consecutive} consecutive points, but ${pts} in the whole game`);
   }
 }
+// Speed: how long after the play (ESPN's wall clock) each live story reached the feed.
+const lags = entries.filter(e => e.origin === 'play-by-play' && e.occurredAt && e.createdAt && !e.facts?.recap)
+  .map(e => (new Date(e.createdAt) - new Date(e.occurredAt)) / 1000).filter(x => x >= 0 && x < 6 * 3600).sort((a, b) => a - b);
+if (lags.length) { const q = f => Math.round(lags[Math.min(lags.length - 1, Math.floor(f * lags.length))]); console.log(`Time from the play to the feed (${lags.length} live stories): median ${q(0.5)} s, 90% within ${q(0.9)} s, slowest ${Math.round(lags.at(-1))} s`); }
 console.log(problems.length ? `\n${problems.length} problems:\n${problems.join('\n')}` : '\nNo problems found.');
 process.exitCode = problems.length ? 1 : 0;

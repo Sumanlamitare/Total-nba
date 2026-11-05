@@ -56,7 +56,7 @@ export function StatusChip({ e }) {
   if (e.status === 'developing') return <span className="chip live"><i className="dot" />Developing</span>;
   if (e.facts?.recap) return <span className="chip muted" title="Found in the final play-by-play after the game">Recap</span>;
   if (e.status === 'confirmed') return <span className="chip ok">Confirmed</span>;
-  if (e.status === 'final') return <span className="chip ok">Final{e.verification?.status === 'verified' ? ' · verified' : ''}</span>;
+  if (e.status === 'final') return <span className="chip ok" title={e.verification?.status === 'checking' ? 'ESPN final; the NBA.com cross-check is still running' : undefined}>Final{e.verification?.status === 'verified' ? ' · verified' : e.verification?.status === 'checking' ? ' · checking' : ''}</span>;
   if (e.status === 'pending') return <span className="chip warn">Awaiting verification</span>;
   return null;
 }
@@ -193,7 +193,7 @@ export function Details({ e }) {
     </div>
   );
 }
-export const vLabel = s => ({ verified: 'Verified (ESPN + NBA.com)', consistent: 'Consistent (all checks, one source)', developing: 'Developing — live data', pending: 'Awaiting verification', failed: 'Failed verification', live: 'Live data', unverified: 'Unverified' }[s] || s || 'Unknown');
+export const vLabel = s => ({ verified: 'Verified (ESPN + NBA.com)', consistent: 'Consistent (all checks, one source)', developing: 'Developing — live data', pending: 'Awaiting verification', checking: 'ESPN final — NBA.com cross-check in progress', failed: 'Failed verification', live: 'Live data', unverified: 'Unverified' }[s] || s || 'Unknown');
 
 export const Empty = ({ title, children }) => <div className="empty"><h3>{title}</h3>{children && <p>{children}</p>}</div>;
 export const ErrorBox = ({ error, retry }) => <div className="empty error"><h3>Couldn't load this</h3><p>{error?.message || String(error)}</p>{retry && <button className="btn" onClick={retry}>Try again</button>}</div>;

@@ -229,7 +229,9 @@ const SECTIONS = [['close', 'Close Games'], ['comeback', 'Comeback Watch'], ['ru
 export function IntelPage() {
   const { data, error, reload, setData } = useLoad(() => get('feed', { action: 'intel' }), []);
   useEffect(() => { const t = setInterval(reload, 30000); return () => clearInterval(t); }, [reload]);
-  useStream(() => reload());
+  const due = useRef(null);
+  useStream(() => { if (!due.current) due.current = setTimeout(() => { due.current = null; reload(); }, 1500); });
+  useEffect(() => () => clearTimeout(due.current), []);
   if (error) return <ErrorBox error={error} retry={reload} />;
   if (!data) return <Loading />;
   return (

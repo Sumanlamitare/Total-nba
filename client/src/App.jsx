@@ -36,7 +36,7 @@ function useTicker() {
 function useRail() {
   const r = useLoad(() => get('feed', { action: 'rail' }), []);
   useEffect(() => { const i = setInterval(r.reload, 30000); return () => clearInterval(i); }, [r.reload]);
-  useStream(e => { if (e.level === 'critical' || e.status === 'developing') r.reload(); });
+  useStream(e => { if (e.published && (e.level === 'critical' || e.status === 'developing')) r.reload(); });
   return r.data;
 }
 
@@ -95,6 +95,7 @@ function Bell() {
   const [open, setOpen] = useState(false);
   const favs = user?.prefs || {};
   useStream(e => {
+    if (!e.published) { setItems(list => list.filter(x => x._id !== e._id)); return; }
     const fav = favs.teams?.some(t => e.teams?.includes(t)) || favs.players?.some(p => e.players?.some(x => x.id === p));
     if (e.level !== 'critical' && !fav) return;
     setItems(list => [e, ...list.filter(x => x._id !== e._id)].slice(0, 30));

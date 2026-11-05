@@ -51,7 +51,7 @@ export default route({
     // Entries changed since a sequence number (the stream's fallback when SSE isn't available).
     async since({ req, query }) {
       const d = await db();
-      const items = await d.collection('feed').find({ seq: { $gt: int(query.seq) }, published: true }).sort({ seq: 1 }).limit(50).toArray();
+      const items = await d.collection('feed').find({ seq: { $gt: int(query.seq) } }).sort({ seq: 1 }).limit(50).toArray();
       return { items, seq: items.at(-1)?.seq || int(query.seq) };
     },
     async entry({ req, query }) {

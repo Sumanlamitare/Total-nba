@@ -61,7 +61,7 @@ test('the monitor verifies a final against NBA.com and turns it into feed entrie
   assert.ok(feed.find(e => e.category === 'comeback')?.body.includes('trailed by 17'));
 });
 
-test('running again creates no duplicates; a game waiting for NBA.com publishes no outcomes', async () => {
+test('running again creates no duplicates; a final waiting for NBA.com goes out at once marked checking, and comes off if the box score fails a check', async () => {
   const before = await d.collection('feed').countDocuments();
   const seq = (await d.collection('meta').findOne({ _id: 'feedseq' })).n;
   await lib.tick(d, { dates: ['20261104'], force: true, log: () => {} });
@@ -71,7 +71,15 @@ test('running again creates no duplicates; a game waiting for NBA.com publishes 
   await lib.tick(d, { dates: ['20250115'], log: () => {} }); // NBA.com has no box score for these
   const g = await d.collection('games').findOne({ _id: '401705127' });
   assert.equal(g.verify.status, 'pending');
+  const early = await d.collection('feed').find({ 'game.id': '401705127', published: true }).toArray();
+  assert.ok(early.length > 0, 'stories go out before NBA.com has its box score');
+  assert.ok(early.every(e => e.verification?.status === 'checking' && e.origin !== 'records' && e.category !== 'streak'), 'marked checking; records and streaks wait');
+  // ESPN's box score stops adding up: everything published early comes off, and the change is streamed.
+  const seq2 = (await d.collection('meta').findOne({ _id: 'feedseq' })).n;
+  m.tweak.summary = (id, j) => { if (id === '401705127') { const c = j.header.competitions[0].competitors[0]; c.score = String(+c.score + 1); } return j; };
+  try { await lib.tick(d, { dates: ['20250115'], log: () => {} }); } finally { m.tweak.summary = null; }
   assert.equal(await d.collection('feed').countDocuments({ 'game.id': '401705127', published: true }), 0);
+  assert.ok(await d.collection('feed').countDocuments({ 'game.id': '401705127', heldAt: { $exists: true }, seq: { $gt: seq2 } }) >= early.length);
 });
 
 test('feed API: list, entry, rail, intel, ticker, pages', async () => {
