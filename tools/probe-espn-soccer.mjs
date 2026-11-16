@@ -11,12 +11,22 @@ const SITE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 const ymd = d => d.toISOString().slice(0, 10).replace(/-/g, '');
 const back = +(process.argv[2] || 21), ahead = +(process.argv[3] || 10);
 const range = `${ymd(new Date(Date.now() - back * 864e5))}-${ymd(new Date(Date.now() + ahead * 864e5))}`;
+const LIMIT = process.env.PROBE_LIMIT || '';
 const get = async u => { const t = Date.now(); const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (fp90 probe)', accept: 'application/json' } }); const txt = await r.text(); let j = null; try { j = JSON.parse(txt); } catch {} return { status: r.status, ms: Date.now() - t, j, bytes: txt.length, cc: r.headers.get('cache-control') }; };
 const keys = o => (o && typeof o === 'object' ? Object.keys(o).join(',') : String(o));
+// Which query shapes the scoreboard accepts (printing the error body when it refuses).
+{
+  const today = ymd(new Date());
+  for (const q of [`dates=${range}&limit=400`, `dates=${range}&limit=100`, `dates=${range}`, `dates=${today}`, `dates=${ymd(new Date(Date.now() - 7 * 864e5))}-${today}`, `dates=${ymd(new Date(Date.now() - 7 * 864e5))}-${today}&limit=200`, '']) {
+    const r = await get(`${SITE}/eng.1/scoreboard${q ? `?${q}` : ''}`);
+    console.log(`variant "${q}": HTTP ${r.status} ${r.bytes}B events=${r.j?.events?.length ?? '-'} ${r.status !== 200 ? JSON.stringify(r.j) : ''}`);
+  }
+}
 const finds = { pen: null, og: null, stoppage: null, shootout: null, aet: null, other: new Set() };
 const statuses = new Map();
 for (const slug of SLUGS) {
-  const r = await get(`${SITE}/${slug}/scoreboard?dates=${range}&limit=400`);
+  const r = await get(`${SITE}/${slug}/scoreboard?dates=${range}${LIMIT ? `&limit=${LIMIT}` : ''}`);
+  if (r.status !== 200) console.log(`  error body: ${JSON.stringify(r.j)}`);
   const lg = r.j?.leagues?.[0];
   const evs = r.j?.events || [];
   console.log(`\n## ${slug}: HTTP ${r.status} ${r.ms}ms ${r.bytes}B cache=${r.cc} | league id=${lg?.id} name="${lg?.name}" abbr=${lg?.abbreviation} slug=${lg?.slug} logo=${lg?.logos?.[0]?.href} | events=${evs.length}`);
