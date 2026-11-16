@@ -11,25 +11,28 @@ const SITE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 const ymd = d => d.toISOString().slice(0, 10).replace(/-/g, '');
 const back = +(process.argv[2] || 21), ahead = +(process.argv[3] || 10);
 const range = `${ymd(new Date(Date.now() - back * 864e5))}-${ymd(new Date(Date.now() + ahead * 864e5))}`;
-const LIMIT = process.env.PROBE_LIMIT || '';
 const get = async u => { const t = Date.now(); const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (fp90 probe)', accept: 'application/json' } }); const txt = await r.text(); let j = null; try { j = JSON.parse(txt); } catch {} return { status: r.status, ms: Date.now() - t, j, bytes: txt.length, cc: r.headers.get('cache-control') }; };
 const keys = o => (o && typeof o === 'object' ? Object.keys(o).join(',') : String(o));
-// Which query shapes the scoreboard accepts (printing the error body when it refuses).
-{
-  const today = ymd(new Date());
-  for (const q of [`dates=${range}&limit=400`, `dates=${range}&limit=100`, `dates=${range}`, `dates=${today}`, `dates=${ymd(new Date(Date.now() - 7 * 864e5))}-${today}`, `dates=${ymd(new Date(Date.now() - 7 * 864e5))}-${today}&limit=200`, '']) {
-    const r = await get(`${SITE}/eng.1/scoreboard${q ? `?${q}` : ''}`);
-    console.log(`variant "${q}": HTTP ${r.status} ${r.bytes}B events=${r.j?.events?.length ?? '-'} ${r.status !== 200 ? JSON.stringify(r.j) : ''}`);
-  }
+// Single-day requests (ESPN refuses date ranges for soccer). Also: does a cross-league "all" scoreboard exist?
+const days = [];
+for (let i = -back; i <= ahead; i++) days.push(ymd(new Date(Date.now() + i * 864e5)));
+for (const q of [`dates=${ymd(new Date())}`, '']) {
+  const r = await get(`${SITE}/all/scoreboard${q ? `?${q}` : ''}`);
+  console.log(`all-scoreboard "${q}": HTTP ${r.status} ${r.bytes}B events=${r.j?.events?.length ?? '-'} leagues=${(r.j?.leagues || []).length} ${r.status !== 200 ? JSON.stringify(r.j) : (r.j.events || []).slice(0, 5).map(e => `${e.id}:${e.season?.slug || ''}:${e.competitions?.[0]?.league?.slug || e.league?.slug || ''}`).join(' ')}`);
 }
 const finds = { pen: null, og: null, stoppage: null, shootout: null, aet: null, other: new Set() };
 const statuses = new Map();
 for (const slug of SLUGS) {
-  const r = await get(`${SITE}/${slug}/scoreboard?dates=${range}${LIMIT ? `&limit=${LIMIT}` : ''}`);
-  if (r.status !== 200) console.log(`  error body: ${JSON.stringify(r.j)}`);
-  const lg = r.j?.leagues?.[0];
-  const evs = r.j?.events || [];
-  console.log(`\n## ${slug}: HTTP ${r.status} ${r.ms}ms ${r.bytes}B cache=${r.cc} | league id=${lg?.id} name="${lg?.name}" abbr=${lg?.abbreviation} slug=${lg?.slug} logo=${lg?.logos?.[0]?.href} | events=${evs.length}`);
+  let r = null, evs = [], lg = null, bytes = 0, bad = 0;
+  for (const day of days) {
+    const x = await get(`${SITE}/${slug}/scoreboard?dates=${day}`);
+    if (x.status !== 200) { bad++; if (bad === 1) console.log(`  ${slug} ${day} HTTP ${x.status} ${JSON.stringify(x.j)}`); continue; }
+    r = x; bytes += x.bytes; lg ||= x.j.leagues?.[0];
+    for (const e of x.j.events || []) if (!evs.some(y => y.id === e.id)) evs.push(e);
+  }
+  r ||= { status: 'all-failed', ms: 0, bytes: 0, cc: '' };
+  r.bytes = bytes;
+  console.log(`\n## ${slug}: HTTP ${r.status} ${r.ms}ms ${r.bytes}B cache=${r.cc} days-failed=${bad} | league id=${lg?.id} name="${lg?.name}" abbr=${lg?.abbreviation} slug=${lg?.slug} logo=${lg?.logos?.[0]?.href} | events=${evs.length}`);
   for (const e of evs) {
     const c = e.competitions?.[0]; const st = c?.status?.type || e.status?.type;
     statuses.set(st?.name, `${st?.state}/${st?.completed}/${st?.description}/${st?.detail}/${st?.shortDetail}`);
