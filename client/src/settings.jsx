@@ -1,13 +1,11 @@
 // Settings: time zone and cleanup, the graphic's brand bits, polling, the competition list, account, and the job log.
 import React, { useEffect, useState } from 'react';
-import { get, post, useLoad, when, useMe } from './api.js';
+import { get, post, useLoad, when } from './api.js';
 import { ErrorBox, Loading } from './ui.jsx';
 
 const ZONES = (() => { try { return Intl.supportedValuesOf('timeZone'); } catch { return ['America/New_York', 'Europe/London', 'UTC']; } })();
 
 export function Settings() {
-  const { user } = useMe();
-  const owner = user?.role === 'owner';
   const { data, error, reload } = useLoad(() => get('admin', { action: 'settings' }), []);
   const [s, setS] = useState(null);
   const [comps, setComps] = useState(null);
@@ -21,9 +19,9 @@ export function Settings() {
   const groups = [...new Set(comps.map(c => c.group))];
   return (
     <div className="page settings">
-      <div className="page-head"><div><h1>Settings</h1><p className="muted">{owner ? 'Changes apply to the next background check.' : 'Only the owner can change settings.'}</p></div></div>
+      <div className="page-head"><div><h1>Settings</h1><p className="muted">Changes apply to the next background check.</p></div></div>
       {msg && <div className={`notice ${msg.bad ? 'bad' : 'ok'}`}>{msg.text}</div>}
-      <fieldset disabled={!owner}>
+      <fieldset>
         <section className="card">
           <h2>Calendar and cleanup</h2>
           <label>App time zone <small>decides "today", "tomorrow" and when the automatic cleanup runs</small><select value={s.timezone} onChange={e => set('timezone', e.target.value)}>{ZONES.map(z => <option key={z}>{z}</option>)}</select></label>
@@ -73,7 +71,6 @@ export function Settings() {
           <div className="actions wrap"><button type="button" className="primary" onClick={() => saveComps(comps)}>Save competitions</button><button type="button" className="ghost" onClick={() => { if (confirm('Restore the original 39 competitions?')) saveComps(data.defaultCompetitions); }}>Restore the original 39</button></div>
         </section>
       </fieldset>
-      <Account />
       <Log />
     </div>
   );
@@ -88,20 +85,6 @@ function AddCompetition({ onAdd }) {
       <button type="button" className="ghost" disabled={!/^[a-z0-9_.]{2,60}$/.test(code.trim())} onClick={() => { onAdd({ code: code.trim(), name: name.trim() || code.trim(), group: 'custom', enabled: true }); setCode(''); setName(''); }}>Add</button>
       <p className="muted small">The code is the part of ESPN's soccer URLs after /soccer/ (women's competitions are ignored).</p>
     </div>
-  );
-}
-
-function Account() {
-  const [cur, setCur] = useState(''), [next, setNext] = useState(''), [msg, setMsg] = useState(null);
-  return (
-    <section className="card">
-      <h2>Password</h2>
-      <form className="two" onSubmit={async e => { e.preventDefault(); try { await post('admin', 'password', { current: cur, next }); setMsg('Password changed. Sign in again on other devices.'); setCur(''); setNext(''); } catch (x) { setMsg(x.message); } }}>
-        <label>Current<input type="password" value={cur} onChange={e => setCur(e.target.value)} autoComplete="current-password" /></label>
-        <label>New (10+ characters)<input type="password" value={next} onChange={e => setNext(e.target.value)} autoComplete="new-password" /></label>
-        <div className="actions"><button className="ghost" disabled={!cur || next.length < 10}>Change password</button>{msg && <span className="muted small">{msg}</span>}</div>
-      </form>
-    </section>
   );
 }
 

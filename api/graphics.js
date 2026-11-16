@@ -2,7 +2,6 @@
 // Graphics live apart from match data: deleting completed matches never touches them.
 import { db } from '../lib/db.js';
 import { route, actions, fail, str, int } from '../lib/http.js';
-import { requireUser } from '../lib/auth.js';
 import { getSettings } from '../lib/settings.js';
 import { renderPng } from '../lib/graphics/server.js';
 import { regenerate, applyEdits, themeOf } from '../lib/matches.js';
@@ -30,7 +29,7 @@ const summary = g => ({ _id: g._id, status: g.status, problems: g.problems, matc
 export default route({
   GET: actions({
     async list({ req, query }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const q = {};
       if (['ready', 'review', 'failed'].includes(query.status)) q.status = query.status;
       const items = await d.collection('graphics').find(q).sort({ createdAt: -1 }).limit(int(query.limit, 200, 1, 500)).toArray();
@@ -38,7 +37,7 @@ export default route({
       return { items: items.map(summary), retentionDays: s.graphics.retentionDays };
     },
     async get({ req, query }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const g = await d.collection('graphics').findOne({ _id: idOf(query.id) });
       if (!g) fail(404, 'No such graphic');
       const m = await d.collection('matches').findOne({ _id: g._id }, { projection: { _id: 1 } });
@@ -46,7 +45,7 @@ export default route({
     },
     // The PNG, exactly 1080 × 1350. ?download=1 saves it as a file and records the download.
     async png({ req, res, query }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const g = await d.collection('graphics').findOne({ _id: idOf(query.id) });
       if (!g) fail(404, 'No such graphic');
       const out = await renderPng(d, applyEdits(g.data, g.edits), g.theme || themeOf(await getSettings(d)));
@@ -64,14 +63,14 @@ export default route({
   }),
   POST: actions({
     async regenerate({ req, body }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const g = await regenerate(d, idOf(body.id));
       if (!g) fail(404, 'No such match or graphic');
       return summary(g);
     },
     // Save edits (the original data is kept; "reset" clears the edits). Saving with approve marks a flagged graphic ready.
     async save({ req, body }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const id = idOf(body.id);
       const g = await d.collection('graphics').findOne({ _id: id });
       if (!g) fail(404, 'No such graphic');
@@ -85,12 +84,12 @@ export default route({
       return summary(await d.collection('graphics').findOne({ _id: id }));
     },
     async keep({ req, body }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       await d.collection('graphics').updateOne({ _id: idOf(body.id) }, { $set: { keep: body.keep !== false } });
       return { ok: true };
     },
     async remove({ req, body }) {
-      const d = await db(); await requireUser(d, req, 'owner');
+      const d = await db();
       const id = idOf(body.id);
       if (await d.collection('matches').countDocuments({ _id: id, status: 'ft' }, { limit: 1 })) await d.collection('matches').updateOne({ _id: id }, { $set: { 'graphic.status': 'removed' } });
       await d.collection('graphics').deleteOne({ _id: id });

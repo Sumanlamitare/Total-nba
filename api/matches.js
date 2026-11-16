@@ -1,7 +1,6 @@
 // The dashboard (matches by day and competition), completed matches pending deletion, and the delete button.
 import { db } from '../lib/db.js';
 import { route, actions, fail } from '../lib/http.js';
-import { requireUser } from '../lib/auth.js';
 import { getSettings } from '../lib/settings.js';
 import { competitions } from '../lib/competitions.js';
 import { stepIfIdle } from '../lib/jobs.js';
@@ -29,7 +28,7 @@ const view = m => ({ _id: m._id, comp: m.comp, compName: m.compName, compLogo: m
 export default route({
   GET: actions({
     async dashboard({ req }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       await stepIfIdle(d).catch(() => {});
       const s = await getSettings(d);
       const comps = await competitions(d);
@@ -45,26 +44,26 @@ export default route({
       };
     },
     async completed({ req }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const list = await d.collection('matches').find({ status: { $in: FINAL } }).sort({ ftAt: -1, kickoff: -1 }).toArray();
       return { now: new Date(), items: list.map(view), cleanup: await plan(d), preview: await preview(d) };
     },
     async preview({ req }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       return preview(d);
     },
   }),
   POST: actions({
     // DELETE COMPLETED MATCH DATA: only matches ESPN confirmed as full time with their graphic made.
     async deleteCompleted({ req, body }) {
-      const d = await db(); await requireUser(d, req, 'owner');
+      const d = await db();
       if (body.confirm !== true) fail(400, 'Confirm first');
       const r = await withLock(d, 'cleanup', 5 * 60e3, () => runCleanup(d, { reason: 'manual' }));
       if (r.skipped) fail(409, 'A cleanup is already running; try again in a moment');
       return r;
     },
     async refresh({ req }) {
-      const d = await db(); await requireUser(d, req);
+      const d = await db();
       const r = await withLock(d, 'sync', 5 * 60e3, () => sync(d));
       if (r.skipped) fail(409, 'A refresh is already running');
       return r;

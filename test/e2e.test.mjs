@@ -2,7 +2,6 @@
 // graphic, review flags, manual and automatic cleanup (the brief's examples), graphics surviving deletion, the API.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
 import { Readable } from 'node:stream';
 import { mockEspn, event } from './mock-espn.mjs';
 
@@ -40,7 +39,7 @@ before(async () => {
     ['eng.w.1', event({ id: '590', at: at(16), home: T.a, away: T.b, status: 'ft', score: [1, 0] })],
   ];
   m = await mockEspn({ events });
-  Object.assign(process.env, m.env, { FP90_MEMDB: '1', FP90_SETUP_HASH: crypto.createHash('sha256').update('fp90-setup:code').digest('hex'), FP90_INSECURE_COOKIE: '1' });
+  Object.assign(process.env, m.env, { FP90_MEMDB: '1' });
   ({ db: lib.db } = await import('../lib/db.js'));
   d = await lib.db();
   Object.assign(lib, await import('../lib/jobs.js'), await import('../lib/cleanup.js'), await import('../lib/matches.js'));
@@ -151,11 +150,8 @@ test('automatic cleanup: 60 minutes before the next day\'s first kickoff, once, 
   assert.equal(new Date(next.dueAt).toISOString(), new Date(lib.day + 54 * H).toISOString(), 'Wednesday 06:00 New York');
 });
 
-test('API: sign-in required; delete needs confirmation; graphics still download after their match data is gone', async () => {
-  assert.equal((await call('matches', { query: { action: 'dashboard' } })).status, 401);
-  const owner = await call('admin', { method: 'POST', query: { action: 'setup' }, body: { code: 'code', name: 'Owner', email: 'o@x.co', password: 'long-enough-pw' } });
-  assert.equal(owner.status, 200);
-  const c = owner.cookie;
+test('API: no sign-in needed; delete needs confirmation; graphics still download after their match data is gone', async () => {
+  const c = undefined;
   const dash = await call('matches', { query: { action: 'dashboard' }, cookie: c });
   assert.equal(dash.status, 200);
   assert.ok(dash.json.matches.length >= 3 && dash.json.cleanup.dueAt);

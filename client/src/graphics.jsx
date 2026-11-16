@@ -1,7 +1,7 @@
 // Graphics: everything generated in the current period (kept apart from match data), and one graphic with its preview,
 // download, regenerate and editor. The preview is the same SVG the server turns into the PNG.
 import React, { useMemo, useState } from 'react';
-import { get, post, useLoad, when, ago, go, useMe } from './api.js';
+import { get, post, useLoad, when, ago, go } from './api.js';
 import { Link } from './App.jsx';
 import { Empty, ErrorBox, Loading } from './ui.jsx';
 import { buildScene } from '../../lib/graphics/fulltime.js';
@@ -41,7 +41,6 @@ export function Graphics() {
 const lines = s => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
 
 export function GraphicPage({ id }) {
-  const { user } = useMe();
   const { data: g, error, reload, setData } = useLoad(() => get('graphics', { action: 'get', id }), [id]);
   const [form, setForm] = useState(null);
   const [busy, setBusy] = useState('');
@@ -116,7 +115,7 @@ export function GraphicPage({ id }) {
               </div>
             </form>
           )}
-          {user?.role === 'owner' && <button type="button" className="link danger-text" onClick={remove}>Delete this graphic</button>}
+          <button type="button" className="link danger-text" onClick={remove}>Delete this graphic</button>
         </div>
       </div>
     </div>

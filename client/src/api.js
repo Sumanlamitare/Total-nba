@@ -27,11 +27,6 @@ export function useLoad(fn, deps = [], { every = 0 } = {}) {
   return { ...state, reload: run, setData: data => set(s => ({ ...s, data: typeof data === 'function' ? data(s.data) : data })) };
 }
 
-let me = { user: null, setupNeeded: false, loaded: false };
-const meSubs = new Set();
-export async function loadMe() { try { me = { ...(await get('admin', { action: 'me' })), loaded: true }; } catch { me = { user: null, loaded: true }; } meSubs.forEach(f => f()); return me; }
-export const setMe = user => { me = { ...me, user, setupNeeded: false }; meSubs.forEach(f => f()); };
-export const useMe = () => useSyncExternalStore(f => { meSubs.add(f); return () => meSubs.delete(f); }, () => me);
 
 const routeSubs = new Set();
 export function go(to) { if (to === location.pathname + location.search) return; history.pushState(null, '', to); routeSubs.forEach(f => f()); window.scrollTo({ top: 0 }); }

@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
-import { useMe, loadMe, useRoute, go, post, setMe, useLoad, get, ago } from './api.js';
+import React from 'react';
+import { useRoute, go, useLoad, get, ago } from './api.js';
 import { Dashboard } from './dashboard.jsx';
 import { Completed } from './completed.jsx';
 import { Graphics, GraphicPage } from './graphics.jsx';
 import { Settings } from './settings.jsx';
-import { SignIn } from './signin.jsx';
 
 export const Link = ({ to, children, className, ...rest }) => (
   <a href={to} className={className} onClick={e => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); go(to); }} {...rest}>{children}</a>
@@ -21,7 +20,6 @@ export const Mark = ({ size = 34 }) => (
 const NAV = [['/', 'Matches'], ['/completed', 'Completed'], ['/graphics', 'Graphics'], ['/settings', 'Settings']];
 
 function Shell({ children, path }) {
-  const { user } = useMe();
   const { data } = useLoad(() => get('admin', { action: 'status' }), [], { every: 60e3 });
   const workerSeen = data?.jobs?.worker;
   const fresh = workerSeen && Date.now() - new Date(workerSeen) < 5 * 60e3;
@@ -34,7 +32,6 @@ function Shell({ children, path }) {
           {NAV.map(([to, label]) => <Link key={to} to={to} className={active(to) ? 'on' : ''} aria-current={active(to) ? 'page' : undefined}>{label}</Link>)}
         </nav>
         <span className={`beat ${fresh ? 'ok' : ''}`} title={workerSeen ? `Background worker last seen ${ago(workerSeen)}` : 'Background worker not seen yet: the app checks matches itself while it is open'}><i />{fresh ? 'Monitoring' : 'Worker idle'}</span>
-        <button type="button" className="ghost small" onClick={async () => { await post('admin', 'logout'); setMe(null); go('/signin'); }}>Sign out<span className="who">{user ? ` ${user.name.split(' ')[0]}` : ''}</span></button>
       </header>
       <main className="main">{children}</main>
       <nav className="bottom-tabs" aria-label="Sections">
@@ -46,11 +43,7 @@ function Shell({ children, path }) {
 
 export default function App() {
   const route = useRoute();
-  const me = useMe();
-  useEffect(() => { loadMe(); }, []);
   const path = route.split('?')[0];
-  if (!me.loaded) return <div className="boot"><Mark size={56} /></div>;
-  if (!me.user) return <SignIn setupNeeded={me.setupNeeded} />;
   let page;
   const g = path.match(/^\/graphics\/(\d+)$/);
   if (path === '/') page = <Dashboard />;

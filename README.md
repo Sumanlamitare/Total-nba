@@ -22,13 +22,13 @@ graphic, keeps the graphic, and deletes the match data afterwards. It is deliber
 - **Completed – Pending Deletion** — finished matches with their graphic made, the countdown to the next automatic
   cleanup, and **DELETE COMPLETED MATCH DATA** (with a confirmation that shows how many matches and goal events go).
 - **Settings** — the competitions (switch off, rename, add by ESPN code; women's codes are refused), time zone, cleanup
-  timing, the graphic's accent colour and handle, how often ESPN is checked, password, and the activity log.
+  timing, the graphic's accent colour and handle, how often ESPN is checked, and the activity log.
 
 ## Temporary data and cleanup
 
 | Kept | Temporary (deleted by cleanup) |
 | --- | --- |
-| settings, competition list, the account | `matches`: event id, competition, teams, kickoff, status, score, goals, graphic and cleanup state |
+| settings, competition list | `matches`: event id, competition, teams, kickoff, status, score, goals, graphic and cleanup state |
 | `graphics` (each with its own data and edits) | |
 | `logos` (crests downscaled to 320 px, so a graphic always renders the same) | |
 
@@ -60,12 +60,12 @@ soccer and has no working cross-league scoreboard, so:
 - **Web app** — Vercel (React + `api/` functions), MongoDB Atlas (`MONGODB_URI`, database `fp90`).
 - **Worker** — GitHub Actions (`.github/workflows/worker.yml`), started every 30 minutes; it stays on while something is
   due within 35 minutes and exits otherwise. The web app steps in when the worker hasn't been seen for 3 minutes.
-- **First sign-in** — create the owner account at the site with the setup code (its SHA-256 is in `lib/auth.js`).
+- **No sign-in** — it's a personal tool: the site opens straight to the matches (anyone with the address can use it).
 
 ```
 npm test            # unit: ESPN parsing, goal checks, scorer lines, DST, graphic layout bounds
 npm run test:e2e    # mock ESPN + in-memory DB: sync, full time, review flags, manual + automatic cleanup, API
-npm run build && npm run test:ui    # Chromium: set-up, dashboard, editor, PNG download, delete flow, phones
+npm run build && npm run test:ui    # Chromium: dashboard, editor, PNG download, delete flow, phones
 FP90_MEMDB=1 MOCK_ESPN=1 npm run dev  # the whole app on a mock ESPN, no network or database needed
 ```
 

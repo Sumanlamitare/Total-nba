@@ -1,11 +1,10 @@
 // Completed Matches – Pending Deletion, and the DELETE COMPLETED MATCH DATA button.
 import React, { useEffect, useState } from 'react';
-import { get, post, useLoad, when, until, useMe } from './api.js';
+import { get, post, useLoad, when, until } from './api.js';
 import { Link } from './App.jsx';
 import { Crest, Status, Empty, ErrorBox, Loading, Modal, score } from './ui.jsx';
 
 export function Completed() {
-  const { user } = useMe();
   const { data, error, reload } = useLoad(() => get('matches', { action: 'completed' }), [], { every: 30e3 });
   const [ask, setAsk] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -34,7 +33,7 @@ export function Completed() {
           {p.enabled && <span className="muted"> · {when(p.dueAt)} — {p.basis === 'first-kickoff' ? `before the first kickoff of the day (${when(p.firstKickoff)})` : 'no matches that day: the fallback time'}</span>}
           {p.lastRun && <div className="muted small">Last cleanup {when(p.lastRun.at)} ({p.lastRun.reason}): {p.lastRun.deleted} deleted{p.failures ? ` · ${p.failures} failed attempt${p.failures === 1 ? '' : 's'}, retrying` : ''}</div>}
         </div>
-        <button type="button" className="danger big" onClick={open} disabled={user?.role !== 'owner'} title={user?.role !== 'owner' ? 'Only the owner can delete data' : undefined}>DELETE COMPLETED MATCH DATA</button>
+        <button type="button" className="danger big" onClick={open}>DELETE COMPLETED MATCH DATA</button>
       </div>
       {done && <div className="notice ok">Deleted {done.deleted} completed match{done.deleted === 1 ? '' : 'es'} and {done.goalEvents} goal events. Graphics kept. Upcoming and live matches were not touched.</div>}
       {!data.items.length ? <Empty title="Nothing finished yet">Matches show up here at full time, once their graphic is made.</Empty> : (

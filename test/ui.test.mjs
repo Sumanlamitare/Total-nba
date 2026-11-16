@@ -1,15 +1,14 @@
-// Browser test: the built app with the API (in-memory database, mock ESPN), driven by Chromium. Set-up, the dashboard,
+// Browser test: the built app with the API (in-memory database, mock ESPN), driven by Chromium. The dashboard,
 // the delete button and its confirmation, a graphic's preview, editor and PNG download, phones without sideways scroll.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const pw = (() => { for (const p of [process.env.PLAYWRIGHT_MODULE, 'playwright', '/opt/node-tools/node_modules/playwright']) { try { if (p) return require(p); } catch { /* next */ } } throw new Error('playwright not found'); })();
-let browser, base, state;
+let browser, base;
 before(async () => {
   const port = 5200 + Math.floor(Math.random() * 500);
-  Object.assign(process.env, { FP90_MEMDB: '1', STATIC_DIR: 'dist', PORT: String(port), MOCK_ESPN: '1', FP90_SETUP_HASH: crypto.createHash('sha256').update('fp90-setup:ui-code').digest('hex'), FP90_INSECURE_COOKIE: '1' });
+  Object.assign(process.env, { FP90_MEMDB: '1', STATIC_DIR: 'dist', PORT: String(port), MOCK_ESPN: '1' });
   await import('../scripts/dev.mjs');
   base = `http://localhost:${port}`;
   browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
@@ -17,7 +16,7 @@ before(async () => {
 after(async () => { await browser?.close(); setTimeout(() => process.exit(0), 200); });
 
 async function page(path, opts = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, ...(state ? { storageState: state } : {}), ...opts });
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, ...opts });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
@@ -25,13 +24,9 @@ async function page(path, opts = {}) {
   return { p, errors, ctx };
 }
 
-test('set up the owner, see the day\'s matches with statuses and graphics', async () => {
+test('opens straight to the day\'s matches (no sign-in), with statuses and graphics', async () => {
   const { p, errors, ctx } = await page('/');
-  await p.waitForSelector('text=Set up');
-  await p.fill('input >> nth=0', 'ui-code'); await p.fill('input >> nth=1', 'Owner'); await p.fill('input[type=email]', 'o@x.co'); await p.fill('input[type=password]', 'long-enough-pw');
-  await p.click('button:has-text("Create account")');
   await p.waitForSelector('.row', { timeout: 30000 });
-  state = await ctx.storageState();
   const text = await p.locator('.main').innerText();
   for (const s of ['Premier League', 'Everton', 'Graphic generated', 'Halftime', 'Scheduled']) assert.match(text, new RegExp(s, 'i'), s);
   assert.doesNotMatch(text, /Women/i);
