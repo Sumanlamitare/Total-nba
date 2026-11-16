@@ -3,23 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Around the NBA · Live</title>
-    <meta name="description" content="Around the NBA watches every game at once and reports the moments worth talking about: comebacks, game winners, records, takeovers and the role players nobody saw coming." />
-    <meta name="theme-color" content="#0a0a0b" />
+    <title>Football Past 90 · Full-time graphics</title>
+    <meta name="description" content="Full-time graphics for @footballpast90: every match across 39 competitions, the result and the scorers, ready for Instagram." />
+    <meta name="theme-color" content="#0c0d10" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/BarlowCondensed-800.ttf" as="font" type="font/ttf" crossorigin />
-    <link rel="preload" href="/fonts/Inter_400Regular.ttf" as="font" type="font/ttf" crossorigin />
-    <style>
-      html, body { background: #0a0a0b; margin: 0; }
-      #boot { position: fixed; inset: 0; display: grid; place-items: center; background: #0a0a0b; transition: opacity .3s; z-index: 100; }
-      #boot svg { width: 64px; height: 64px; animation: spin 1.1s linear infinite; }
-      #boot.done { opacity: 0; pointer-events: none; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      @media (prefers-reduced-motion: reduce) { #boot svg { animation: none; } }
-    </style>
+    <link rel="preload" href="/fonts/Inter_600SemiBold.ttf" as="font" type="font/ttf" crossorigin />
+    <style>html, body { background: #0c0d10; margin: 0; }</style>
   </head>
   <body>
-    <div id="boot" role="status" aria-label="Loading"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#ff5a1f"/><circle cx="32" cy="32" r="15" fill="none" stroke="#0a0a0b" stroke-width="4"/><path d="M32 6v52" stroke="#0a0a0b" stroke-width="4"/></svg></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

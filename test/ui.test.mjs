@@ -1,111 +1,92 @@
-// Browser test: the built app served with the API (in-memory database, saved ESPN responses), driven by Chromium.
-// The feed renders and filters; a new event arrives without a refresh; details show sources and verification; phones
-// get no sideways scrolling; the graphics editor selects, drags and saves.
+// Browser test: the built app with the API (in-memory database, mock ESPN), driven by Chromium. Set-up, the dashboard,
+// the delete button and its confirmation, a graphic's preview, editor and PNG download, phones without sideways scroll.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { mockSources } from './mock-sources.mjs';
-
 const require = createRequire(import.meta.url);
 const pw = (() => { for (const p of [process.env.PLAYWRIGHT_MODULE, 'playwright', '/opt/node-tools/node_modules/playwright']) { try { if (p) return require(p); } catch { /* next */ } } throw new Error('playwright not found'); })();
-let m, browser, base, d, upsert, getSettings;
-
+let browser, base, state;
 before(async () => {
-  m = await mockSources();
-  const port = 4900 + Math.floor(Math.random() * 500);
-  Object.assign(process.env, m.env, { ATN_MEMDB: '1', STATIC_DIR: 'dist', PORT: String(port), ATN_SETUP_HASH: crypto.createHash('sha256').update('atn-setup:uicode').digest('hex'), ATN_INSECURE_COOKIE: '1', ATN_STREAM_POLL_MS: '500' });
-  const { db } = await import('../lib/db.js');
-  d = await db();
-  const { tick } = await import('../lib/automation.js');
-  ({ upsert } = await import('../lib/feed.js'));
-  ({ getSettings } = await import('../lib/settings.js'));
-  // NBA.com has no box score here, so finals verify on consistency after the wait.
-  for (const now of [new Date(), new Date(Date.now() + 40 * 3600e3)]) await tick(d, { dates: ['20261104', '20250115'], now, log: () => {} });
+  const port = 5200 + Math.floor(Math.random() * 500);
+  Object.assign(process.env, { FP90_MEMDB: '1', STATIC_DIR: 'dist', PORT: String(port), MOCK_ESPN: '1', FP90_SETUP_HASH: crypto.createHash('sha256').update('fp90-setup:ui-code').digest('hex'), FP90_INSECURE_COOKIE: '1' });
   await import('../scripts/dev.mjs');
   base = `http://localhost:${port}`;
-  browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--headless=new'] });
+  browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 });
-after(async () => { await browser?.close(); await m?.close(); setTimeout(() => process.exit(0), 200); });
+after(async () => { await browser?.close(); setTimeout(() => process.exit(0), 200); });
 
 async function page(path, opts = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, ...opts });
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 }, ...(state ? { storageState: state } : {}), ...opts });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
-  await p.route(/espncdn\.com/, r => r.abort());
   await p.goto(base + path);
   return { p, errors, ctx };
 }
 
-test('the feed renders, filters, and expands to sources and verification', async () => {
+test('set up the owner, see the day\'s matches with statuses and graphics', async () => {
   const { p, errors, ctx } = await page('/');
-  await p.waitForSelector('.ev');
-  assert.ok(await p.locator('.ev').count() >= 5);
-  await p.click('.seg button:has-text("Runs")');
-  await p.waitForTimeout(800);
-  const kinds = await p.locator('.ev').evaluateAll(els => els.map(e => e.className));
-  assert.ok(kinds.length > 0 && kinds.every(c => /p-purple/.test(c)), kinds.join(','));
-  await p.click('.ev >> nth=0 >> button:has-text("Details")');
-  await p.waitForSelector('.details');
-  assert.match(await p.locator('.details').first().innerText(), /sources[\s\S]*ESPN/i);
-  assert.match(await p.locator('.details').first().innerText(), /verification/i);
+  await p.waitForSelector('text=Set up');
+  await p.fill('input >> nth=0', 'ui-code'); await p.fill('input >> nth=1', 'Owner'); await p.fill('input[type=email]', 'o@x.co'); await p.fill('input[type=password]', 'long-enough-pw');
+  await p.click('button:has-text("Create account")');
+  await p.waitForSelector('.row', { timeout: 30000 });
+  state = await ctx.storageState();
+  const text = await p.locator('.main').innerText();
+  for (const s of ['Premier League', 'Everton', 'Graphic generated', 'Halftime', 'Scheduled']) assert.match(text, new RegExp(s, 'i'), s);
+  assert.doesNotMatch(text, /Women/i);
+  await p.click('.seg button:has-text("Live")');
+  assert.ok((await p.locator('.row').count()) >= 1 && (await p.locator('.row.st-scheduled').count()) === 0);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
 
-test('a new event appears without refreshing', async () => {
-  const { p, errors, ctx } = await page('/');
-  await p.waitForSelector('.ev');
-  await p.waitForSelector('.conn-live', { timeout: 10000 });
-  await upsert(d, { _id: 'ui:live-test', category: 'game-winner', significance: 95, status: 'final', headline: 'AT THE BUZZER', body: 'A test of the live stream.', teams: [], players: [], game: { id: '401909922', teams: [] }, occurredAt: new Date(), sources: [{ name: 'test' }], verification: { status: 'verified' } }, await getSettings(d));
-  await p.waitForSelector('.ev.fresh:has-text("AT THE BUZZER")', { timeout: 15000 });
-  // Someone else's chat message arrives too, and its picture-carrying story stays put.
-  const { nextSeq } = await import('../lib/feed.js');
-  const { slate } = await import('../lib/reset.js');
-  await d.collection('comments').insertOne({ _id: 'ui-chat-1', room: await slate(d), feedId: null, reply: null, uid: 'someone', name: 'Courtside', role: 'fan', text: 'This crowd is loud tonight', createdAt: new Date(), seq: await nextSeq(d) });
-  await p.waitForSelector('.fan-msg:has-text("This crowd is loud tonight")', { timeout: 15000 });
-  assert.ok(await p.locator('.ev-msg .msg-pic img').count() > 0, 'stories carry pictures');
+test('a graphic: preview, editor with live preview, PNG download at 1080 × 1350', async () => {
+  const { p, errors, ctx } = await page('/graphics');
+  await p.waitForSelector('.tile');
+  await p.click('.tile:has-text("Everton")');
+  await p.waitForSelector('.canvas svg');
+  assert.match(await p.locator('.canvas').innerHTML(), /Thierno Barry/);
+  await p.click('button:has-text("Edit")');
+  await p.fill('label:has-text("Home team") input', 'Everton FC');
+  await p.waitForTimeout(200);
+  assert.match(await p.locator('.canvas').innerHTML(), /EVERTON FC|Everton FC/i);
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.click('a:has-text("Download PNG")')]);
+  const buf = await (await import('node:fs')).promises.readFile(await dl.path());
+  assert.equal(buf.readUInt32BE(16), 1080); assert.equal(buf.readUInt32BE(20), 1350);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
 
-test('phones: no sideways scrolling, tab bar present', async () => {
-  for (const path of ['/', '/intel', '/records', '/performances', '/games/401909922']) {
+test('DELETE COMPLETED MATCH DATA: confirmation shows the counts; afterwards only unfinished matches remain, graphics stay', async () => {
+  const { p, errors, ctx } = await page('/completed');
+  await p.waitForSelector('.trow');
+  await p.click('button:has-text("DELETE COMPLETED MATCH DATA")');
+  await p.waitForSelector('.modal');
+  assert.match(await p.locator('.modal').innerText(), /completed match.*goal event/s);
+  await p.click('.modal button.danger');
+  await p.waitForSelector('.notice.ok');
+  const rows = await p.locator('.trow').allInnerTexts();
+  assert.ok(rows.every(r => /Waiting for scorers|Freiburg/.test(r)), rows.join('\n'));
+  await p.goto(base + '/');
+  await p.waitForSelector('.row');
+  const text = await p.locator('.main').innerText();
+  assert.match(text, /Arsenal/); assert.match(text, /Liverpool/);
+  await p.goto(base + '/graphics');
+  await p.waitForSelector('.tile');
+  assert.ok((await p.locator('.tile').count()) >= 5);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('phones: no sideways scrolling, bottom tabs', async () => {
+  for (const path of ['/', '/completed', '/graphics', '/settings']) {
     const { p, errors, ctx } = await page(path, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    await p.waitForSelector('.ev, .section, .empty, .perf, .scoreboard-hero', { timeout: 10000 });
-    await p.waitForTimeout(400);
+    await p.waitForSelector('.page', { timeout: 15000 });
+    await p.waitForTimeout(500);
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth), 390, path);
-    assert.ok(await p.locator('.tabbar').isVisible(), path);
+    assert.ok(await p.locator('.bottom-tabs').isVisible(), path);
     assert.deepEqual(errors, [], path);
     await ctx.close();
   }
-});
-
-test('graphics editor: create from an event, select, drag, save', async () => {
-  const { p, errors, ctx } = await page('/signin');
-  await p.waitForSelector('h1:has-text("Set up")');
-  await p.fill('form input >> nth=0', 'uicode');
-  await p.fill('form input >> nth=1', 'Owner');
-  await p.fill('input[type=email]', 'owner@example.com');
-  await p.fill('input[type=password]', 'a-long-password');
-  await p.click('form button');
-  await p.waitForURL(base + '/');
-  await p.goto(base + '/studio');
-  await p.click('.mini >> nth=0');
-  await p.waitForSelector('.canvas [data-id]');
-  const id = await p.locator('.canvas [data-id="note"], .canvas [data-id="headline"], .canvas [data-id="name-last"]').first().getAttribute('data-id');
-  const box = await p.locator(`.canvas [data-id="${id}"]`).first().boundingBox();
-  await p.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await p.waitForSelector('.sel-box');
-  const sel = await p.locator('.sel-box').boundingBox();
-  await p.mouse.move(sel.x + 10, sel.y + 10); await p.mouse.down(); await p.mouse.move(sel.x + 70, sel.y + 40, { steps: 6 }); await p.mouse.up();
-  await p.click('button:has-text("Save")');
-  await p.waitForSelector('button:has-text("Saved")');
-  const gid = p.url().split('/').pop();
-  const { ObjectId } = await import('mongodb');
-  const doc = await d.collection('content').findOne({ _id: new ObjectId(gid) });
-  assert.ok(doc.project.overrides[id]?.x != null, 'the drag was saved as an override');
-  assert.deepEqual(errors, []);
-  await ctx.close();
 });

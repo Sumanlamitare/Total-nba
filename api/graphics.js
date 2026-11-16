@@ -1,156 +1,100 @@
-// Graphics Studio: the library of graphics (editable projects tied to feed entries), saved designs, uploaded images,
-// and server rendering (PNG / JPEG) — the same renderer as the editor.
+// Generated graphics: list, one, the PNG (preview or download), regenerate, edit, approve, keep, remove.
+// Graphics live apart from match data: deleting completed matches never touches them.
 import { db } from '../lib/db.js';
-import { route, actions, fail, int, str, privateCache } from '../lib/http.js';
-import { requireUser, currentUser } from '../lib/auth.js';
+import { route, actions, fail, str, int } from '../lib/http.js';
+import { requireUser } from '../lib/auth.js';
 import { getSettings } from '../lib/settings.js';
-import { graphicForFeed, newProject, idOf } from '../lib/content.js';
-import { fromFeed } from '../lib/graphics/data.js';
-import { CATEGORIES } from '../lib/feed.js';
-import { TEMPLATES, TEMPLATE } from '../lib/graphics/templates.js';
-import { FORMATS, sizeOf } from '../lib/graphics/kit.js';
-import { renderProject } from '../lib/graphics/server.js';
+import { renderPng } from '../lib/graphics/server.js';
+import { regenerate, applyEdits, themeOf } from '../lib/matches.js';
 
-export const config = { maxDuration: 30 };
+export const config = { maxDuration: 60 };
+const idOf = v => (/^\d{1,20}$/.test(String(v || '')) ? String(v) : fail(400, 'Bad id'));
 
-// Only known fields of a project are kept (it is rendered server-side and in browsers).
-function cleanProject(p) {
-  if (!p || typeof p !== 'object') fail(400, 'Missing project');
-  if (!TEMPLATE[p.template]) fail(400, 'Unknown template');
-  const size = p.format === 'custom' ? sizeOf('custom', p.size) : sizeOf(p.format);
-  const json = JSON.stringify(p);
-  if (json.length > 400_000) fail(413, 'Project too large');
-  return { template: p.template, format: FORMATS[p.format] || p.format === 'custom' ? p.format : 'x_landscape', size, data: p.data || {}, theme: p.theme || {},
-    overrides: p.overrides || {}, removed: Array.isArray(p.removed) ? p.removed.slice(0, 200) : [], extra: Array.isArray(p.extra) ? p.extra.slice(0, 60) : [], order: Array.isArray(p.order) ? p.order.slice(0, 300) : [] };
+// Only these fields can be edited (dotted paths into the graphic's data).
+const EDITABLE = {
+  'competition.name': v => str(v, 80), 'home.name': v => str(v, 80), 'away.name': v => str(v, 80),
+  'score.home': v => int(v, 0, 0, 99), 'score.away': v => int(v, 0, 0, 99),
+  'scorers.home': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
+  'scorers.away': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
+  note: v => str(v, 60) || null, statusLabel: v => str(v, 24) || 'Full time', date: v => str(v, 40),
+  shootout: v => (v && v.home !== '' && v.away !== '' && v.home != null && v.away != null ? { home: int(v.home, 0, 0, 30), away: int(v.away, 0, 0, 30) } : null),
+};
+function cleanEdits(e) {
+  if (!e || typeof e !== 'object') return null;
+  const out = {};
+  for (const [k, fn] of Object.entries(EDITABLE)) if (k in e) out[k] = fn(e[k]);
+  return Object.keys(out).length ? out : null;
 }
-
-async function resolveUpload(d, id) {
-  const u = await d.collection('uploads').findOne({ _id: idOf(id) });
-  return u?.data || null;
-}
+const summary = g => ({ _id: g._id, status: g.status, problems: g.problems, match: g.match, data: applyEdits(g.data, g.edits), edited: !!g.edits, approved: !!g.approved, keep: !!g.keep, render: g.render, error: g.error, createdAt: g.createdAt, updatedAt: g.updatedAt, version: g.version, downloads: g.downloads || 0, downloadedAt: g.downloadedAt || null, theme: g.theme });
 
 export default route({
   GET: actions({
     async list({ req, query }) {
-      const d = await db(); await requireUser(d, req, 'editor');
+      const d = await db(); await requireUser(d, req);
       const q = {};
-      if (query.category) q.category = str(query.category, 20);
-      if (query.term) q.title = new RegExp(String(query.term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 60), 'i');
-      return d.collection('content').find(q, { projection: { title: 1, category: 1, feedId: 1, 'project.template': 1, 'project.size': 1, 'project.format': 1, verification: 1, edited: 1, createdAt: 1, updatedAt: 1, player: 1, team: 1 } }).sort({ updatedAt: -1 }).limit(int(query.limit, 60, 1, 200)).toArray();
+      if (['ready', 'review', 'failed'].includes(query.status)) q.status = query.status;
+      const items = await d.collection('graphics').find(q).sort({ createdAt: -1 }).limit(int(query.limit, 200, 1, 500)).toArray();
+      const s = await getSettings(d);
+      return { items: items.map(summary), retentionDays: s.graphics.retentionDays };
     },
     async get({ req, query }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const g = await d.collection('content').findOne({ _id: idOf(query.id) });
+      const d = await db(); await requireUser(d, req);
+      const g = await d.collection('graphics').findOne({ _id: idOf(query.id) });
       if (!g) fail(404, 'No such graphic');
-      const feed = g.feedId ? await d.collection('feed').findOne({ _id: g.feedId }, { projection: { headline: 1, body: 1, stats: 1, verification: 1, status: 1, sources: 1 } }) : null;
-      return { ...g, feed };
+      const m = await d.collection('matches').findOne({ _id: g._id }, { projection: { _id: 1 } });
+      return { ...summary(g), original: g.data, edits: g.edits || {}, matchDataHeld: !!m };
     },
-    async templates({ req }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const saved = await d.collection('templates').find({}).sort({ updatedAt: -1 }).limit(100).toArray();
-      return { builtin: TEMPLATES.map(t => ({ id: t.id, name: t.name, category: t.category, stats: t.stats })), saved, formats: FORMATS };
-    },
-    // PNG or JPEG of a graphic. Public: graphics are made from public data and meant to be shared.
-    async render({ res, query }) {
-      const d = await db();
-      const g = await d.collection('content').findOne({ _id: idOf(query.id) });
+    // The PNG, exactly 1080 × 1350. ?download=1 saves it as a file and records the download.
+    async png({ req, res, query }) {
+      const d = await db(); await requireUser(d, req);
+      const g = await d.collection('graphics').findOne({ _id: idOf(query.id) });
       if (!g) fail(404, 'No such graphic');
-      const format = query.f === 'jpeg' || query.f === 'jpg' ? 'jpeg' : 'png';
-      const out = await renderProject(g.project, { format, scale: Math.min(2, Math.max(0.25, +query.scale || 1)), resolveUpload: id => resolveUpload(d, id) });
+      const out = await renderPng(d, applyEdits(g.data, g.edits), g.theme || themeOf(await getSettings(d)));
       res.statusCode = 200;
-      res.setHeader('content-type', out.type);
-      res.setHeader('cache-control', 'public, max-age=60, s-maxage=300');
-      res.setHeader('content-disposition', `inline; filename="around-the-nba-${g._id}.${format === 'jpeg' ? 'jpg' : 'png'}"`);
+      res.setHeader('content-type', 'image/png');
+      res.setHeader('cache-control', 'private, max-age=3600');
+      if (query.download === '1') {
+        const name = `${g.match?.home || 'home'}-${g.match?.away || 'away'}-FT`.replace(/[^\w-]+/g, '-').replace(/-+/g, '-');
+        res.setHeader('content-disposition', `attachment; filename="${name}.png"`);
+        await d.collection('graphics').updateOne({ _id: g._id }, { $inc: { downloads: 1 }, $set: { downloadedAt: new Date() } });
+      }
       res.end(out.buffer);
-      res.raw = true;
-    },
-    // A feed entry's graphic, rendered on demand from its data (nothing stored). format: x_landscape | x_square |
-    // ig_portrait | ig_story (TikTok / Reels / Stories); f: png | jpeg.
-    async feed({ res, query }) {
-      const d = await db();
-      const e = await d.collection('feed').findOne({ _id: str(query.id, 160) });
-      if (!e) fail(404, 'No such event');
-      const settings = await getSettings(d);
-      const { template, data } = fromFeed({ ...e, categoryLabel: CATEGORIES[e.category]?.label }, { brand: { name: settings.brand.name, handle: settings.brand.handle } });
-      const format = FORMATS[query.format] ? query.format : 'x_landscape';
-      const out = await renderProject(newProject(template, data, format), { format: query.f === 'jpeg' || query.f === 'jpg' ? 'jpeg' : 'png', scale: Math.min(2, Math.max(0.25, +query.scale || 1)) });
-      res.statusCode = 200;
-      res.setHeader('content-type', out.type);
-      // A versioned picture (v = the entry's sequence number) never changes: the CDN keeps it; a new version is a new URL.
-      res.setHeader('cache-control', query.v ? 'public, max-age=86400, s-maxage=604800, immutable' : 'public, max-age=60, s-maxage=120');
-      res.end(out.buffer);
-      res.raw = true;
-    },
-    async upload({ res, query }) {
-      const d = await db();
-      const u = await d.collection('uploads').findOne({ _id: idOf(query.id) });
-      if (!u) fail(404, 'No such image');
-      const [, type, b64] = String(u.data).match(/^data:([^;]+);base64,(.*)$/) || [];
-      res.statusCode = 200;
-      res.setHeader('content-type', type || 'image/png');
-      res.setHeader('cache-control', 'public, max-age=31536000, immutable');
-      res.end(Buffer.from(b64 || '', 'base64'));
       res.raw = true;
     },
   }),
   POST: actions({
-    // New graphic: from a feed entry, or a template with blank data.
-    async create({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'editor');
-      const settings = await getSettings(d);
-      if (body.feedId) {
-        const e = await d.collection('feed').findOne({ _id: str(body.feedId, 160) });
-        if (!e) fail(404, 'No such feed entry');
-        const existing = await d.collection('content').findOne({ feedId: e._id });
-        if (existing && !body.fresh) return { id: existing._id };
-        const r = await graphicForFeed(d, existing ? { ...e, _id: `${e._id}` } : e, settings, { by: u.email });
-        return { id: r.item._id };
-      }
-      const t = TEMPLATE[body.template] ? body.template : 'player-story';
-      const project = newProject(t, { kicker: 'AROUND THE NBA', headline: 'HEADLINE', note: '', stats: [], brand: { name: settings.brand.name, handle: settings.brand.handle }, source: 'Data: ESPN' }, FORMATS[body.format] ? body.format : 'x_landscape');
-      const r = await d.collection('content').insertOne({ title: str(body.title, 120) || 'Untitled graphic', category: 'custom', project, verification: { status: 'manual', note: 'Created by hand: an editor is responsible for the facts' }, edited: true, createdAt: new Date(), updatedAt: new Date(), createdBy: u.email });
-      return { id: r.insertedId };
+    async regenerate({ req, body }) {
+      const d = await db(); await requireUser(d, req);
+      const g = await regenerate(d, idOf(body.id));
+      if (!g) fail(404, 'No such match or graphic');
+      return summary(g);
     },
+    // Save edits (the original data is kept; "reset" clears the edits). Saving with approve marks a flagged graphic ready.
     async save({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'editor');
-      const project = cleanProject(body.project);
-      const r = await d.collection('content').updateOne({ _id: idOf(body.id) }, { $set: { project, title: str(body.title, 120) || 'Graphic', edited: true, updatedAt: new Date(), updatedBy: u.email } });
-      if (!r.matchedCount) fail(404, 'No such graphic');
-      return { ok: true, updatedAt: new Date() };
-    },
-    async duplicate({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'editor');
-      const g = await d.collection('content').findOne({ _id: idOf(body.id) });
+      const d = await db(); await requireUser(d, req);
+      const id = idOf(body.id);
+      const g = await d.collection('graphics').findOne({ _id: id });
       if (!g) fail(404, 'No such graphic');
-      const { _id, feedId, ...rest } = g;
-      const r = await d.collection('content').insertOne({ ...rest, copyOf: _id, feedRef: feedId || null, title: `${g.title} (copy)`, edited: true, createdAt: new Date(), updatedAt: new Date(), createdBy: u.email });
-      return { id: r.insertedId };
+      const edits = body.reset ? null : cleanEdits(body.edits);
+      const approve = body.approve === true;
+      let render = g.render, error = null;
+      try { const r = await renderPng(d, applyEdits(g.data, edits), g.theme); render = { ok: true, bytes: r.buffer.length, missingImages: r.missing }; } catch (e) { error = e.message; }
+      const status = error ? 'failed' : approve || g.approved || !g.problems?.length ? 'ready' : 'review';
+      await d.collection('graphics').updateOne({ _id: id }, { $set: { edits, render, error, status, approved: approve || !!g.approved, updatedAt: new Date() }, $inc: { version: 1 } });
+      await d.collection('matches').updateOne({ _id: id }, { $set: { 'graphic.status': status === 'ready' ? 'generated' : status } });
+      return summary(await d.collection('graphics').findOne({ _id: id }));
     },
-    async remove({ req, body }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const g = await d.collection('content').findOne({ _id: idOf(body.id) });
-      if (!g) fail(404, 'No such graphic');
-      await d.collection('content').deleteOne({ _id: g._id });
-      if (g.feedId) await d.collection('feed').updateOne({ _id: g.feedId }, { $set: { graphic: null } });
+    async keep({ req, body }) {
+      const d = await db(); await requireUser(d, req);
+      await d.collection('graphics').updateOne({ _id: idOf(body.id) }, { $set: { keep: body.keep !== false } });
       return { ok: true };
     },
-    // Saved designs: a project's template, theme and layout changes, reusable with any data.
-    async template({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'editor');
-      if (body.delete) { await d.collection('templates').deleteOne({ _id: idOf(body.id) }); return { ok: true }; }
-      const p = cleanProject(body.project);
-      const doc = { name: str(body.name, 80) || 'Saved design', template: p.template, theme: p.theme, overrides: p.overrides, removed: p.removed, extra: p.extra, order: p.order, format: p.format, updatedAt: new Date(), by: u.email };
-      const r = await d.collection('templates').insertOne(doc);
-      return { id: r.insertedId };
-    },
-    async upload({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'editor');
-      const m = String(body.data || '').match(/^data:(image\/(png|jpeg|webp));base64,[A-Za-z0-9+/=]+$/);
-      if (!m) fail(400, 'Upload a PNG, JPEG or WebP image');
-      if (body.data.length > 3.5e6) fail(413, 'Images must be under 2.5 MB');
-      const r = await d.collection('uploads').insertOne({ data: body.data, type: m[1], name: str(body.name, 120), by: u.email, at: new Date() });
-      return { id: r.insertedId, url: `/api/graphics?action=upload&id=${r.insertedId}` };
+    async remove({ req, body }) {
+      const d = await db(); await requireUser(d, req, 'owner');
+      const id = idOf(body.id);
+      if (await d.collection('matches').countDocuments({ _id: id, status: 'ft' }, { limit: 1 })) await d.collection('matches').updateOne({ _id: id }, { $set: { 'graphic.status': 'removed' } });
+      await d.collection('graphics').deleteOne({ _id: id });
+      return { ok: true };
     },
   }),
 });
-export { currentUser, privateCache };

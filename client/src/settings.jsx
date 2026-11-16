@@ -1,212 +1,118 @@
-// Settings: each person's preferences; for editors and the owner, how the engine detects and ranks events, AI writing,
-// graphics, data sources, people, and the automation log.
+// Settings: time zone and cleanup, the graphic's brand bits, polling, the competition list, account, and the job log.
 import React, { useEffect, useState } from 'react';
-import { get, post, useLoad, useMe, setMe, can, ago } from './api.js';
-import { Link, ErrorBox, Loading, TeamLogo, CATS } from './components.jsx';
+import { get, post, useLoad, when, useMe } from './api.js';
+import { ErrorBox, Loading } from './ui.jsx';
 
-const TABS = [['prefs', 'My preferences', 'fan'], ['engine', 'Detection & feed', 'editor'], ['integrations', 'Data & AI', 'editor'], ['people', 'People', 'owner'], ['log', 'Automation log', 'editor']];
+const ZONES = (() => { try { return Intl.supportedValuesOf('timeZone'); } catch { return ['America/New_York', 'Europe/London', 'UTC']; } })();
 
-export function SettingsPage() {
-  const { user, loaded } = useMe();
-  const [tab, setTab] = useState('prefs');
-  if (!loaded) return <Loading />;
-  if (!user) return <div className="empty"><h3>Sign in to set your preferences</h3><p><Link to="/signin?next=/settings">Sign in or create an account</Link></p></div>;
-  const tabs = TABS.filter(t => can(user, t[2]));
-  return (
-    <div className="settings-page">
-      <div className="page-head"><h1>Settings</h1></div>
-      <div className="seg">{tabs.map(([k, l]) => <button key={k} type="button" className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
-      {tab === 'prefs' && <Prefs user={user} />}
-      {tab === 'engine' && <Engine owner={user.role === 'owner'} />}
-      {tab === 'integrations' && <Integrations owner={user.role === 'owner'} />}
-      {tab === 'people' && <People />}
-      {tab === 'log' && <Log />}
-    </div>
-  );
-}
-
-function Prefs({ user }) {
-  const { data: teams } = useLoad(() => get('nba', { action: 'teams' }), []);
-  const [p, setP] = useState(() => ({ teams: [], players: [], categories: [], minLevel: 'medium', notify: {}, ...(user.prefs || {}) }));
-  const [saved, setSaved] = useState(null);
-  const save = async next => { setP(next); const r = await post('admin', 'prefs', { prefs: next }); setMe({ ...user, prefs: r.prefs }); setSaved(new Date()); };
-  const toggle = (k, v) => save({ ...p, [k]: p[k].includes(v) ? p[k].filter(x => x !== v) : [...p[k], v] });
-  const browser = async on => {
-    if (on && typeof Notification !== 'undefined' && Notification.permission !== 'granted') { const r = await Notification.requestPermission(); if (r !== 'granted') return; }
-    save({ ...p, notify: { ...p.notify, browser: on } });
-  };
-  return (
-    <div className="settings-body">
-      <section className="panel">
-        <h3>Favorite teams</h3>
-        <p className="muted small">Stories about them are highlighted, can be filtered to ("My teams & players"), and alert you.</p>
-        <div className="team-pick">{(teams || []).map(t => <button key={t.id} type="button" className={`team-chip ${p.teams.includes(t.id) ? 'on' : ''}`} onClick={() => toggle('teams', t.id)}><TeamLogo src={t.logo} abbr={t.abbr} size={20} />{t.abbr}</button>)}</div>
-      </section>
-      <section className="panel">
-        <h3>Favorite players</h3>
-        <p className="muted small">{p.players.length ? `${p.players.length} followed.` : 'None yet.'} Follow players from their page (☆ Add to favorites).</p>
-      </section>
-      <section className="panel">
-        <h3>Alerts</h3>
-        <label className="check"><input type="checkbox" checked={!!p.notify?.critical} onChange={e => save({ ...p, notify: { ...p.notify, critical: e.target.checked } })} /> Critical moments (records, game winners, big comebacks)</label>
-        <label className="check"><input type="checkbox" checked={!!p.notify?.favorites} onChange={e => save({ ...p, notify: { ...p.notify, favorites: e.target.checked } })} /> Anything about my favorites</label>
-        <label className="check"><input type="checkbox" checked={!!p.notify?.browser} onChange={e => browser(e.target.checked)} /> Also as browser notifications while the app is open in another tab</label>
-      </section>
-      {saved && <p className="muted small">Saved {ago(saved)}.</p>}
-      <Password />
-    </div>
-  );
-}
-
-function Password() {
-  const [f, setF] = useState({ current: '', next: '' });
+export function Settings() {
+  const { user } = useMe();
+  const owner = user?.role === 'owner';
+  const { data, error, reload } = useLoad(() => get('admin', { action: 'settings' }), []);
+  const [s, setS] = useState(null);
+  const [comps, setComps] = useState(null);
   const [msg, setMsg] = useState(null);
-  const submit = async e => { e.preventDefault(); try { await post('admin', 'password', f); setMe(null); setMsg('Password changed — sign in again.'); } catch (x) { setMsg(x.message); } };
+  useEffect(() => { if (data) { setS(data.settings); setComps(data.competitions); } }, [data]);
+  if (error && !data) return <ErrorBox error={error} retry={reload} />;
+  if (!s || !comps) return <Loading label="Loading settings" />;
+  const set = (path, v) => setS(x => { const o = structuredClone(x); const ks = path.split('.'); let t = o; for (const k of ks.slice(0, -1)) t = t[k]; t[ks.at(-1)] = v; return o; });
+  const saveSettings = async () => { setMsg(null); try { const r = await post('admin', 'settings', { settings: s }); setS(r.settings); setMsg({ text: 'Settings saved.' }); } catch (e) { setMsg({ bad: true, text: e.message }); } };
+  const saveComps = async list => { setMsg(null); try { const r = await post('admin', 'competitions', { list }); setComps(r.competitions); setMsg({ text: 'Competitions saved. The next schedule refresh uses them.' }); } catch (e) { setMsg({ bad: true, text: e.message }); } };
+  const groups = [...new Set(comps.map(c => c.group))];
   return (
-    <section className="panel"><h3>Password</h3>
-      <form className="form inline" onSubmit={submit}>
-        <input type="password" placeholder="Current password" value={f.current} onChange={e => setF({ ...f, current: e.target.value })} autoComplete="current-password" required />
-        <input type="password" placeholder="New password (10+)" value={f.next} onChange={e => setF({ ...f, next: e.target.value })} autoComplete="new-password" minLength={10} required />
-        <button className="btn">Change</button>
+    <div className="page settings">
+      <div className="page-head"><div><h1>Settings</h1><p className="muted">{owner ? 'Changes apply to the next background check.' : 'Only the owner can change settings.'}</p></div></div>
+      {msg && <div className={`notice ${msg.bad ? 'bad' : 'ok'}`}>{msg.text}</div>}
+      <fieldset disabled={!owner}>
+        <section className="card">
+          <h2>Calendar and cleanup</h2>
+          <label>App time zone <small>decides "today", "tomorrow" and when the automatic cleanup runs</small><select value={s.timezone} onChange={e => set('timezone', e.target.value)}>{ZONES.map(z => <option key={z}>{z}</option>)}</select></label>
+          <label className="check"><input type="checkbox" checked={s.cleanup.auto} onChange={e => set('cleanup.auto', e.target.checked)} /> Delete completed match data automatically</label>
+          <div className="two">
+            <label>Minutes before the next day's first kickoff<input type="number" min="0" max="600" value={s.cleanup.beforeFirstKickoffMin} onChange={e => set('cleanup.beforeFirstKickoffMin', e.target.value)} /></label>
+            <label>Fallback time when a day has no matches<input type="time" value={s.cleanup.fallbackTime} onChange={e => set('cleanup.fallbackTime', e.target.value)} /></label>
+          </div>
+          <label>Remove postponed / cancelled / abandoned matches after (hours past kickoff)<input type="number" min="1" max="240" value={s.cleanup.deletePostponedAfterHours} onChange={e => set('cleanup.deletePostponedAfterHours', e.target.value)} /></label>
+        </section>
+        <section className="card">
+          <h2>Graphic</h2>
+          <div className="two">
+            <label>Accent colour<span className="color"><input type="color" value={s.graphics.accent} onChange={e => set('graphics.accent', e.target.value)} /><input value={s.graphics.accent} onChange={e => set('graphics.accent', e.target.value)} maxLength={7} /></span></label>
+            <label>Handle<input value={s.graphics.handle} onChange={e => set('graphics.handle', e.target.value)} maxLength={40} /></label>
+          </div>
+          <label className="check"><input type="checkbox" checked={s.graphics.showDate} onChange={e => set('graphics.showDate', e.target.checked)} /> Show the match date</label>
+          <label className="check"><input type="checkbox" checked={s.graphics.useTeamColors} onChange={e => set('graphics.useTeamColors', e.target.checked)} /> Team-colour rule under each crest</label>
+          <label>Keep graphics for (days, 0 = until deleted)<input type="number" min="0" max="365" value={s.graphics.retentionDays} onChange={e => set('graphics.retentionDays', e.target.value)} /></label>
+          <p className="muted small">New graphics use these; "Regenerate" applies them to an existing one.</p>
+        </section>
+        <section className="card">
+          <h2>Checking ESPN</h2>
+          <div className="three">
+            <label>Live check every (seconds)<input type="number" min="30" max="300" value={s.polling.liveEverySec} onChange={e => set('polling.liveEverySec', e.target.value)} /></label>
+            <label>Schedule refresh every (minutes)<input type="number" min="30" max="720" value={s.polling.syncEveryMin} onChange={e => set('polling.syncEveryMin', e.target.value)} /></label>
+            <label>Start watching before kickoff (minutes)<input type="number" min="0" max="60" value={s.polling.preKickoffMin} onChange={e => set('polling.preKickoffMin', e.target.value)} /></label>
+          </div>
+        </section>
+        <div className="actions"><button type="button" className="primary" onClick={saveSettings}>Save settings</button></div>
+        <section className="card">
+          <h2>Competitions <small className="muted">{comps.filter(c => c.enabled).length} of {comps.length} watched · men's only</small></h2>
+          {groups.map(gr => (
+            <div key={gr} className="comp-group">
+              <h3>{data.groups[gr] || gr}</h3>
+              {comps.map((c, i) => c.group !== gr ? null : (
+                <div key={c.code} className="comp-row">
+                  <input type="checkbox" checked={c.enabled} onChange={e => setComps(l => l.map((x, k) => (k === i ? { ...x, enabled: e.target.checked } : x)))} aria-label={`Watch ${c.name}`} />
+                  <input value={c.name} onChange={e => setComps(l => l.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))} aria-label="Name" />
+                  <code>{c.code}</code>
+                  {c.group === 'custom' && <button type="button" className="link" onClick={() => setComps(l => l.filter((_, k) => k !== i))}>Remove</button>}
+                </div>
+              ))}
+            </div>
+          ))}
+          <AddCompetition onAdd={c => setComps(l => [...l, c])} />
+          <div className="actions wrap"><button type="button" className="primary" onClick={() => saveComps(comps)}>Save competitions</button><button type="button" className="ghost" onClick={() => { if (confirm('Restore the original 39 competitions?')) saveComps(data.defaultCompetitions); }}>Restore the original 39</button></div>
+        </section>
+      </fieldset>
+      <Account />
+      <Log />
+    </div>
+  );
+}
+
+function AddCompetition({ onAdd }) {
+  const [code, setCode] = useState(''), [name, setName] = useState('');
+  return (
+    <div className="add-comp">
+      <input value={code} onChange={e => setCode(e.target.value)} placeholder="ESPN code, e.g. bel.1" aria-label="ESPN code" />
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Name, e.g. Belgian Pro League" aria-label="Name" />
+      <button type="button" className="ghost" disabled={!/^[a-z0-9_.]{2,60}$/.test(code.trim())} onClick={() => { onAdd({ code: code.trim(), name: name.trim() || code.trim(), group: 'custom', enabled: true }); setCode(''); setName(''); }}>Add</button>
+      <p className="muted small">The code is the part of ESPN's soccer URLs after /soccer/ (women's competitions are ignored).</p>
+    </div>
+  );
+}
+
+function Account() {
+  const [cur, setCur] = useState(''), [next, setNext] = useState(''), [msg, setMsg] = useState(null);
+  return (
+    <section className="card">
+      <h2>Password</h2>
+      <form className="two" onSubmit={async e => { e.preventDefault(); try { await post('admin', 'password', { current: cur, next }); setMsg('Password changed. Sign in again on other devices.'); setCur(''); setNext(''); } catch (x) { setMsg(x.message); } }}>
+        <label>Current<input type="password" value={cur} onChange={e => setCur(e.target.value)} autoComplete="current-password" /></label>
+        <label>New (10+ characters)<input type="password" value={next} onChange={e => setNext(e.target.value)} autoComplete="new-password" /></label>
+        <div className="actions"><button className="ghost" disabled={!cur || next.length < 10}>Change password</button>{msg && <span className="muted small">{msg}</span>}</div>
       </form>
-      {msg && <p className="muted small">{msg}</p>}
     </section>
   );
 }
 
-// Number and toggle inputs bound to a settings path.
-const getPath = (o, path) => path.split('.').reduce((a, k) => a?.[k], o);
-const setPath = (o, path, v) => { const ks = path.split('.'); const out = structuredClone(o); let t = out; ks.slice(0, -1).forEach(k => { t = t[k] ||= {}; }); t[ks.at(-1)] = v; return out; };
-
-function Engine({ owner }) {
-  const { data, error, reload } = useLoad(() => get('admin', { action: 'settings' }), []);
-  const [s, setS] = useState(null);
-  const [msg, setMsg] = useState(null);
-  useEffect(() => { if (data) setS(data.settings); }, [data]);
-  if (error) return <ErrorBox error={error} retry={reload} />;
-  if (!s) return <Loading />;
-  const num = (path, label, hint, step = 1) => <label className="field num"><span>{label}{hint && <small className="muted"> {hint}</small>}</span><input type="number" step={step} value={getPath(s, path) ?? ''} disabled={!owner} onChange={e => setS(setPath(s, path, e.target.value === '' ? '' : +e.target.value))} /></label>;
-  const bool = (path, label) => <label className="check"><input type="checkbox" checked={!!getPath(s, path)} disabled={!owner} onChange={e => setS(setPath(s, path, e.target.checked))} /> {label}</label>;
-  const save = async () => { try { const r = await post('admin', 'settings', { settings: s }); setS(r.settings); setMsg('Saved.'); } catch (x) { setMsg(x.message); } };
-  return (
-    <div className="settings-body">
-      {!owner && <p className="muted">Only the owner can change these.</p>}
-      <section className="panel"><h3>Feed</h3>
-        {num('feed.minScore', 'Significance needed to publish', '(0–100; critical ≥ 85, high ≥ 65, medium ≥ 40)')}
-        {num('feed.perGameRunCap', 'Most scoring/solo runs published per game')}
-        {num('feed.boostFavorites', 'Significance bonus for watchlist teams and players')}
-        <label className="field"><span>Monitor</span><select value={s.feed.scope} disabled={!owner} onChange={e => setS(setPath(s, 'feed.scope', e.target.value))}><option value="all">All NBA games</option><option value="teams">Watchlist teams only</option><option value="players">Watchlist players only</option></select></label>
-        <h4>Categories in the feed</h4>
-        <div className="cat-grid">{Object.keys(s.feed.categories).map(k => bool(`feed.categories.${k}`, CATS[k]?.[0] || k))}</div>
-      </section>
-      <section className="panel"><h3>Live game detection</h3>
-        {bool('detection.live', 'Watch live games')}{bool('detection.records', 'Records')}{bool('detection.milestones', 'Milestones')}
-        <div className="num-grid">
-          {num('intel.run.min', 'Team run: minimum points')}{num('intel.run.minQ4', 'In the 4th quarter/OT')}{num('intel.run.minEarly', 'In the 1st half')}
-          {num('intel.solo.consecutive', 'Solo run: consecutive points')}{num('intel.solo.consecutiveLate', 'In the 4th/OT')}
-          {num('intel.close.clutchMargin', 'Clutch: margin within')}{num('intel.close.clutchSeconds', 'Clutch: seconds left')}
-          {num('intel.comeback.minDeficit', 'Comeback: deficit of at least')}{num('intel.comeback.cut', 'Comeback: cut by at least')}
-          {num('intel.blowout.lead', 'Blowout: lead of')}{num('intel.collapse.lead', 'Collapse: lead of')}{num('intel.collapse.drop', 'Collapse: given back')}
-          {num('feed.streaks.win', 'Winning streak worth a story')}{num('feed.streaks.loss', 'Losing streak worth a story')}{num('feed.streaks.endedFrom', 'Snapped streak of at least')}
-        </div>
-      </section>
-      <section className="panel"><h3>Performances</h3>
-        <div className="num-grid">
-          {num('detection.efficient.minPts', 'Efficient: points')}{num('detection.efficient.ts', 'Efficient: TS% at least')}
-          {num('detection.rolePlayer.avgMax', 'Role player: averages at most')}{num('detection.rolePlayer.minPts', 'Role player: points tonight')}
-          {num('detection.outlierZ', 'Outlier vs own season (standard deviations)', '', 0.1)}{num('detection.turnovers', 'High turnovers')}
-          {num('detection.defense.stocks', 'Defense: steals + blocks')}{num('detection.clutch.pts', 'Clutch points')}
-          {num('detection.disappointment.minAvg', 'Rough night: averages at least')}{num('detection.minScore', 'Performance significance to record')}
-        </div>
-      </section>
-      <section className="panel"><h3>AI writing</h3>
-        {bool('ai.writing', 'AI-written summaries for high and critical events (labelled; the data-driven text is always kept)')}
-        <label className="field"><span>Reporting style</span><select value={s.ai.style} disabled={!owner} onChange={e => setS(setPath(s, 'ai.style', e.target.value))}><option value="balanced">Balanced — informative, some personality</option><option value="straight">Straight news</option><option value="lively">Lively broadcast</option></select></label>
-      </section>
-      <section className="panel"><h3>Graphics</h3>
-        {bool('graphics.auto', 'Create graphics automatically for critical events (and high events in the chosen categories)')}
-        <div className="cat-grid">{Object.keys(CATS).map(k => <label key={k} className="check"><input type="checkbox" disabled={!owner} checked={s.graphics.high.includes(k)} onChange={e => setS(setPath(s, 'graphics.high', e.target.checked ? [...s.graphics.high, k] : s.graphics.high.filter(x => x !== k)))} /> {CATS[k][0]}</label>)}</div>
-      </section>
-      {owner && <div className="actions-row sticky"><button className="btn" onClick={save}>Save settings</button>{msg && <span className="muted">{msg}</span>}</div>}
-    </div>
-  );
-}
-
-function Integrations({ owner }) {
-  const { data, error, reload } = useLoad(() => get('admin', { action: 'integrations' }), []);
-  const [key, setKey] = useState('');
-  const [msg, setMsg] = useState(null);
-  if (error) return <ErrorBox error={error} retry={reload} />;
-  if (!data) return <Loading />;
-  const ai = data.credentials.anthropic;
-  const save = async v => { try { await post('admin', 'credential', { id: 'anthropic', values: v }); setKey(''); setMsg(v ? 'Saved (encrypted).' : 'Removed.'); reload(); } catch (x) { setMsg(x.message); } };
-  return (
-    <div className="settings-body">
-      <section className="panel"><h3>AI (Anthropic)</h3>
-        <p>{ai.configured ? <span className="ok">Connected ({ai.from === 'environment' ? 'ANTHROPIC_API_KEY on the server' : 'saved here, encrypted'}).</span> : <span className="warn">Not connected — the feed uses its data-driven text only.</span>}</p>
-        <p className="muted small">Needs an API key from console.anthropic.com, set as the ANTHROPIC_API_KEY environment variable in Vercel and GitHub Actions, or saved here (encrypted with a server-side key).</p>
-        {owner && <form className="form inline" onSubmit={e => { e.preventDefault(); save({ apiKey: key }); }}><input type="password" placeholder="sk-ant-…" value={key} onChange={e => setKey(e.target.value)} autoComplete="off" /><button className="btn" disabled={!key}>Save key</button>{ai.configured && ai.from !== 'environment' && <button type="button" className="btn ghost" onClick={() => save(null)}>Remove</button>}</form>}
-        {msg && <p className="muted small">{msg}</p>}
-      </section>
-      <AgentPanel owner={owner} info={data.agentKey} />
-      <section className="panel"><h3>Data sources</h3>
-        <table className="table"><thead><tr><th>Source</th><th>Role</th><th>Coverage & limits</th><th>This server</th></tr></thead>
-          <tbody>{data.sources.map(s => <tr key={s.id} className={s.unavailable ? 'muted' : ''}><td><b>{s.name}</b>{s.key ? <><br /><small>needs {s.env}</small></> : null}</td><td>{s.role}</td><td>{s.coverage}<br /><small>{s.limits}</small></td>
-            <td>{s.hosts.map(h => <div key={h.host} className="small">{h.host}: {h.lastOk ? `ok ${ago(h.lastOk)}` : 'no calls yet'}{h.lastError ? ` · last error ${ago(h.lastError.at)}` : ''}</div>)}</td></tr>)}</tbody></table>
-      </section>
-    </div>
-  );
-}
-
-function People() {
-  const { data, error, reload } = useLoad(() => get('admin', { action: 'users' }), []);
-  const [f, setF] = useState({ email: '', name: '', role: 'editor' });
-  const [msg, setMsg] = useState(null);
-  if (error) return <ErrorBox error={error} retry={reload} />;
-  if (!data) return <Loading />;
-  const invite = async e => { e.preventDefault(); try { const r = await post('admin', 'invite', f); setMsg(`Created ${r.email}. Temporary password (shown once): ${r.temporaryPassword}`); reload(); } catch (x) { setMsg(x.message); } };
-  const change = async (u, patch) => { await post('admin', 'user', { id: u._id, ...patch }); reload(); };
-  return (
-    <div className="settings-body">
-      <section className="panel"><h3>Invite an editor</h3>
-        <form className="form inline" onSubmit={invite}><input placeholder="Name" value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /><input type="email" placeholder="Email" required value={f.email} onChange={e => setF({ ...f, email: e.target.value })} />
-          <select value={f.role} onChange={e => setF({ ...f, role: e.target.value })}><option value="editor">Editor</option><option value="fan">Fan</option></select><button className="btn">Add</button></form>
-        {msg && <p className="small">{msg}</p>}
-      </section>
-      <table className="table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th /></tr></thead>
-        <tbody>{data.map(u => <tr key={u._id} className={u.disabled ? 'muted' : ''}><td>{u.name}</td><td>{u.email}</td><td>{u.role === 'owner' ? 'owner' : <select value={u.role} onChange={e => change(u, { role: e.target.value })}><option value="editor">editor</option><option value="fan">fan</option></select>}</td>
-          <td>{u.role !== 'owner' && <button className="linklike" onClick={() => change(u, { disabled: !u.disabled })}>{u.disabled ? 'Enable' : 'Disable'}</button>}</td></tr>)}</tbody></table>
-    </div>
-  );
-}
-
 function Log() {
-  const { data, error, reload } = useLoad(() => get('admin', { action: 'log' }), []);
-  const [running, setRunning] = useState(false);
-  const { data: status } = useLoad(() => get('admin', { action: 'status' }), [data]);
-  if (error) return <ErrorBox error={error} retry={reload} />;
-  if (!data) return <Loading />;
-  const run = async () => { setRunning(true); try { await post('admin', 'tick'); } finally { setRunning(false); reload(); } };
+  const { data, reload } = useLoad(() => get('admin', { action: 'log', limit: 60 }), [], { every: 60e3 });
+  const { data: st } = useLoad(() => get('admin', { action: 'status' }), []);
   return (
-    <div className="settings-body">
-      <section className="panel">
-        <p>Last check {data.lastTick?.at ? ago(data.lastTick.at) : 'never'}{status?.monitor ? ` · live monitor: ${status.monitor.state}${status.monitor.at ? ` (${ago(status.monitor.at)})` : ''}` : ''}.</p>
-        <button className="btn" onClick={run} disabled={running}>{running ? 'Checking every game…' : 'Check every game now'}</button>
-      </section>
-      <ul className="log">{data.entries.map(l => <li key={l._id} className={`l-${l.level}`}><time>{new Date(l.at).toLocaleString()}</time><span>{l.message}</span></li>)}</ul>
-    </div>
-  );
-}
-
-function AgentPanel({ owner, info }) {
-  const [key, setKey] = useState(null);
-  const make = async () => { if (info && !confirm('Replace the current agent key? The old one stops working.')) return; setKey((await post('admin', 'agentkey')).key); };
-  return (
-    <section className="panel"><h3>Publishing agent</h3>
-      <p className="muted small">For an AI agent that posts to X and TikTok: it reads <code>/api/agent?action=today</code> (stories, text, verification and ready-made images in 16:9 and 9:16) and marks what it posted with this key, so nothing goes out twice. Instructions: <a href="/api/agent?action=guide" target="_blank" rel="noreferrer">/api/agent?action=guide</a>.</p>
-      <p className="small">{info ? `A key exists (created ${ago(info.at)}).` : 'No key yet.'}</p>
-      {owner && <button className="btn small" onClick={make}>{info ? 'Replace the key' : 'Create a key'}</button>}
-      {key && <p className="small">Copy it now — it isn't shown again: <code className="key">{key}</code></p>}
+    <section className="card">
+      <h2>Activity <button type="button" className="link" onClick={() => reload()}>Refresh</button></h2>
+      {st && <p className="muted small">Stored now: {st.counts.matches} matches (temporary) · {st.counts.graphics} graphics · {st.counts.logos} logos · {st.counts.processed} finished event ids (expire in 4 days)</p>}
+      <ol className="log">{(data || []).map(l => <li key={l._id} className={`lv-${l.level}`}><time>{when(l.at)}</time>{l.message}</li>)}</ol>
     </section>
   );
 }

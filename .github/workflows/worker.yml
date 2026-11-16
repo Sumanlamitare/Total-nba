@@ -1,0 +1,33 @@
+name: Worker
+
+# The background worker: schedule refreshes, live checks while matches are on, full-time graphics, the automatic
+# cleanup. Started every 30 minutes; it keeps working while something is due within 35 minutes, otherwise it exits
+# (a quiet start takes well under a minute). Only one runs at a time; a start that finds one running waits its turn.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: How long to run at most (minutes)
+        default: '340'
+
+concurrency:
+  group: worker
+  cancel-in-progress: false
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - run: node scripts/worker.mjs --minutes "${MINUTES:-340}"
+        env:
+          MINUTES: ${{ inputs.minutes }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

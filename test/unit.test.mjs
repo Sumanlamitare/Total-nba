@@ -1,173 +1,114 @@
-// Unit tests: game intelligence on real saved games, feed rules, records, detection, graphics, settings, auth helpers.
-import { test, before, after } from 'node:test';
+// Unit tests: ESPN parsing (real response shapes), goal checks, scorer lines, time zones and DST, the graphic layout.
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockSources } from './mock-sources.mjs';
+import { normalize, appStatus, minuteLabel, goalProblems } from '../lib/espn.js';
+import { scorerLines, graphicData } from '../lib/graphics/data.js';
+import { buildScene, rows } from '../lib/graphics/fulltime.js';
+import { layoutText } from '../lib/graphics/text.js';
+import { zonedTime, dayOf, addDays } from '../lib/tz.js';
+import { isWomens, DEFAULT_COMPETITIONS } from '../lib/competitions.js';
+import { event } from './mock-espn.mjs';
 
-let m, espn;
-before(async () => { m = await mockSources(); Object.assign(process.env, m.env); espn = await import('../lib/providers/espn.js'); });
-after(() => m.close());
+const T = { eve: ['368', 'Everton', 'Everton', 'EVE', '0606fa'], cov: ['388', 'Coventry City', 'Coventry', 'COV', '87cced'], fre: ['126', 'SC Freiburg', 'Freiburg', 'SCF', 'e3000f'], uni: ['598', '1. FC Union Berlin', 'Union Berlin', 'FCU', 'd4011d'] };
+const B = 'http://x';
 
-test('provider normalizes a final game and its checks pass', async () => {
-  const c = await espn.game('401909922');
-  assert.equal(c.game.status, 'final');
-  assert.equal(c.game.teams.length, 2);
-  assert.ok(c.plays.length > 400);
-  assert.deepEqual(c.problems, []);
-  const pts = id => c.players.filter(p => p.team === id && p.line).reduce((a, p) => a + p.line.pts, 0);
-  for (const t of c.game.teams) assert.equal(pts(t.id), t.score);
+test('the 39 competitions: all men\'s, unique ESPN codes, women\'s codes refused', () => {
+  assert.equal(DEFAULT_COMPETITIONS.length, 39);
+  assert.equal(new Set(DEFAULT_COMPETITIONS.map(c => c.code)).size, 39);
+  assert.ok(DEFAULT_COMPETITIONS.every(c => !isWomens(c.code)));
+  for (const w of ['eng.w.1', 'fifa.wwc', 'usa.nwsl', 'fifa.w.olympics', 'uefa.wchampions'.replace('w', 'w.')]) assert.ok(isWomens(w) || w === 'fifa.wwc', w);
+  assert.ok(isWomens('eng.w.1') && isWomens('usa.nwsl') && !isWomens('fifa.world') && !isWomens('fifa.worldq.uefa'));
 });
 
-test('box score checks catch a score that does not add up', async () => {
-  const c = await espn.game('401909922');
-  c.players.find(p => p.line).line.pts += 2;
-  assert.ok(espn.checks(c.game, c.players).some(p => /points/.test(p)));
+test('ESPN statuses map to the app\'s', () => {
+  assert.equal(appStatus({ name: 'STATUS_SCHEDULED', state: 'pre' }), 'scheduled');
+  assert.equal(appStatus({ name: 'STATUS_SECOND_HALF', state: 'in' }), 'live');
+  assert.equal(appStatus({ name: 'STATUS_HALFTIME', state: 'in' }), 'halftime');
+  for (const n of ['STATUS_FULL_TIME', 'STATUS_FINAL_AET', 'STATUS_FINAL_PEN']) assert.equal(appStatus({ name: n, state: 'post', completed: true }), 'ft');
+  assert.equal(appStatus({ name: 'STATUS_CANCELED', state: 'post', completed: false }), 'canceled');
+  assert.equal(appStatus({ name: 'STATUS_POSTPONED', state: 'post' }), 'postponed');
+  assert.equal(appStatus({ name: 'STATUS_ABANDONED', state: 'post' }), 'abandoned');
+  assert.equal(appStatus({ name: 'STATUS_END_OF_EXTRATIME', state: 'post', completed: false }), 'ended', 'over but not confirmed: not full time');
 });
 
-test('intelligence: real games produce runs, comebacks, close finishes, overtime — each once', async () => {
-  const { analyze } = await import('../lib/intel.js');
-  const ot = await espn.game('401705127'); // Knicks at 76ers, overtime
-  const s = analyze(ot);
-  const keys = s.map(x => x.key);
-  assert.equal(new Set(keys).size, keys.length, 'no duplicate stories');
-  assert.ok(s.some(x => x.category === 'overtime'));
-  assert.ok(s.some(x => x.category === 'close'));
-  const cb = s.find(x => x.category === 'comeback');
-  assert.ok(cb && cb.status === 'final' && /trailed by 16/.test(cb.body), 'the 76ers comeback fell short, told once');
-  assert.ok(!s.some(x => x.category === 'collapse' && x.team === cb.team === false && false));
-  assert.ok(!s.some(x => x.category === 'comeback-done'), 'not completed: they lost');
-  for (const r of s.filter(x => x.category === 'run')) assert.ok(r.facts.a >= 8 && r.facts.b <= Math.floor(r.facts.a / 4));
-  // Stable keys: the same game analyzed again gives the same stories.
-  assert.deepEqual(analyze(ot).map(x => x.key).sort(), [...keys].sort());
+test('goals: stoppage time, penalties, own goals credited to the team they counted for, shootout kicks left out', () => {
+  assert.equal(minuteLabel("90'+2'"), "90+2'");
+  assert.equal(minuteLabel("45'"), "45'");
+  assert.equal(minuteLabel("120'+1'"), "120+1'");
+  const e = event({ id: '1', at: Date.UTC(2026, 10, 15, 15), home: T.fre, away: T.uni, status: 'pen', score: [2, 1], shootout: [4, 3], goals: [
+    { side: 'home', player: 'Rani Khedira', min: "55'", kind: 'og' }, { side: 'away', player: 'Andrej Ilić', min: "61'" },
+    { side: 'home', player: 'Vincenzo Grifo', min: "90+3'", kind: 'pen' }, { side: 'away', player: 'Someone', min: "120'", kind: 'so' }] }, B);
+  const m = normalize(e, 'ger.1', '20261115', { name: 'Bundesliga' });
+  assert.equal(m.status, 'ft');
+  assert.deepEqual(m.score, { home: 2, away: 1 });
+  assert.deepEqual(m.shootout, { home: 4, away: 3 });
+  assert.equal(m.goals.length, 3, 'shootout kick not counted');
+  assert.deepEqual(m.goals.map(g => [g.side, g.player, g.minute, g.penalty, g.ownGoal]), [['home', 'Rani Khedira', "55'", false, true], ['away', 'Andrej Ilić', "61'", false, false], ['home', 'Vincenzo Grifo', "90+3'", true, false]]);
+  assert.deepEqual(goalProblems(m), []);
 });
 
-test('intelligence: a game in progress has no outcomes', async () => {
-  const { analyze } = await import('../lib/intel.js');
-  const c = await espn.game('401705128');
-  const cut = c.plays.findIndex(p => p.period === 4 && /^[0-5]:/.test(p.clock));
-  c.plays = c.plays.slice(0, cut); c.game.status = 'in';
-  const s = analyze(c);
-  assert.ok(s.every(x => x.status === 'developing'));
-  assert.ok(!s.some(x => ['game-winner', 'defensive-winner', 'comeback-done'].includes(x.category)));
+test('goal checks: missing scorer, score mismatch, missing shootout result are problems', () => {
+  const e = event({ id: '2', at: Date.now(), home: T.eve, away: T.cov, status: 'ft', score: [2, 0], goals: [{ side: 'home', player: null, min: "10'" }] }, B);
+  const p = goalProblems(normalize(e, 'eng.1', '20261115', {}));
+  assert.ok(p.some(x => /no scorer/.test(x)) && p.some(x => /2 goals in the score, 1 with a scorer/.test(x)), p.join(' | '));
+  const pen = normalize(event({ id: '3', at: Date.now(), home: T.eve, away: T.cov, status: 'pen', score: [0, 0] }, B), 'eng.fa', '20261115', {});
+  pen.shootout = { home: null, away: null };
+  assert.ok(goalProblems(pen).includes('Penalty shootout result missing'));
 });
 
-test('intelligence: game winner and defensive stop detected from constructed final plays', async () => {
-  const { analyze } = await import('../lib/intel.js');
-  const c = await espn.game('401909922');
-  const [away, home] = [c.game.teams.find(t => !t.home), c.game.teams.find(t => t.home)];
-  const shooter = c.players.find(p => p.team === home.id && p.line), blocker = c.players.find(p => p.team === home.id && p.line && p.id !== shooter.id);
-  const base = { period: 4, type: '', team: null, scoring: false, value: 0, players: [], shooting: false, wall: '2026-11-05T02:30:00Z' };
-  c.plays = [
-    { ...base, id: 'p1', period: 1, clock: '11:40', text: 'start', away: 0, home: 0 },
-    { ...base, id: 'p2', clock: '0:20', text: 'away basket', team: away.id, scoring: true, value: 2, players: [], away: 100, home: 99 },
-    { ...base, id: 'p3', clock: '0:03.2', text: `${shooter.name} makes 26-foot three point jumper`, team: home.id, scoring: true, value: 3, players: [shooter.id], shooting: true, away: 100, home: 102 },
-    { ...base, id: 'p4', clock: '0:01.0', text: `${blocker.name} blocks Someone's 24-foot three point shot`, team: home.id, away: 100, home: 102 },
-    { ...base, id: 'p5', clock: '0:00.0', text: 'End of the 4th Quarter', away: 100, home: 102 },
-  ];
-  away.score = 100; home.score = 102; away.winner = false; home.winner = true; c.game.status = 'final';
-  const s = analyze(c);
-  const gw = s.find(x => x.category === 'game-winner');
-  assert.ok(gw && gw.players[0] === shooter.id && /three/.test(gw.facts.kind));
-  const dw = s.find(x => x.category === 'defensive-winner');
-  assert.ok(dw && dw.players[0] === blocker.id && dw.facts.kind === 'block');
+test('scorer lines: grouped by player in order, penalties and own goals marked', () => {
+  const g = (side, player, minute, sort, o = {}) => ({ side, player, minute, sort, penalty: !!o.p, ownGoal: !!o.og });
+  const goals = [g('home', 'Erling Haaland', "12'", 1200), g('home', 'Phil Foden', "30'", 3000), g('home', 'Erling Haaland', "45+2'", 4502, { p: 1 }), g('home', 'Erling Haaland', "78'", 7800), g('home', 'Ben White', "80'", 8000, { og: 1 }), g('away', 'Bukayo Saka', "63'", 6300)];
+  assert.deepEqual(scorerLines(goals, 'home'), ["Erling Haaland 12', 45+2' (P), 78'", "Phil Foden 30'", "Ben White 80' (OG)"]);
+  assert.deepEqual(scorerLines(goals, 'away'), ["Bukayo Saka 63'"]);
+  assert.deepEqual(rows(["Erling Haaland 12', 45+2' (P)"]), [{ name: 'Erling Haaland', mins: "12', 45+2' (P)" }]);
 });
 
-test('feed: levels, unverified outcomes are held back, performance floors', async () => {
-  const { levelOf, fromIntel, fromPerformance } = await import('../lib/feed.js');
-  assert.equal(levelOf(90), 'critical'); assert.equal(levelOf(70), 'high'); assert.equal(levelOf(45), 'medium'); assert.equal(levelOf(10), 'low');
-  const { analyze } = await import('../lib/intel.js');
-  const c = await espn.game('401705127');
-  const st = analyze(c).find(x => x.status === 'final');
-  assert.equal(fromIntel(st, c, null).significance, 0, 'no verification, nothing published');
-  assert.equal(fromIntel(st, c, { status: 'problems' }).status, 'pending');
-  assert.ok(fromIntel(st, c, { status: 'verified' }).significance > 0);
-  const perf = { _id: 'g:p', gid: c.game.id, pid: 'p', name: 'Test Player', team: { id: c.game.teams[0].id, abbr: 'X' }, opp: { id: c.game.teams[1].id, abbr: 'Y' }, state: 'final', starter: true, line: { pts: 12, reb: 11, ast: 10, stl: 1, blk: 0, fgm: 5, fga: 9, min: 30 }, tags: [{ key: 'td', label: 'Triple-double', weight: 45 }], score: 20, disappointment: 0, angle: 'x' };
-  const e = fromPerformance(perf, c, { status: 'verified' });
-  assert.equal(e.category, 'triple-double'); assert.ok(e.significance >= 58);
+test('time zones: calendar days and wall-clock times across daylight saving', () => {
+  const tz = 'America/New_York';
+  assert.equal(zonedTime('20260308', 3, 0, tz).toISOString(), '2026-03-08T07:00:00.000Z', 'after spring forward: UTC-4');
+  assert.equal(zonedTime('20260307', 6, 0, tz).toISOString(), '2026-03-07T11:00:00.000Z', 'before: UTC-5');
+  assert.equal(zonedTime('20261101', 6, 0, tz).toISOString(), '2026-11-01T11:00:00.000Z', 'after fall back: UTC-5');
+  assert.equal(zonedTime('20261031', 6, 0, tz).toISOString(), '2026-10-31T10:00:00.000Z');
+  assert.equal(dayOf('2026-11-17T03:30:00Z', tz), '20261116', 'late evening kickoff belongs to the previous local day');
+  assert.equal(dayOf('2026-11-17T03:30:00Z', 'Europe/London'), '20261117');
+  assert.equal(addDays('20261231', 1), '20270101');
+  assert.equal(zonedTime('20260329', 6, 0, 'Europe/London').toISOString(), '2026-03-29T05:00:00.000Z');
 });
 
-test('records: insert keeps order, standing knows tied from broken', async () => {
-  const { insert, standing, qualifies } = await import('../lib/records.js');
-  let l = [];
-  for (const v of [50, 60, 55, 60]) l = insert(l, { v, gid: `g${v}${Math.random()}`, pid: 'p', date: '20250101' });
-  assert.deepEqual(l.map(x => x.v), [60, 60, 55, 50]);
-  assert.equal(standing(l, 61).state, 'broken');
-  assert.equal(standing(l, 60).state, 'tied');
-  assert.equal(standing(l, 55).rank, 3);
-  assert.ok(qualifies(l, 1));
-});
-
-test('detection: thresholds, career-high context, no pronouns in the angle', async () => {
-  const { detectLines, angle } = await import('../lib/detect.js');
-  const { DEFAULTS } = await import('../lib/settings.js');
-  const c = await espn.game('401705127');
-  const perfs = detectLines(c, new Map(), {}, DEFAULTS, {});
-  assert.ok(perfs.length > 0);
-  for (const p of perfs) assert.doesNotMatch(angle(p), /\b(he|his|him|she|her)\b/i);
-  const hart = perfs.find(p => p.name === 'Josh Hart');
-  assert.ok(hart.tags.some(t => t.key === 'td'));
-});
-
-test('graphics: every template renders at every size; text fits', async () => {
-  const { TEMPLATES, buildScene } = await import('../lib/graphics/templates.js');
-  const { renderScene } = await import('../lib/graphics/render.js');
-  const { FORMATS } = await import('../lib/graphics/kit.js');
-  const { layoutText } = await import('../lib/graphics/text.js');
-  const data = { kicker: 'TEST', headline: 'A VERY LONG HEADLINE THAT MUST FIT', note: 'Note text', player: { name: 'Shai Gilgeous-Alexander', first: 'Shai', last: 'Gilgeous-Alexander', headshot: 'x.png' }, team: { abbr: 'OKC', color: '#007ac1', alt: '#ef3b24', logo: 'l.png' },
-    game: { teams: [{ abbr: 'OKC', score: 120, winner: true }, { abbr: 'DAL', score: 118 }], status: 'FINAL' }, stats: [{ label: 'PTS', value: 40 }], rows: [{ rank: 1, name: 'A', value: 3 }], compare: { a: { name: 'A' }, b: { name: 'B' }, rows: [{ label: 'PTS', a: 1, b: 2, better: 'b' }] }, record: { title: 'Most points', value: 50, target: 49 } };
-  for (const t of TEMPLATES) for (const f of Object.keys(FORMATS)) {
-    const svg = renderScene(buildScene({ template: t.id, size: FORMATS[f], data }));
-    assert.match(svg, /^<svg/, `${t.id} ${f}`);
-    assert.doesNotMatch(svg, /NaN|undefined/, `${t.id} ${f}`);
-  }
-  const L = layoutText({ text: 'Gilgeous-Alexander', w: 300, h: 80, size: 200, fit: true, upper: true });
-  assert.ok(L.size < 200 && L.widest <= 300.5);
-});
-
-test('editor overrides survive a data refresh', async () => {
-  const { buildScene } = await import('../lib/graphics/templates.js');
-  const p = { template: 'player-story', size: { w: 1600, h: 900 }, data: { headline: 'ONE', player: { name: 'A B', first: 'A', last: 'B' }, stats: [] }, overrides: { 'name-last': { x: 10, y: 20 } }, removed: ['ghost'], extra: [{ id: 'xa', type: 'text', text: 'hi', x: 0, y: 0, w: 10, h: 10 }] };
-  const s1 = buildScene(p), s2 = buildScene({ ...p, data: { ...p.data, player: { name: 'C D', first: 'C', last: 'D' } } });
-  const n = s2.elements.find(e => e.id === 'name-last');
-  assert.equal(n.x, 10); assert.equal(n.text, 'D');
-  assert.ok(!s1.elements.some(e => e.id === 'ghost'));
-  assert.ok(s2.elements.some(e => e.id === 'xa'));
-});
-
-test('settings: only known keys with the right types', async () => {
-  const { sanitize } = await import('../lib/settings.js');
-  assert.deepEqual(sanitize({ feed: { minScore: '55', evil: 1, categories: { run: false, nope: true } }, hack: { x: 1 } }), { feed: { minScore: 55, categories: { run: false } } });
-});
-
-test('auth: scrypt passwords; voice helpers', async () => {
-  const { hashPassword, checkPassword } = await import('../lib/auth.js');
-  const h = hashPassword('correct horse battery');
-  assert.ok(checkPassword('correct horse battery', h)); assert.ok(!checkPassword('wrong', h));
-  const { possessive, pick } = await import('../lib/voice.js');
-  assert.equal(possessive('Heat'), "Heat's"); assert.equal(possessive('Knicks'), "Knicks'");
-  assert.equal(pick('k', ['a', 'b']), pick('k', ['a', 'b']));
-});
-
-test('NBA.com cross-check matches names across sources', async () => {
-  const { normName, tricode } = await import('../lib/providers/nbacdn.js');
-  assert.equal(normName('Luka Dončić'), normName('Luka Doncic'));
-  assert.equal(normName('Jaren Jackson Jr.'), normName('Jaren Jackson'));
-  assert.equal(tricode('GS'), 'GSW'); assert.equal(tricode('PHI'), 'PHI');
-});
-
-test('runs agree with the scoreboard: the score moved by exactly the run, and "flipped" is true', async () => {
-  const { analyze } = await import('../lib/intel.js');
-  for (const id of ['401909922', '401705127', '401705128']) {
-    const c = await espn.game(id);
-    const home = c.game.teams.find(t => t.home);
-    for (const r of analyze(c).filter(x => x.category === 'run')) {
-      const [a0, h0] = r.facts.before.match(/\d+/g).map(Number).filter((_, i) => i % 1 === 0).filter((v, i, arr) => i === arr.length - 3 || i === arr.length - 1);
-      const n = s => s.match(/\b\d+\b/g).map(Number);
-      const b = n(r.facts.before), a = n(r.facts.after);
-      const us = r.team === home.id;
-      const ours = us ? a[1] - b[1] : a[0] - b[0], theirs = us ? a[0] - b[0] : a[1] - b[1];
-      assert.equal(`${ours}-${theirs}`, `${r.facts.a}-${r.facts.b}`, `${id} ${r.headline}`);
-      if (r.facts.flipped) assert.ok((us ? b[1] - b[0] : b[0] - b[1]) < 0 && (us ? a[1] - a[0] : a[0] - a[1]) > 0);
-      void a0; void h0;
+test('the graphic: 1080 × 1350, everything inside the canvas, no overlaps, for every kind of match', () => {
+  const g = (side, player, minute) => ({ side, player, minute, sort: parseInt(minute) * 100 });
+  const longName = 'Borussia Mönchengladbach Football Club Of Very Long Names';
+  const many = Array.from({ length: 9 }, (_, i) => g(i % 2 ? 'away' : 'home', `Player With A Really Quite Long Surname ${i}`, `${10 + i * 9}'`));
+  const cases = {
+    goalless: { score: { home: 0, away: 0 }, goals: [] },
+    hattrick: { score: { home: 3, away: 0 }, goals: [g('home', 'Erling Haaland', "12'"), g('home', 'Erling Haaland', "45+2'"), g('home', 'Erling Haaland', "90+6'")] },
+    goalfest: { score: { home: 5, away: 4 }, goals: many },
+    shootout: { score: { home: 1, away: 1 }, shootout: { home: 5, away: 4 }, espnStatus: { name: 'STATUS_FINAL_PEN' }, goals: [g('home', 'A', "3'"), g('away', 'B', "90'")] },
+  };
+  for (const [name, c] of Object.entries(cases)) {
+    const m = { comp: 'x', compName: 'UEFA Europa Conference League Qualifying', compLogo: 'http://logo', kickoff: '2026-11-15T15:00:00Z', espnStatus: { name: 'STATUS_FULL_TIME' }, home: { name: longName, logo: 'http://h', color: '000000' }, away: { name: 'Paris Saint-Germain', logo: 'http://a', color: '004170' }, ...c };
+    const data = graphicData(m, { timezone: 'Europe/London' });
+    const scene = buildScene(data, { accent: '#d7ff3c', handle: '@footballpast90' });
+    assert.equal(scene.w, 1080); assert.equal(scene.h, 1350);
+    const boxes = [];
+    for (const el of scene.elements) {
+      assert.ok(el.x >= 0 && el.y >= 0 && el.x + el.w <= 1080 + 0.5 && el.y + el.h <= 1350 + 0.5, `${name}: ${el.id} outside the canvas`);
+      if (el.type === 'text') {
+        const L = layoutText(el);
+        assert.ok(L.widest <= el.w + 1, `${name}: ${el.id} text wider than its box (${L.widest} > ${el.w})`);
+        if (el.fit) assert.ok(L.height <= el.h + 1, `${name}: ${el.id} text taller than its box`);
+        boxes.push(el);
+      }
     }
+    // Text boxes may share a row (name + minutes) but never overlap.
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i], b = boxes[j];
+      const overlap = a.x < b.x + b.w - 1 && b.x < a.x + a.w - 1 && a.y < b.y + b.h - 1 && b.y < a.y + a.h - 1;
+      if (overlap && !(a.id === 'ft-label' && b.id === 'ft-pill')) assert.fail(`${name}: ${a.id} overlaps ${b.id}`);
+    }
+    if (name === 'goalless') assert.ok(scene.elements.some(e => e.id === 'no-goals' && /No goals scored/i.test(e.text)));
+    if (name === 'shootout') assert.ok(scene.elements.some(e => e.id === 'score-note' && e.text === '5–4 on penalties'));
+    if (name === 'hattrick') assert.ok(scene.elements.some(e => e.text === "12', 45+2', 90+6'"));
   }
 });

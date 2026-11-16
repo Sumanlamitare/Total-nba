@@ -1,12 +1,12 @@
 name: Ops
 
-# One-off operations: probe ESPN's soccer API (prints the real response shapes the app is built on), or drop the old
-# NBA app's database ("atn" only; nothing else on the cluster is touched).
+# Operations: probe ESPN's soccer API (prints the real response shapes the app is built on); drop the old NBA app's
+# database ("atn" only; nothing else on the cluster is touched); print the app's current state from its database.
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: probe | wipe-atn
+        description: probe | wipe-atn | status
         default: probe
       args:
         description: probe arguments (daysBack daysAhead [slugs])
@@ -25,5 +25,9 @@ jobs:
         run: node tools/probe-espn-soccer.mjs ${{ inputs.args }}
       - if: inputs.task == 'wipe-atn'
         run: npm i --no-save mongodb@6 && node tools/wipe-atn.mjs atn
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      - if: inputs.task == 'status'
+        run: npm ci --omit=dev && node tools/status.mjs
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}

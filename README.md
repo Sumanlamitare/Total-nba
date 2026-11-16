@@ -1,165 +1,72 @@
-# Around the NBA
+# Football Past 90 — full-time graphic generator
 
-A live NBA event feed. It watches every game at once, recognizes the moments worth talking about — comebacks, game
-winners (offensive and defensive), records, takeovers, role players nobody saw coming, streaks — verifies them, and
-reports them in one continuously updating feed.
+Automatic, Instagram-ready full-time graphics (1080 × 1350 PNG) for **@footballpast90**, for every match across 39 men's
+competitions. It finds the matches, watches them, notices full time, reads the final score and the scorers, makes the
+graphic, keeps the graphic, and deletes the match data afterwards. It is deliberately not a statistics database.
 
-Live: https://total-nba-ja9d.vercel.app
+## What it does
 
-## What's in the app
+- **Matches** — today, tomorrow and the day after across the competitions, by day (in your own time zone) and
+  competition: teams and crests, kickoff, status (Scheduled · Live · Halftime · Full Time · Graphic generated · Needs
+  review · Postponed…), the score, and a link to the graphic.
+- **Full time → graphic** — when ESPN confirms a match is over (full time, after extra time, or after penalties), the
+  goals are checked against the score: every goal needs its team, scorer and minute. Stoppage time (45+2'), penalties
+  (P), own goals (OG, listed under the team they counted for), several goals by one player, 0–0 ("No goals scored"),
+  extra time and shootouts (shown separately under the score) are all handled. The graphic is made once per ESPN event
+  id; nothing is ever invented — if ESPN's goal data is incomplete the app waits up to 90 minutes for it, then flags the
+  graphic **Needs review** instead of publishing a guess.
+- **Graphics** — every graphic made in the current period: preview, **Download PNG**, **Regenerate**, **Edit** (team
+  names, score, shootout, scorers, the line under the score, date) with a live preview, **Approve**, keep or delete. The
+  graphic keeps its own copy of the data it was drawn from, so it stays available after the match data is deleted.
+  Graphics are removed after 30 days (Settings) unless you keep them.
+- **Completed – Pending Deletion** — finished matches with their graphic made, the countdown to the next automatic
+  cleanup, and **DELETE COMPLETED MATCH DATA** (with a confirmation that shows how many matches and goal events go).
+- **Settings** — the competitions (switch off, rename, add by ESPN code; women's codes are refused), time zone, cleanup
+  timing, the graphic's accent colour and handle, how often ESPN is checked, password, and the activity log.
 
-- **Live Feed** (home): a stream chat. The night's stories and fans' messages run in one column, newest at the
-  bottom, delivered live (Server-Sent Events, a one-second check); it follows the bottom and pauses when you scroll up.
-  Each story is a message with the player's headshot or team logo, its category badge, the headline, a line of
-  context and its picture (the graphic rendered from the story's data, cached per version), plus expandable details:
-  sources with retrieval times, verification checks, how the story developed. Fans chat with a free account (slow
-  mode: one message every 3 seconds), reply to a story, react; the host and editors can delete messages. Filter by
-  kind, importance, game, team, player, or your favorites (chat shows on the full feed). The chat clears with the
-  rest of the day.
-- **Top bar**: live game indicators, search (players, teams, stories, records), alerts for critical moments and your
-  favorites, profile.
-- **Right rail**: tonight's top performances, live Game Intelligence alerts, trending storylines.
-- **Game Intelligence**: live games with their situation (clutch time, one-possession game, final possessions), and
-  the night's stories by kind: close games, comeback watch, scoring runs, solo runs, clutch situations, blowouts,
-  collapses, historic performances.
-- **Records & Milestones**: recent records and milestones, the milestone watch, and a searchable record database.
-- **Top Performances**: an editorial ranking (efficiency, defense, clutch, winning, role), not a points leaderboard.
-- **Teams, Players, Games**: storylines first — the feed entries, the streak, recent results, the season so far.
-- **Graphics Studio** (editors): graphics made automatically for the biggest events, from the event's verified
-  data; an editor with drag, resize, snapping guides, undo/redo, templates, four social sizes plus custom, editable
-  headline, text and statistics, image replacement and uploads; PNG/JPEG export and the share sheet.
-- **Settings**: your favorites and alerts; for the owner, detection thresholds, feed significance and categories,
-  spam limits, AI reporting style, graphics, data sources, people, the automation log.
+## Temporary data and cleanup
 
-## One game day at a time
+| Kept | Temporary (deleted by cleanup) |
+| --- | --- |
+| settings, competition list, the account | `matches`: event id, competition, teams, kickoff, status, score, goals, graphic and cleanup state |
+| `graphics` (each with its own data and edits) | |
+| `logos` (crests downscaled to 320 px, so a graphic always renders the same) | |
 
-The feed is about today's games. An hour before the first tip-off of a new game day, the previous day's data is
-deleted (`lib/reset.js`): feed, comments, reactions, games, box scores, performances, events, graphics, caches. What
-stays is small: teams, player bios, **career highs** (one row per player), the **record book** (a few MB of top-40
-lists), season marks (e.g. the biggest comeback tracked), settings and accounts.
+- **Manual**: deletes only matches ESPN confirmed as full time whose graphic exists. Upcoming and live matches,
+  graphics, competition and app settings are never touched. Selection is by status and event id, not by time.
+- **Automatic**: 60 minutes before the earliest kickoff of the next calendar day (app time zone, DST-safe); a fallback
+  time (06:00) when that day has no matches. Recalculated on every check, so schedule changes move it. Runs once per
+  day; it is idempotent (after a manual cleanup it only deletes what's newly eligible); a failure is logged and retried.
+  It also removes postponed / cancelled / abandoned matches 12 hours after their kickoff.
+- Deleted event ids are remembered for 4 days (MongoDB TTL index) so a schedule refresh can't bring them back.
 
-Context that used to come from stored history is fetched live from ESPN and cached for the day (`lib/context.js`): a
-player's season so far (game log), team streaks (schedule), career totals for milestones. Career highs are seeded once
-from the box-score history and raised after every verified final; players without a row get one from their ESPN game
-logs.
+## How ESPN is used (verified against the live API)
 
-**Records, live?** No reachable source serves an NBA record book through an API: ESPN and NBA.com don't publish one,
-stats.nba.com doesn't answer servers, Basketball Reference forbids automated use, and Sportradar/SportsDataIO (paid)
-provide stats, not record books. So the record book is computed once from every ESPN box score since 1993-94, kept as
-compact lists with their scope stated, and updated after each night; the bulky history is then dropped. All-time
-records from before 1993-94 can be added by hand with a source (reference records).
+`site.api.espn.com/apis/site/v2/sports/soccer/<code>/scoreboard?dates=YYYYMMDD` gives everything: status, score,
+shootout score and each goal (team, scorer, minute, penalty / own goal / shootout flags). ESPN refuses date ranges for
+soccer and has no working cross-league scoreboard, so:
 
-## For a publishing agent (X, TikTok)
+- **Schedule refresh** every 3 hours: one request per competition per day for today, tomorrow and the day after
+  (39 × 3 = 117 small requests).
+- **Live checks** every 60 seconds, only for competitions with a match about to start, on, or just finished — one request
+  per competition, however many of its matches are on. A match stops being checked once its graphic exists.
+- The match summary (`/summary?event=`) is fetched only when the scoreboard lacks scorers at full time.
+- Only the fields the graphic needs are stored; ESPN's responses are never kept.
 
-`GET /api/agent?action=today` lists today's published stories with headline, data-driven text, the AI-written text when
-there is one, `confirmed` / `developing`, verification, sources, and image URLs rendered on demand from the story's data
-(`images.x` 1600×900, `images.story` 1080×1920 for TikTok/Reels/Stories, plus square and portrait). `unposted=x` and
-`level=high` filter it. After posting, `POST /api/agent?action=posted` with `{ id, platform, url }` and the agent key
-(Settings → Data & AI) marks it, so nothing is posted twice. `GET /api/agent?action=guide` has the rules.
+`tools/probe-espn-soccer.mjs` (run by the **Ops** workflow) prints the real response shapes for all 39 codes.
 
-## How events are found
+## Running it
 
-`scripts/monitor.mjs` runs through each game night (GitHub Actions, `.github/workflows/monitor.yml`) and checks every
-game every 20 seconds while any is live. The live stream also runs a check itself when the monitor is quiet.
+- **Web app** — Vercel (React + `api/` functions), MongoDB Atlas (`MONGODB_URI`, database `fp90`).
+- **Worker** — GitHub Actions (`.github/workflows/worker.yml`), started every 30 minutes; it stays on while something is
+  due within 35 minutes and exits otherwise. The web app steps in when the worker hasn't been seen for 3 minutes.
+- **First sign-in** — create the owner account at the site with the setup code (its SHA-256 is in `lib/auth.js`).
 
-1. **Play-by-play stories** (`lib/intel.js`) — the whole game is re-read each time, so nothing between checks is missed
-   and every story keeps a stable id:
-   team runs (8–0, 12–2, 18–4… stricter early in games; overlapping stretches are one story), solo runs (consecutive
-   team points by one player, or most of a stretch; the shooter gets the points, assists are counted separately),
-   close games (clutch time → two-possession → one-possession → final possessions, escalating within a period),
-   comebacks (watch → underway → tied → ahead; **completed** only from the final result, or **fell short**), blowouts,
-   collapses (told once, from the comeback side), overtime, clutch scoring; and from a final, verified game only:
-   game winners (the basket that gave the lead for good in the last 24 seconds, buzzer-beaters, late free throws that
-   sealed it) and **defensive game winners** (a block or steal by the winner with the loser within three in the last
-   10 seconds, or the rebound that ended the last chance).
-2. **Player lines** (`lib/detect.js`) — thresholds (configurable) are only the start: each line is measured against the
-   player's own season so far (z-scores, season highs), career highs, where it ranks in the record book ("the 4th-most
-   points in a game in Celtics history since 1993-94"), and clutch play. Role players (starters or off the bench —
-   the wording follows the box score), rookies and unexpected contributors get extra weight; stars' off nights too.
-3. **Records and milestones** (`lib/records.js`, `lib/events.js`) — record lists computed from every box score in the
-   database (league, franchise, rookie, position, international, age, season, consecutive games, team), with their
-   scope always stated: they are *box-score-era* records, never presented as all-time NBA records. All-time records
-   come only from reference records an editor adds with a source and the owner verifies. Milestones use ESPN's career
-   totals. Live: approaching → tied → broken; after the final, re-verified (career highs against the player's ESPN game
-   logs) or withdrawn.
-4. **Streaks** — team winning/losing streaks extended or snapped, from verified results.
-5. **Significance** (`lib/feed.js`) — 0–100 → critical / high / medium / low; only entries above the threshold, in
-   enabled categories, are published; at most a few runs per game (the strongest); favorites and playoffs get a bump;
-   a story that develops updates its entry and moves back to the top when it escalates.
-
-## Accuracy
-
-- A final box score is used only after the checks pass — both teams present, players' points adding up to each score,
-  minutes and quarters adding up — **and** NBA.com's box score agrees on the score and every player's points,
-  rebounds and assists. Games NBA.com never confirms are used after 36 hours only if every check passes ("consistent").
-- Outcomes (game winners, completed comebacks, records tied or broken) are never published from live data.
-- Record claims and record-book rankings need lists built from the full history (5,000+ games); a partial record book
-  can't say what a record is, so it doesn't.
-- `tools/audit-feed.mjs` (run by the Live smoke test) re-checks every entry on the live site against ESPN: card
-  statistics, starter/bench wording, scores, comeback outcomes, run arithmetic, game winners.
-- Every entry keeps its source, game id, player id, detection and retrieval times, verification status and checks.
-  Cards say whether a story is developing, final, confirmed or a recap (found after the game). AI-written summaries are
-  labelled; the data-driven text is always kept beside them.
-
-## Data sources
-
-Researched with `tools/probe-atn.mjs` from GitHub Actions (details in `lib/providers/index.js`):
-
-| Source | Use | Notes |
-|---|---|---|
-| ESPN public API | Primary: live scores and play-by-play, box scores (from 1993-94), rosters, bios, career stats, game logs | No key; unofficial, no published rate limit or license — fine for this project, not a licensed production feed |
-| NBA.com live-data CDN | Verification of finals | No key; unofficial |
-| stats.nba.com | — | Doesn't answer cloud servers |
-| Basketball Reference | Linked for human checking only | Terms prohibit automated collection |
-| Sportradar / SportsDataIO | Not integrated | Licensed, paid; the provider interface is where they would plug in |
-
-## Stack
-
-- **Client**: React 18 + Vite, plain CSS (dark, orange accent; Barlow Condensed and Inter).
-- **API**: Vercel functions (`api/`): `feed` (feed, entry, ticker, rail, intel, performances, reactions, comments),
-  `stream` (Server-Sent Events), `nba` (search, players, teams, games), `records`, `graphics` (library, render, uploads),
-  `admin` (accounts, settings, integrations, log, run now).
-- **Monitor**: Node in GitHub Actions (long-running through game nights); history backfill there too.
-- **Database**: MongoDB (already provisioned for this deployment; PostgreSQL would fit behind the same modules).
-- **Graphics**: one SVG renderer (`lib/graphics/`) for the editor, browser export and server rendering (resvg).
-- **AI**: Anthropic API (Claude Opus 5.5) for labelled summaries of high and critical entries, written only from each
-  entry's facts. Optional: needs `ANTHROPIC_API_KEY` (Vercel and GitHub Actions secrets) or a key saved in Settings.
-
-Why not the suggested Next.js + Prisma + PostgreSQL: the deployment already runs on Vercel with MongoDB, and the feed's
-real-time part is better served by a long-running monitor plus SSE than by request-driven server components; the
-modules are plain ES modules shared by the browser, the functions and the monitor.
-
-## Setup
-
-- Vercel: `MONGODB_URI` (set). Optional: `ANTHROPIC_API_KEY`, `ATN_SECRET` (key for encrypting saved credentials).
-- GitHub Actions secrets: `MONGODB_URI` (set); optional `ANTHROPIC_API_KEY`.
-- After the first history backfill, run it once with `--highs --records` (seeds career highs and the record book;
-  the next daily reset then drops the history).
-- First account: open `/signin` and use the setup code (only its hash is in the code: `lib/auth.js`). That account is the
-  owner; it can invite editors. Fans sign up themselves.
-- History: run **History backfill** (Actions) once; then **Live monitor** runs on its own every night.
-
-## Development
-
-```sh
-npm install
-MONGODB_URI=... npm run dev                     # app + API on http://localhost:5173
-ATN_MEMDB=1 MOCK_SOURCES=1 npm run dev          # no database or network: saved ESPN responses, in-memory data
-node tools/tick-sample.mjs                      # run the monitor once on saved games and print the feed
-npm test                                        # unit: intelligence on real games, feed rules, records, graphics
-MONGODB_URI=mongodb://localhost:27017 npm run test:e2e
-npm run build && npm run test:ui                # Chromium: feed, live arrival, phones, editor
+```
+npm test            # unit: ESPN parsing, goal checks, scorer lines, DST, graphic layout bounds
+npm run test:e2e    # mock ESPN + in-memory DB: sync, full time, review flags, manual + automatic cleanup, API
+npm run build && npm run test:ui    # Chromium: set-up, dashboard, editor, PNG download, delete flow, phones
+FP90_MEMDB=1 MOCK_ESPN=1 npm run dev  # the whole app on a mock ESPN, no network or database needed
 ```
 
-## Licenses
-
-| Resource | Use | License |
-|---|---|---|
-| React, Vite | Interface, build | MIT |
-| MongoDB Node driver | Database | Apache-2.0 |
-| resvg-js | Server rendering | MPL-2.0 |
-| jpeg-js | JPEG encoding | BSD-3-Clause |
-| Anthropic SDK | AI summaries | MIT |
-| Barlow Condensed, Inter | Type | SIL Open Font License 1.1 |
-| mingo, opentype.js (dev) | In-memory database for development; font metrics | MIT |
-| ESPN and NBA.com data, headshots, logos | Statistics and images | Property of their owners, used through public endpoints. Not affiliated with or endorsed by the NBA or ESPN. |
+Fonts: Barlow Condensed and Inter (SIL Open Font License, `lib/fonts/LICENSE.txt`).

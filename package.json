@@ -1,27 +1,23 @@
 {
-  "name": "around-the-nba",
+  "name": "football-past-90",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Around the NBA: a live NBA event feed. Watches every game at once, detects the moments worth talking about (comebacks, game winners, records, takeovers, role-player breakouts), verifies them and reports them as they happen.",
+  "description": "Football Past 90: automatic full-time graphics (Instagram 1080x1350) for 39 men's competitions, from ESPN. Keeps match data only until it is cleaned up; graphics are kept.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
+    "worker": "node scripts/worker.mjs",
     "test": "node --test test/unit.test.mjs",
     "test:e2e": "node --test --test-concurrency=1 test/e2e.test.mjs",
-    "test:ui": "node --test test/ui.test.mjs",
-    "monitor": "node scripts/monitor.mjs",
-    "tick": "node scripts/tick.mjs",
-    "backfill": "node scripts/backfill.mjs"
+    "test:ui": "node --test test/ui.test.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.5.0",
     "@resvg/resvg-js": "^2.6.2",
     "@vitejs/plugin-react": "^4.7.0",
-    "jpeg-js": "^0.4.4",
     "mongodb": "^6.21.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -1,24 +1,11 @@
-// Accounts (setup, sign up, sign in, roles), each person's preferences, site settings (detection, feed, AI, graphics),
-// integrations and data-source status, the automation log, and "run the monitor now".
-import crypto from 'node:crypto';
+// Account, settings, competitions, the job log and status.
 import { db } from '../lib/db.js';
-import { route, actions, fail, int, str } from '../lib/http.js';
-import { currentUser, requireUser, setupNeeded, setup, signup, login, logout, invite, changePassword, ROLES } from '../lib/auth.js';
+import { route, actions, fail, int } from '../lib/http.js';
+import { currentUser, requireUser, setupNeeded, setup, login, logout, changePassword, invite } from '../lib/auth.js';
 import { getSettings, saveSettings, DEFAULTS } from '../lib/settings.js';
-import { credentialStatus, saveCredential, CREDENTIALS } from '../lib/secrets.js';
-import { sourceStatus } from '../lib/providers/index.js';
-import { tick } from '../lib/automation.js';
-import { CATEGORIES } from '../lib/feed.js';
-
-export const config = { maxDuration: 60 };
-
-const cleanPrefs = p => ({
-  teams: Array.isArray(p?.teams) ? p.teams.map(x => str(String(x), 4)).filter(Boolean).slice(0, 30) : [],
-  players: Array.isArray(p?.players) ? p.players.map(x => str(String(x), 20)).filter(Boolean).slice(0, 60) : [],
-  categories: Array.isArray(p?.categories) ? p.categories.filter(c => CATEGORIES[c]) : [],
-  minLevel: ['low', 'medium', 'high', 'critical'].includes(p?.minLevel) ? p.minLevel : 'medium',
-  notify: { critical: !!p?.notify?.critical, favorites: !!p?.notify?.favorites, browser: !!p?.notify?.browser },
-});
+import { competitions, saveCompetitions, DEFAULT_COMPETITIONS, GROUPS } from '../lib/competitions.js';
+import { jobStatus } from './matches.js';
+import { plan } from '../lib/cleanup.js';
 
 export default route({
   GET: actions({
@@ -27,75 +14,32 @@ export default route({
       return { user: await currentUser(d, req), setupNeeded: await setupNeeded(d) };
     },
     async settings({ req }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      return { settings: await getSettings(d), defaults: DEFAULTS, categories: CATEGORIES };
-    },
-    async integrations({ req }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const status = await credentialStatus(d);
-      const agent = await d.collection('secrets').findOne({ _id: 'agentkey' }, { projection: { at: 1 } });
-      return { credentials: Object.fromEntries(Object.entries(CREDENTIALS).map(([k, v]) => [k, { label: v.label, fields: v.fields, env: v.env, ...status[k] }])), sources: sourceStatus(), agentKey: agent ? { at: agent.at } : null };
-    },
-    async users({ req }) {
-      const d = await db(); await requireUser(d, req, 'owner');
-      return d.collection('users').find({}, { projection: { password: 0 } }).sort({ createdAt: 1 }).limit(500).toArray();
+      const d = await db(); await requireUser(d, req);
+      return { settings: await getSettings(d), defaults: DEFAULTS, competitions: await competitions(d), defaultCompetitions: DEFAULT_COMPETITIONS, groups: GROUPS };
     },
     async log({ req, query }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const q = query.level ? { level: str(query.level, 10) } : {};
-      const [entries, last] = await Promise.all([d.collection('log').find(q).sort({ at: -1 }).limit(int(query.limit, 100, 1, 300)).toArray(), d.collection('meta').findOne({ _id: 'tick' })]);
-      return { entries, lastTick: last };
+      const d = await db(); await requireUser(d, req);
+      return d.collection('log').find({}).sort({ at: -1 }).limit(int(query.limit, 100, 1, 300)).toArray();
     },
-    async status() {
-      const d = await db();
-      const [t, rec, monitor] = await Promise.all([d.collection('meta').findOne({ _id: 'tick' }), d.collection('meta').findOne({ _id: 'records' }), d.collection('meta').findOne({ _id: 'monitor' })]);
-      return { lastTick: t?.at || null, summary: t?.summary || null, records: rec?.coverage || null, monitor: monitor || null };
+    async status({ req }) {
+      const d = await db(); await requireUser(d, req);
+      const [matches, graphics, logos, processed] = await Promise.all(['matches', 'graphics', 'logos', 'processed'].map(c => d.collection(c).estimatedDocumentCount()));
+      return { jobs: await jobStatus(d), cleanup: await plan(d), counts: { matches, graphics, logos, processed } };
     },
   }),
   POST: actions({
-    async setup({ res, body }) { const d = await db(); return { user: await setup(d, res, body) }; },
-    async signup({ res, body }) { const d = await db(); return { user: await signup(d, res, body) }; },
+    async setup({ req, res, body }) { const d = await db(); return { user: await setup(d, res, body) }; },
     async login({ res, body }) { const d = await db(); return { user: await login(d, res, body) }; },
     async logout({ req, res }) { const d = await db(); await logout(d, req, res); return { ok: true }; },
-    async password({ req, body }) { const d = await db(); const u = await requireUser(d, req); await changePassword(d, u, body); return { ok: true, signedOut: true }; },
-    async prefs({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req);
-      const prefs = cleanPrefs(body.prefs);
-      await d.collection('users').updateOne({ _id: u._id }, { $set: { prefs } });
-      return { prefs };
-    },
-    async invite({ req, body }) { const d = await db(); await requireUser(d, req, 'owner'); return invite(d, body); },
-    async user({ req, body }) {
-      const d = await db(); const me = await requireUser(d, req, 'owner');
-      if (body.id === me._id) fail(400, 'You cannot change your own account here');
-      const set = {};
-      if (ROLES.includes(body.role) && body.role !== 'owner') set.role = body.role;
-      if (typeof body.disabled === 'boolean') set.disabled = body.disabled;
-      await d.collection('users').updateOne({ _id: str(body.id, 60) }, { $set: set });
-      if (set.disabled) await d.collection('sessions').deleteMany({ uid: str(body.id, 60) });
-      return { ok: true };
-    },
-    async settings({ req, body }) { const d = await db(); const u = await requireUser(d, req, 'owner'); return { settings: await saveSettings(d, body.settings || {}, u) }; },
-    async credential({ req, body }) {
-      const d = await db(); const u = await requireUser(d, req, 'owner');
-      await saveCredential(d, str(body.id, 20), body.values === null ? null : body.values || {}, u);
-      return { ok: true };
-    },
-    // The agent key (for an automated publisher to mark stories as posted). Shown once; only its hash is kept.
-    async agentkey({ req }) {
+    async password({ req, body }) { const d = await db(); const u = await requireUser(d, req); await changePassword(d, u, body); return { ok: true }; },
+    async invite({ req, body }) { const d = await db(); await requireUser(d, req, 'owner'); return invite(d, { ...body, role: 'editor' }); },
+    async settings({ req, body }) {
       const d = await db(); await requireUser(d, req, 'owner');
-      const key = `atn_${crypto.randomBytes(24).toString('base64url')}`;
-      await d.collection('secrets').updateOne({ _id: 'agentkey' }, { $set: { hash: crypto.createHash('sha256').update(`atn-agent:${key}`).digest('hex'), at: new Date() } }, { upsert: true });
-      return { key };
+      try { return { settings: await saveSettings(d, body.settings || {}) }; } catch (e) { fail(e.status || 400, e.message); }
     },
-    // Run the monitor now. At most once per 45 seconds across everyone.
-    async tick({ req }) {
-      const d = await db(); await requireUser(d, req, 'editor');
-      const now = new Date();
-      const lock = await d.collection('meta').findOneAndUpdate({ _id: 'tick-lock', at: { $lt: new Date(now - 45e3) } }, { $set: { at: now } }, { returnDocument: 'after' }).catch(() => null)
-        || await d.collection('meta').insertOne({ _id: 'tick-lock', at: now }).then(() => true).catch(() => null);
-      if (!lock) return { skipped: true, lastTick: await d.collection('meta').findOne({ _id: 'tick' }) };
-      return { summary: await tick(d, { now, log: () => {} }), at: now };
+    async competitions({ req, body }) {
+      const d = await db(); await requireUser(d, req, 'owner');
+      try { return { competitions: await saveCompetitions(d, body.list) }; } catch (e) { fail(e.status || 400, e.message); }
     },
   }),
 });
