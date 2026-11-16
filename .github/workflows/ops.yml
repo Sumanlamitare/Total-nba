@@ -28,6 +28,6 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - if: inputs.task == 'status'
-        run: npm ci --omit=dev && node tools/status.mjs
+        run: npm ci --omit=dev && node tools/status.mjs ${{ inputs.args == 'png' && '--png' || '' }}
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
