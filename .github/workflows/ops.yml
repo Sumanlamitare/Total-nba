@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: probe | wipe-atn | status
+        description: probe | photos | wipe-atn | status
         default: probe
       args:
         description: probe arguments (daysBack daysAhead [slugs])
@@ -23,6 +23,8 @@ jobs:
           node-version: 22
       - if: inputs.task == 'probe'
         run: node tools/probe-espn-soccer.mjs ${{ inputs.args }}
+      - if: inputs.task == 'photos'
+        run: node tools/probe-photos.mjs
       - if: inputs.task == 'wipe-atn'
         run: npm i --no-save mongodb@6 && node tools/wipe-atn.mjs atn
         env:
