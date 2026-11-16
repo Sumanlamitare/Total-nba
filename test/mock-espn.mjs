@@ -75,6 +75,7 @@ export async function mockEspn({ events = null } = {}) {
       const ev = [...store.values()].map(([, e]) => e.competitions[0].competitors.map(c => c.team)).flat().find(t => t.abbreviation === m[1]);
       return send(200, crest(m[1], ev?.color || '444444'), 'image/svg+xml');
     }
+    if (u.pathname === '/still.png') { res.setHeader('content-type', 'image/png'); return res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')); }
     if ((m = u.pathname.match(/^\/league\/(\d+)\.svg$/))) return send(200, `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="46" fill="#3d195b"/></svg>`, 'image/svg+xml');
     if ((m = u.pathname.match(/^\/soccer\/([\w.]+)\/scoreboard$/))) {
       const code = m[1], day = u.searchParams.get('dates');
@@ -88,7 +89,7 @@ export async function mockEspn({ events = null } = {}) {
       if (!hit) return send(404, { code: 404 });
       const e = hit[1], c = e.competitions[0];
       const keyEvents = c.details.map((x, i) => ({ id: String(i), type: { id: x.type.id, text: x.type.text, type: x.ownGoal ? 'own-goal' : x.penaltyKick ? 'penalty---scored' : 'goal' }, period: { number: 1 }, clock: x.clock, scoringPlay: x.scoringPlay, shootout: x.shootout, team: { id: x.team.id }, participants: (x.athletesInvolved || []).map(a => ({ athlete: { displayName: a.displayName } })) }));
-      return send(200, { header: { competitions: [{ competitors: c.competitors.map(k => ({ id: k.id, homeAway: k.homeAway, score: k.score, shootoutScore: k.shootoutScore, team: { id: k.team.id, displayName: k.team.displayName } })), status: c.status }], league: { id: '1' } }, keyEvents: hit[1].summaryKeyEvents || keyEvents });
+      return send(200, { header: { competitions: [{ competitors: c.competitors.map(k => ({ id: k.id, homeAway: k.homeAway, score: k.score, shootoutScore: k.shootoutScore, team: { id: k.team.id, displayName: k.team.displayName } })), status: c.status }], league: { id: '1' } }, keyEvents: hit[1].summaryKeyEvents || keyEvents, videos: hit[1].videos || [] });
     }
     send(404, { code: 404 });
   });

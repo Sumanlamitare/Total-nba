@@ -5,6 +5,7 @@ import { route, actions, fail, str, int } from '../lib/http.js';
 import { getSettings } from '../lib/settings.js';
 import { renderPng } from '../lib/graphics/server.js';
 import { regenerate, applyEdits, themeOf } from '../lib/matches.js';
+import { storePhoto, removePhoto, tryEspnStill } from '../lib/photos.js';
 
 export const config = { maxDuration: 60 };
 const idOf = v => (/^\d{1,20}$/.test(String(v || '')) ? String(v) : fail(400, 'Bad id'));
@@ -15,6 +16,7 @@ const EDITABLE = {
   'score.home': v => int(v, 0, 0, 99), 'score.away': v => int(v, 0, 0, 99),
   'scorers.home': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
   'scorers.away': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
+  'potm.name': v => str(v, 60), potmLabel: v => str(v, 30) || 'Player of the game', 'photo.credit': v => str(v, 80) || null, 'photo.anchor': v => (['top', 'center', 'bottom'].includes(v) ? v : 'center'),
   note: v => str(v, 60) || null, statusLabel: v => str(v, 24) || 'Full time', date: v => str(v, 40),
   shootout: v => (v && v.home !== '' && v.away !== '' && v.home != null && v.away != null ? { home: int(v.home, 0, 0, 30), away: int(v.away, 0, 0, 30) } : null),
 };
@@ -24,7 +26,7 @@ function cleanEdits(e) {
   for (const [k, fn] of Object.entries(EDITABLE)) if (k in e) out[k] = fn(e[k]);
   return Object.keys(out).length ? out : null;
 }
-const summary = g => ({ _id: g._id, status: g.status, problems: g.problems, match: g.match, data: applyEdits(g.data, g.edits), edited: !!g.edits, approved: !!g.approved, keep: !!g.keep, render: g.render, error: g.error, createdAt: g.createdAt, updatedAt: g.updatedAt, version: g.version, downloads: g.downloads || 0, downloadedAt: g.downloadedAt || null, theme: g.theme });
+const summary = g => ({ _id: g._id, status: g.status, problems: g.problems, match: g.match, data: applyEdits(g.data, g.edits), edited: !!g.edits, approved: !!g.approved, keep: !!g.keep, render: g.render, error: g.error, createdAt: g.createdAt, updatedAt: g.updatedAt, version: g.version, downloads: g.downloads || 0, downloadedAt: g.downloadedAt || null, theme: g.theme, photoPending: g.photoPending || null });
 
 export default route({
   GET: actions({
@@ -42,6 +44,18 @@ export default route({
       if (!g) fail(404, 'No such graphic');
       const m = await d.collection('matches').findOne({ _id: g._id }, { projection: { _id: 1 } });
       return { ...summary(g), original: g.data, edits: g.edits || {}, matchDataHeld: !!m };
+    },
+    // The photo on a graphic (for the editor's preview).
+    async photo({ res, query }) {
+      const d = await db();
+      const p = await d.collection('photos').findOne({ _id: idOf(query.id) });
+      if (!p) fail(404, 'No photo');
+      const [, type, b64] = String(p.uri).match(/^data:([^;]+);base64,(.*)$/) || [];
+      res.statusCode = 200;
+      res.setHeader('content-type', type || 'image/jpeg');
+      res.setHeader('cache-control', 'private, max-age=86400');
+      res.end(Buffer.from(b64 || '', 'base64'));
+      res.raw = true;
     },
     // The PNG, exactly 1080 × 1350. ?download=1 saves it as a file and records the download.
     async png({ req, res, query }) {
@@ -83,6 +97,21 @@ export default route({
       await d.collection('matches').updateOne({ _id: id }, { $set: { 'graphic.status': status === 'ready' ? 'generated' : status } });
       return summary(await d.collection('graphics').findOne({ _id: id }));
     },
+    // Put a photo on a graphic: your own (a data URI, downscaled in the browser), or ESPN's highlights still.
+    async photo({ body }) {
+      const d = await db();
+      const id = idOf(body.id);
+      const g = await d.collection('graphics').findOne({ _id: id });
+      if (!g) fail(404, 'No such graphic');
+      if (body.source === 'espn') { if (!(await tryEspnStill(d, g))) fail(404, 'ESPN has no highlights still for this match yet'); }
+      else await storePhoto(d, id, { uri: String(body.dataUri || ''), source: 'upload', credit: str(body.credit, 80) || null });
+      return summary(await d.collection('graphics').findOne({ _id: id }));
+    },
+    async removePhoto({ body }) {
+      const d = await db();
+      await removePhoto(d, idOf(body.id));
+      return summary(await d.collection('graphics').findOne({ _id: idOf(body.id) }));
+    },
     async keep({ req, body }) {
       const d = await db();
       await d.collection('graphics').updateOne({ _id: idOf(body.id) }, { $set: { keep: body.keep !== false } });
@@ -93,6 +122,7 @@ export default route({
       const id = idOf(body.id);
       if (await d.collection('matches').countDocuments({ _id: id, status: 'ft' }, { limit: 1 })) await d.collection('matches').updateOne({ _id: id }, { $set: { 'graphic.status': 'removed' } });
       await d.collection('graphics').deleteOne({ _id: id });
+      await d.collection('photos').deleteOne({ _id: id });
       return { ok: true };
     },
   }),

@@ -171,3 +171,41 @@ test('API: no sign-in needed; delete needs confirmation; graphics still download
   const list = await call('graphics', { query: { action: 'list' }, cookie: c });
   assert.ok(list.json.items.length >= 5);
 });
+
+test('photos: ESPN highlights still at full time (when switched on), re-checked until it appears; upload and remove your own', async () => {
+  const { saveSettings } = await import('../lib/settings.js');
+  const { photoRetries } = await import('../lib/photos.js');
+  await saveSettings(d, { graphics: { espnPhotos: true } });
+  const at = lib.day + 2 * 24 * H + 15 * H; // Wednesday 3 PM
+  // Match P has its highlights at full time; match Q gets them 40 minutes later.
+  const hl = name => [{ headline: `${name} - Game Highlights`, thumbnail: `${m.base}/still.png` }, { headline: 'Unrelated transfer story', thumbnail: `${m.base}/other.png` }];
+  m.put('eng.1', Object.assign(event({ id: '601', at, home: T.a, away: T.b, status: 'ft', score: [2, 0], goals: [{ side: 'home', player: 'Ann Able', min: "10'" }, { side: 'home', player: 'Ann Able', min: "80'" }] }, m.base), { videos: hl('Alpha FC vs. Beta United') }));
+  m.put('eng.1', Object.assign(event({ id: '602', at, home: T.c, away: T.d, status: 'ft', score: [1, 0], goals: [{ side: 'home', player: 'Cy Cee', min: "55'" }] }, m.base), { videos: [{ headline: 'Unrelated transfer story', thumbnail: `${m.base}/still.png` }] }));
+  const now = new Date(at + 2 * H);
+  await lib.sync(d, { now, days: 1 });
+  const p = await d.collection('graphics').findOne({ _id: '601' });
+  assert.equal(p.data.photo?.src, 'photo:601', 'photo attached at full time');
+  assert.equal(p.data.photo.source, 'espn');
+  assert.deepEqual(p.data.potm && [p.data.potm.name, p.data.potm.why], ['Ann Able', 'Two goals']);
+  const q = await d.collection('graphics').findOne({ _id: '602' });
+  assert.equal(q.data.photo, null, 'an unrelated video is never used');
+  assert.ok(q.photoPending?.next, 'checks again later');
+  m.update('602', e => { e.videos = hl('Gamma Town vs. Delta City'); });
+  assert.equal((await photoRetries(d, { now: new Date(+now + 5 * 60e3) })).checked, 0, 'not before 15 minutes');
+  assert.equal((await photoRetries(d, { now: new Date(+now + 16 * 60e3) })).added, 1);
+  assert.equal((await d.collection('graphics').findOne({ _id: '602' })).data.photo?.src, 'photo:602');
+  // Your own photo replaces it; removing it goes back to the layout without a photo; the PNG renders either way.
+  const png1x1 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const up = await call('graphics', { method: 'POST', query: { action: 'photo' }, body: { id: '602', dataUri: png1x1, credit: 'Photo: Me' } });
+  assert.equal(up.status, 200);
+  assert.deepEqual([up.json.data.photo.source, up.json.data.photo.credit], ['upload', 'Photo: Me']);
+  assert.equal((await call('graphics', { method: 'POST', query: { action: 'photo' }, body: { id: '602', dataUri: 'data:text/html;base64,PGI+' } })).status, 400, 'images only');
+  const img = await call('graphics', { query: { action: 'photo', id: '602' } });
+  assert.equal(img.headers['content-type'], 'image/png');
+  const png = await call('graphics', { query: { action: 'png', id: '602' } });
+  assert.equal(png.raw.readUInt32BE(16), 1080);
+  const rm = await call('graphics', { method: 'POST', query: { action: 'removePhoto' }, body: { id: '602' } });
+  assert.equal(rm.json.data.photo, null);
+  assert.equal(await d.collection('photos').countDocuments({ _id: '602' }), 0);
+  await saveSettings(d, { graphics: { espnPhotos: false } });
+});

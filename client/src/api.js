@@ -48,7 +48,7 @@ export const when = t => new Date(t).toLocaleString([], { weekday: 'short', day:
 export function until(t, now = Date.now()) {
   const ms = new Date(t) - now;
   if (ms <= 0) return 'due now';
-  const h = Math.floor(ms / 3600e3), m = Math.round((ms % 3600e3) / 60e3);
+  const total = Math.ceil(ms / 60e3), h = Math.floor(total / 60), m = total % 60;
   return h ? `in ${h} h ${m} min` : `in ${m} min`;
 }
 export function ago(t) {
