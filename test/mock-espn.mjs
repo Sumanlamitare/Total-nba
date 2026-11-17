@@ -34,7 +34,9 @@ const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 
 const LEAGUES = { 'eng.1': ['700', 'English Premier League', 'Premier League', 23], 'esp.1': ['740', 'Spanish LALIGA', 'LALIGA', 15], 'uefa.champions': ['775', 'UEFA Champions League', 'UEFA Champions League', 2], 'ger.1': ['720', 'German Bundesliga', 'Bundesliga', 10], 'fra.coupe_de_france': ['3952', 'Coupe de France', 'Coupe de France', 182], 'esp.copa_del_rey': ['3951', 'Spanish Copa del Rey', 'Copa del Rey', 80], 'usa.1': ['770', 'MLS', 'MLS', 19], 'eng.w.1': ['8097', "English Women's Super League", 'WSL', 99] };
 
-export function seed(now = Date.now()) {
+// The sample day is anchored at noon New York time today, so it never straddles midnight whatever the clock says.
+const noonNY = () => { const day = nyDay(Date.now()); const guess = Date.UTC(+day.slice(0, 4), +day.slice(4, 6) - 1, +day.slice(6, 8), 17); return nyDay(guess) === day ? guess : guess - 3600e3; };
+export function seed(now = noonNY()) {
   const h = 3600e3, T = {
     eve: ['368', 'Everton', 'Everton', 'EVE', '0606fa'], cov: ['388', 'Coventry City', 'Coventry', 'COV', '87cced'], ars: ['359', 'Arsenal', 'Arsenal', 'ARS', 'e20520'], che: ['363', 'Chelsea', 'Chelsea', 'CHE', '034694'],
     mun: ['360', 'Manchester United', 'Man United', 'MUN', 'da020e'], tot: ['367', 'Tottenham Hotspur', 'Spurs', 'TOT', 'ffffff'], liv: ['364', 'Liverpool', 'Liverpool', 'LIV', 'd11317'], mci: ['382', 'Manchester City', 'Man City', 'MNC', '99c5ea'],

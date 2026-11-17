@@ -40,7 +40,6 @@ export function Settings() {
           </div>
           <label className="check"><input type="checkbox" checked={s.graphics.showDate} onChange={e => set('graphics.showDate', e.target.checked)} /> Show the match date</label>
           <label className="check"><input type="checkbox" checked={s.graphics.useTeamColors} onChange={e => set('graphics.useTeamColors', e.target.checked)} /> Team-colour rule under each crest</label>
-          <label className="check"><input type="checkbox" checked={s.graphics.playerOfGame} onChange={e => set('graphics.playerOfGame', e.target.checked)} /> Name a Player of the Game (picked from the goals: most goals, then the winning goal)</label>
           <label className="check"><input type="checkbox" checked={s.graphics.espnPhotos} onChange={e => set('graphics.espnPhotos', e.target.checked)} /> Use ESPN's match highlights still as the photo when there is one</label>
           <p className="muted small">ESPN's stills are frames from broadcast footage, owned by the broadcaster or ESPN — posting them may need permission. ESPN usually publishes them an hour or more after full time, so the app keeps looking for 3 hours. Many matches (especially internationals) never get one. You can always upload your own photo on a graphic instead.</p>
           <label>Keep graphics for (days, 0 = until deleted)<input type="number" min="0" max="365" value={s.graphics.retentionDays} onChange={e => set('graphics.retentionDays', e.target.value)} /></label>

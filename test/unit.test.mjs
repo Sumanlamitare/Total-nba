@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalize, appStatus, minuteLabel, goalProblems } from '../lib/espn.js';
-import { scorerLines, graphicData, playerOfGame } from '../lib/graphics/data.js';
+import { scorerLines, graphicData } from '../lib/graphics/data.js';
 import { buildScene, rows } from '../lib/graphics/fulltime.js';
 import { layoutText } from '../lib/graphics/text.js';
 import { zonedTime, dayOf, addDays } from '../lib/tz.js';
@@ -90,7 +90,7 @@ test('the graphic: 1080 × 1350, everything inside the canvas, no overlaps, for 
   };
   for (const [name, c] of Object.entries(cases)) {
     const m = { comp: 'x', compName: 'UEFA Europa Conference League Qualifying', compLogo: 'http://logo', kickoff: '2026-11-15T15:00:00Z', espnStatus: { name: 'STATUS_FULL_TIME' }, home: { name: longName, logo: 'http://h', color: '000000' }, away: { name: 'Paris Saint-Germain', logo: 'http://a', color: '004170' }, ...c };
-    const data = graphicData(m, { timezone: 'Europe/London', graphics: { playerOfGame: true } });
+    const data = graphicData(m, { timezone: 'Europe/London' });
     if (c.photo) data.photo = { src: 'photo:1', credit: 'Photo: Someone / Agency' };
     const scene = buildScene(data, { accent: '#d7ff3c', handle: '@footballpast90' });
     assert.equal(scene.w, 1080); assert.equal(scene.h, 1350);
@@ -113,21 +113,10 @@ test('the graphic: 1080 × 1350, everything inside the canvas, no overlaps, for 
     if (name === 'goalless') assert.ok(scene.elements.some(e => e.id === 'no-goals' && /No goals scored/i.test(e.text)));
     if (name === 'shootout') assert.ok(scene.elements.some(e => e.id === 'score-note' && e.text === '5–4 on penalties'));
     if (name === 'hattrick') assert.ok(scene.elements.some(e => e.text === "12', 45+2', 90+6'"));
-    if (name === 'hattrick') assert.ok(scene.elements.some(e => e.id === 'potm-name' && e.text === 'ERLING HAALAND'), 'player of the game line without a photo');
-    if (c.photo) { assert.ok(scene.elements.some(e => e.id === 'photo')); assert.ok(scene.elements.some(e => e.id === 'potm-name')); }
+    if (c.photo) assert.ok(scene.elements.some(e => e.id === 'photo'));
+    assert.ok(!scene.elements.some(e => /^potm/.test(e.id)), 'no player of the game');
     // Scorers stay readable whatever the layout.
     assert.ok(scene.elements.filter(e => /-scorer-/.test(e.id)).every(e => layoutText(e).size >= 20), `${name}: scorer text too small`);
   }
 });
 
-test('player of the game: most goals, then the winning goal, then the winners; no pick for an even draw', () => {
-  const g = (side, player, sort, o = {}) => ({ side, player, sort, minute: `${sort}'`, ownGoal: !!o.og });
-  assert.equal(playerOfGame({ score: { home: 3, away: 1 }, goals: [g('home', 'A', 10), g('away', 'B', 20), g('home', 'A', 30), g('home', 'A', 80)] }).why, 'Hat-trick');
-  assert.deepEqual(pick({ score: { home: 2, away: 1 }, goals: [g('home', 'A', 10), g('away', 'B', 20), g('home', 'C', 80)] }), ['C', 'The winning goal'], 'the goal that put them ahead for good');
-  assert.deepEqual(pick({ score: { home: 0, away: 1 }, goals: [g('away', 'Z', 90)] }), ['Z', 'The only goal']);
-  assert.equal(playerOfGame({ score: { home: 1, away: 1 }, goals: [g('home', 'A', 10), g('away', 'B', 20)] }), null, 'an even draw: no pick');
-  assert.deepEqual(pick({ score: { home: 2, away: 2 }, goals: [g('home', 'A', 10), g('away', 'B', 20), g('home', 'A', 30), g('away', 'C', 40)] }), ['A', 'Two goals']);
-  assert.deepEqual(pick({ score: { home: 2, away: 1 }, goals: [g('home', 'A', 10), g('away', 'B', 20), g('home', 'X', 80, { og: true })] }), ['A', 'Goal'], 'an own goal never makes anyone player of the game');
-  assert.equal(playerOfGame({ score: { home: 0, away: 0 }, goals: [] }), null);
-  function pick(m) { const p = playerOfGame(m); return [p.name, p.why]; }
-});

@@ -186,7 +186,7 @@ test('photos: ESPN highlights still at full time (when switched on), re-checked 
   const p = await d.collection('graphics').findOne({ _id: '601' });
   assert.equal(p.data.photo?.src, 'photo:601', 'photo attached at full time');
   assert.equal(p.data.photo.source, 'espn');
-  assert.deepEqual(p.data.potm && [p.data.potm.name, p.data.potm.why], ['Ann Able', 'Two goals']);
+  assert.equal(p.data.potm, undefined, 'no player of the game');
   const q = await d.collection('graphics').findOne({ _id: '602' });
   assert.equal(q.data.photo, null, 'an unrelated video is never used');
   assert.ok(q.photoPending?.next, 'checks again later');

@@ -16,7 +16,7 @@ const EDITABLE = {
   'score.home': v => int(v, 0, 0, 99), 'score.away': v => int(v, 0, 0, 99),
   'scorers.home': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
   'scorers.away': v => (Array.isArray(v) ? v.map(x => str(x, 90)).filter(Boolean).slice(0, 20) : []),
-  'potm.name': v => str(v, 60), potmLabel: v => str(v, 30) || 'Player of the game', 'photo.credit': v => str(v, 80) || null, 'photo.anchor': v => (['top', 'center', 'bottom'].includes(v) ? v : 'center'),
+  'photo.credit': v => str(v, 80) || null, 'photo.anchor': v => (['top', 'center', 'bottom'].includes(v) ? v : 'center'),
   note: v => str(v, 60) || null, statusLabel: v => str(v, 24) || 'Full time', date: v => str(v, 40),
   shootout: v => (v && v.home !== '' && v.away !== '' && v.home != null && v.away != null ? { home: int(v.home, 0, 0, 30), away: int(v.away, 0, 0, 30) } : null),
 };

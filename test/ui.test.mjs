@@ -46,11 +46,11 @@ test('a graphic: preview, editor with live preview, PNG download at 1080 × 1350
   await p.fill('label:has-text("Home team") input', 'Everton FC');
   await p.waitForTimeout(200);
   assert.match(await p.locator('.canvas').innerHTML(), /EVERTON FC|Everton FC/i);
-  // A photo, uploaded from the editor: the preview switches to the photo layout with the Player of the Game on it.
+  // A photo, uploaded from the editor: the preview switches to the photo layout.
   await p.locator('label.file input[type=file]').setInputFiles({ name: 'photo.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
   await p.waitForSelector('.notice.ok:has-text("Photo added")');
   await p.waitForFunction(() => /action=photo/.test(document.querySelector('.canvas').innerHTML));
-  assert.match(await p.locator('.canvas').innerHTML(), /PLAYER OF THE GAME/);
+  assert.doesNotMatch(await p.locator('.canvas').innerHTML(), /PLAYER OF THE GAME/);
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('a:has-text("Download PNG")')]);
   const buf = await (await import('node:fs')).promises.readFile(await dl.path());
   assert.equal(buf.readUInt32BE(16), 1080); assert.equal(buf.readUInt32BE(20), 1350);

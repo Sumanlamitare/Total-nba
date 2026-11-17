@@ -51,16 +51,16 @@ export function GraphicPage({ id }) {
     return { ...g.data, competition: { ...g.data.competition, name: form.comp }, home: { ...g.data.home, name: form.home }, away: { ...g.data.away, name: form.away },
       score: { home: +form.sh || 0, away: +form.sa || 0 }, shootout: form.ph !== '' && form.pa !== '' ? { home: +form.ph, away: +form.pa } : null, note: form.note || null,
       scorers: { home: lines(form.scH), away: lines(form.scA) }, date: form.date, statusLabel: form.label || 'Full time',
-      potm: form.potm ? { ...(g.data.potm || {}), name: form.potm } : null, photo: g.data.photo ? { ...g.data.photo, credit: form.credit || null, anchor: form.anchor } : null };
+      photo: g.data.photo ? { ...g.data.photo, credit: form.credit || null, anchor: form.anchor } : null };
   }, [g, form]);
   // The photo is stored on the server ("photo:<id>"); the preview loads it from there.
   const svg = useMemo(() => (edited ? renderScene(buildScene(edited, g.theme || {}), { images: edited.photo?.src ? { [edited.photo.src]: `/api/graphics?action=photo&id=${g._id}&v=${g.version}` } : {} }) : ''), [edited, g]);
   if (error && !g) return <ErrorBox error={error} retry={reload} />;
   if (!g) return <Loading label="Loading graphic" />;
-  const startEdit = () => { const d = g.data; setForm({ comp: d.competition?.name || '', home: d.home?.name || '', away: d.away?.name || '', sh: d.score?.home ?? 0, sa: d.score?.away ?? 0, ph: d.shootout?.home ?? '', pa: d.shootout?.away ?? '', note: d.note || '', scH: (d.scorers?.home || []).join('\n'), scA: (d.scorers?.away || []).join('\n'), date: d.date || '', label: d.statusLabel || 'Full time', potm: d.potm?.name || '', credit: d.photo?.credit || '', anchor: d.photo?.anchor || 'center' }); };
+  const startEdit = () => { const d = g.data; setForm({ comp: d.competition?.name || '', home: d.home?.name || '', away: d.away?.name || '', sh: d.score?.home ?? 0, sa: d.score?.away ?? 0, ph: d.shootout?.home ?? '', pa: d.shootout?.away ?? '', note: d.note || '', scH: (d.scorers?.home || []).join('\n'), scA: (d.scorers?.away || []).join('\n'), date: d.date || '', label: d.statusLabel || 'Full time', credit: d.photo?.credit || '', anchor: d.photo?.anchor || 'center' }); };
   const act = async (name, fn) => { setBusy(name); setMsg(null); try { await fn(); } catch (e) { setMsg({ bad: true, text: e.message }); } finally { setBusy(''); } };
   const save = approve => act(approve ? 'approve' : 'save', async () => {
-    const edits = { 'competition.name': form.comp, 'home.name': form.home, 'away.name': form.away, 'score.home': form.sh, 'score.away': form.sa, shootout: form.ph !== '' && form.pa !== '' ? { home: form.ph, away: form.pa } : null, note: form.note, 'scorers.home': lines(form.scH), 'scorers.away': lines(form.scA), date: form.date, statusLabel: form.label, 'potm.name': form.potm, ...(g.data.photo ? { 'photo.credit': form.credit, 'photo.anchor': form.anchor } : {}) };
+    const edits = { 'competition.name': form.comp, 'home.name': form.home, 'away.name': form.away, 'score.home': form.sh, 'score.away': form.sa, shootout: form.ph !== '' && form.pa !== '' ? { home: form.ph, away: form.pa } : null, note: form.note, 'scorers.home': lines(form.scH), 'scorers.away': lines(form.scA), date: form.date, statusLabel: form.label, ...(g.data.photo ? { 'photo.credit': form.credit, 'photo.anchor': form.anchor } : {}) };
     const r = await post('graphics', 'save', { id, edits, approve });
     setData(x => ({ ...x, ...r, edits })); setForm(null); setMsg({ text: approve ? 'Saved and marked ready.' : 'Saved.' });
   });
@@ -106,7 +106,6 @@ export function GraphicPage({ id }) {
             <dt>Downloads</dt><dd>{g.downloads ? `${g.downloads} · last ${ago(g.downloadedAt)}` : 'None yet'}</dd>
             <dt>Match data</dt><dd>{g.matchDataHeld ? 'Still held (until cleanup)' : 'Cleaned up — the graphic keeps its own copy'}</dd>
             <dt>Photo</dt><dd>{g.data.photo ? (g.data.photo.source === 'espn' ? 'ESPN highlights still' : 'Your upload') : g.photoPending ? 'Looking for ESPN’s highlights still…' : 'None'}</dd>
-            <dt>Player of the game</dt><dd>{g.data.potm?.name ? `${g.data.potm.name}${g.data.potm.why ? ` · ${g.data.potm.why.toLowerCase()}` : ''}` : 'None (no clear pick)'}</dd>
             <dt>ESPN event</dt><dd>{g._id}</dd>
           </dl>
           <div className="photo-tools">
@@ -127,7 +126,7 @@ export function GraphicPage({ id }) {
               <div className="two"><label>Home pens (shootout)<input type="number" min="0" max="30" value={form.ph} onChange={e => setForm({ ...form, ph: e.target.value })} placeholder="—" /></label><label>Away pens<input type="number" min="0" max="30" value={form.pa} onChange={e => setForm({ ...form, pa: e.target.value })} placeholder="—" /></label></div>
               <div className="two"><label>Home scorers <small>one per line</small><textarea rows={5} value={form.scH} onChange={e => setForm({ ...form, scH: e.target.value })} placeholder={"Player 12', 45+2' (P)"} /></label><label>Away scorers<textarea rows={5} value={form.scA} onChange={e => setForm({ ...form, scA: e.target.value })} /></label></div>
               <div className="two"><label>Line under the score<input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="After extra time" maxLength={60} /></label><label>Date<input value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} maxLength={40} /></label></div>
-              <div className="two"><label>Player of the game <small>empty: none</small><input value={form.potm} onChange={e => setForm({ ...form, potm: e.target.value })} maxLength={60} /></label><label>Status label<input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} maxLength={24} /></label></div>
+              <label>Status label<input value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} maxLength={24} /></label>
               {g.data.photo && <div className="two"><label>Photo credit<input value={form.credit} onChange={e => setForm({ ...form, credit: e.target.value })} placeholder="Photo: …" maxLength={80} /></label><label>Photo focus<select value={form.anchor} onChange={e => setForm({ ...form, anchor: e.target.value })}><option value="top">Top</option><option value="center">Centre</option><option value="bottom">Bottom</option></select></label></div>}
               <div className="actions wrap">
                 <button type="submit" className="primary" disabled={!!busy}>{busy === 'save' ? 'Saving…' : 'Save'}</button>

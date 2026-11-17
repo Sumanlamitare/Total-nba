@@ -15,13 +15,10 @@ graphic, keeps the graphic, and deletes the match data afterwards. It is deliber
   extra time and shootouts (shown separately under the score) are all handled. The graphic is made once per ESPN event
   id; nothing is ever invented — if ESPN's goal data is incomplete the app waits up to 90 minutes for it, then flags the
   graphic **Needs review** instead of publishing a guess.
-- **Player of the Game and a photo** — every graphic names a Player of the Game, picked from the goals (ESPN publishes
-  no man-of-the-match for soccer): most goals, then the scorer of the winning goal; an even draw gets none. You can
-  change or clear it. A photo can top the graphic: upload your own on the graphic's page (downscaled in the browser),
-  or switch on Settings → "Use ESPN's match highlights still" to use the frame from ESPN's highlights video for the
-  match — ESPN posts it an hour or more after full time, so the app re-checks every 15 minutes for 3 hours (many
-  matches never get one). ESPN player headshots exist for only a handful of players and its news photos are about
-  other stories, so neither is used. Mind the rights: broadcast stills and agency photos usually need permission.
+- **A photo** — a photo can top the graphic: upload your own on the graphic's page (downscaled in the browser), or
+  switch on Settings → "Use ESPN's match highlights still" to use the frame from ESPN's highlights video for the match
+  (ESPN posts it an hour or more after full time, so the app re-checks every 15 minutes for 3 hours; many matches never
+  get one). Mind the rights: broadcast stills and agency photos usually need permission.
 - **Graphics** — every graphic made in the current period: preview, **Download PNG**, **Regenerate**, **Edit** (team
   names, score, shootout, scorers, the line under the score, date) with a live preview, **Approve**, keep or delete. The
   graphic keeps its own copy of the data it was drawn from, so it stays available after the match data is deleted.
